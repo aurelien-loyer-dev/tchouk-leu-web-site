@@ -34,7 +34,7 @@ export function Header() {
       <div className="bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-8 w-auto object-contain" />
+            <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-11 w-auto object-contain" />
           </Link>
           
           <nav className="hidden md:flex items-center gap-8">

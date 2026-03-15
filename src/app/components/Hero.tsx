@@ -40,7 +40,7 @@ export function Hero() {
           transition={{ duration: 0.8 }}
           className="mb-8 flex justify-center"
         >
-          <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-32 md:h-40 w-auto object-contain" />
+          <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-36 md:h-44 w-auto object-contain" />
         </motion.div>
 
         {/* Title */}
