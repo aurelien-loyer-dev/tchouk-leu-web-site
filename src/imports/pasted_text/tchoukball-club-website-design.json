@@ -1,0 +1,309 @@
+Design a modern, clean, sport-inspired website for a tchoukball club called “TchoukLeu” located in Saint-Leu, on Reunion Island.
+
+The visual identity must combine sport energy + tropical island atmosphere.
+
+The club logo includes a shield, a tchoukball frame, and a paille-en-queue bird (white tropical bird emblematic of Reunion Island).
+
+The design must highlight:
+	•	the lagoon and beach environment of Saint-Leu
+	•	the light blue ocean colors
+	•	the local identity of Reunion Island
+	•	the paille-en-queue bird as a graphic element
+
+The style should feel modern, airy, sporty, and tropical.
+
+⸻
+
+Color palette
+
+Primary colors inspired by the logo and lagoon:
+
+Primary lagoon blue
+#BFE6FF
+
+Light sky blue
+#DDF4FF
+
+Ocean accent blue
+#4C93C3
+
+White
+#FFFFFF
+
+Dark text
+#1F2A37
+
+The interface should stay very light and breathable with lots of white space.
+
+⸻
+
+Typography
+
+Use a modern sans-serif font suitable for sports websites.
+
+Example style:
+	•	bold geometric titles
+	•	clean readable body text
+
+Headings should feel strong and dynamic, like a sports brand.
+
+⸻
+
+Homepage structure
+
+1 — Fullscreen Hero Section
+
+The homepage starts with a full-screen photograph of Saint-Leu beach and lagoon.
+
+Important:
+When the page loads, only the photo is visible.
+There is no header initially.
+
+Centered on the image:
+
+Club logo
+
+Title:
+TchoukLeu
+
+Subtitle:
+Tchoukball Club – Saint-Leu, Réunion
+
+Optional tagline:
+“Between lagoon, light and team spirit”
+
+Primary button:
+Discover the club
+
+Secondary button:
+Join us
+
+Add a subtle scroll indicator at the bottom.
+
+The hero image should evoke:
+	•	lagoon
+	•	beach
+	•	horizon
+	•	tropical light
+
+Overlay with a very subtle light blue gradient to keep text readable.
+
+⸻
+
+2 — Sticky Header (appears on scroll)
+
+The header becomes visible after scrolling.
+
+Style:
+	•	semi-transparent white background
+	•	slight blur effect
+	•	smooth fade-in animation
+
+Left:
+club logo
+
+Right navigation:
+
+Home
+The Club
+Training
+Gallery
+Contact
+
+Hover color:
+lagoon blue.
+
+⸻
+
+3 — Section: “The Spirit of TchoukLeu”
+
+Introduce the club and its identity.
+
+Layout:
+two columns
+
+Left:
+text
+
+Right:
+image of tchoukball action.
+
+Text idea:
+
+TchoukLeu is a tchoukball club based in Saint-Leu on Reunion Island.
+Inspired by the energy of the ocean and the spirit of fair play, the club brings together players passionate about teamwork and sport.
+
+Highlight key values:
+
+Fair play
+Team spirit
+Respect
+Energy
+
+Add small icons inspired by:
+	•	wings
+	•	waves
+	•	ball movement
+
+⸻
+
+4 — Section: “Our Island”
+
+This section highlights Reunion Island and Saint-Leu.
+
+Background:
+light lagoon blue.
+
+Content:
+images of Saint-Leu coastline and beach.
+
+Include a subtle graphic silhouette of the paille-en-queue bird flying across the section.
+
+Text:
+
+“Rooted in Saint-Leu, TchoukLeu reflects the energy of Reunion Island — the ocean, the wind, and the freedom of movement.”
+
+⸻
+
+5 — Training Section
+
+Display training information clearly.
+
+Use sport card design.
+
+Example cards:
+
+Training sessions
+
+Monday – 18:00 to 20:00
+Wednesday – 18:00 to 20:00
+Saturday – 10:00 to 12:00
+
+Location
+
+Saint-Leu Gymnasium
+
+Beginner friendly.
+
+Add icon illustrations for:
+calendar
+location
+players.
+
+⸻
+
+6 — Team Section
+
+Grid of players or team members.
+
+Card layout:
+
+Photo
+Name
+Role (player / coach)
+
+Use rounded shapes inspired by the shield from the logo.
+
+⸻
+
+7 — Gallery
+
+Dynamic grid of photos:
+
+Matches
+Training sessions
+Team moments
+
+Use hover animation that slightly zooms the image.
+
+⸻
+
+8 — Join the Club
+
+Call-to-action section.
+
+Background:
+lagoon blue.
+
+Text:
+
+“Want to try tchoukball?”
+
+Button:
+Join the team
+
+Secondary:
+Contact us.
+
+⸻
+
+9 — Footer
+
+Simple and clean.
+
+Logo
+“Since 2014”
+
+Links:
+
+Instagram
+Email
+Location
+
+Add a minimal paille-en-queue silhouette as decoration.
+
+⸻
+
+Graphic elements
+
+Use recurring motifs inspired by:
+	•	paille-en-queue bird wings
+	•	ocean waves
+	•	curved shapes suggesting movement
+	•	the shield shape from the logo
+
+Use them subtly in backgrounds or separators.
+
+⸻
+
+UI Style
+
+The interface should feel:
+
+modern
+sporty
+tropical
+light
+local to Reunion Island.
+
+Avoid heavy dark backgrounds.
+
+Prefer:
+
+large images
+air spacing
+soft blue accents.
+
+⸻
+
+Animations
+
+Suggested animations:
+
+Hero fade-in
+Header appearing on scroll
+Image hover zoom
+Soft parallax on the hero background.
+
+⸻
+
+Layout
+
+Desktop frame width:
+1440px
+
+Grid:
+12 columns.
+
+Spacing:
+large and breathable.
