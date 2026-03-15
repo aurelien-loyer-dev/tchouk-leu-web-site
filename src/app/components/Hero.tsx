@@ -19,7 +19,7 @@ export function Hero() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <ImageWithFallback
-          src="https://images.unsplash.com/photo-1701785923773-1c6bc3d5ca80?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cm9waWNhbCUyMGJlYWNoJTIwb2NlYW4lMjBob3Jpem9uJTIwc3Vuc2V0fGVufDF8fHx8MTc3MzU1Nzk0N3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+          src="images/accueil.jpg"
           alt="Plage de Saint-Leu"
           className="w-full h-full object-cover"
         />
