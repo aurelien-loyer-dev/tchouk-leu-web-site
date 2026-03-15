@@ -108,6 +108,16 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit, tim
 
   try {
     return await fetch(input, { ...init, signal: abortController.signal });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error("Le serveur ne répond pas à temps. Vérifiez le déploiement Vercel et les fonctions API.");
+    }
+
+    if (error instanceof TypeError) {
+      throw new Error("API inaccessible. Vérifiez la configuration Vercel et les variables d'environnement.");
+    }
+
+    throw error;
   } finally {
     window.clearTimeout(timeoutId);
   }
