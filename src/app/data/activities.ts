@@ -92,8 +92,19 @@ function ensureOkResponse(response: Response, defaultErrorMessage: string) {
   }
 }
 
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit, timeoutMs = 10000) {
+  const abortController = new AbortController();
+  const timeoutId = window.setTimeout(() => abortController.abort(), timeoutMs);
+
+  try {
+    return await fetch(input, { ...init, signal: abortController.signal });
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
 export async function loadActivities() {
-  const response = await fetch("/api/activities", {
+  const response = await fetchWithTimeout("/api/activities", {
     method: "GET",
     credentials: "include",
     cache: "no-store",
@@ -106,7 +117,7 @@ export async function loadActivities() {
 }
 
 export async function saveActivities(activities: Activity[]) {
-  const response = await fetch("/api/activities", {
+  const response = await fetchWithTimeout("/api/activities", {
     method: "PUT",
     credentials: "include",
     headers: {
@@ -122,7 +133,7 @@ export async function saveActivities(activities: Activity[]) {
 }
 
 export async function checkAdminSession() {
-  const response = await fetch("/api/admin-session", {
+  const response = await fetchWithTimeout("/api/admin-session", {
     method: "GET",
     credentials: "include",
     cache: "no-store",
@@ -134,7 +145,7 @@ export async function checkAdminSession() {
 }
 
 export async function loginAsAdmin(username: string, password: string) {
-  const response = await fetch("/api/admin-login", {
+  const response = await fetchWithTimeout("/api/admin-login", {
     method: "POST",
     credentials: "include",
     headers: {
@@ -152,7 +163,7 @@ export async function loginAsAdmin(username: string, password: string) {
 }
 
 export async function logoutAdmin() {
-  const response = await fetch("/api/admin-logout", {
+  const response = await fetchWithTimeout("/api/admin-logout", {
     method: "POST",
     credentials: "include",
   });
