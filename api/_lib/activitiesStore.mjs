@@ -228,7 +228,7 @@ export async function ensureActivitiesInitialized() {
   }
 
   const createdBlob = await put(STORE_PATH, JSON.stringify(defaultActivities), {
-    access: "public",
+    access: "private",
     contentType: "application/json",
     addRandomSuffix: false,
     allowOverwrite: true,
@@ -270,7 +270,7 @@ export async function writeActivities(activities) {
 
   const safeActivities = Array.isArray(activities) ? activities : defaultActivities;
   await put(STORE_PATH, JSON.stringify(toSortedActivities(safeActivities)), {
-    access: "public",
+    access: "private",
     contentType: "application/json",
     addRandomSuffix: false,
     allowOverwrite: true,
