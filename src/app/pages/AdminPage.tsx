@@ -121,7 +121,12 @@ export function AdminPage() {
       const nextSelectedActivity = savedActivities.find((activity) => activity.id === nextSelectedId);
       setDraft(nextSelectedActivity ?? createEmptyActivity());
       setFeedbackMessage("Planning enregistre avec succes.");
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setFeedbackMessage(error.message);
+        return;
+      }
+
       setFeedbackMessage("Impossible d'enregistrer les modifications.");
     }
   };
