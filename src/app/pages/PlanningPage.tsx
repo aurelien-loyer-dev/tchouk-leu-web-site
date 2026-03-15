@@ -20,6 +20,25 @@ function toIsoDate(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
+function getRecurringTemplateId(activityId: string) {
+  if (!activityId.startsWith("recurring:")) {
+    return null;
+  }
+
+  const segments = activityId.split(":");
+  if (segments.length < 3) {
+    return null;
+  }
+
+  return segments[1];
+}
+
+function compareActivitiesByDate(left: Activity, right: Activity) {
+  const leftValue = `${left.date}T${left.startTime}`;
+  const rightValue = `${right.date}T${right.startTime}`;
+  return leftValue.localeCompare(rightValue);
+}
+
 function normalizeLocationForMaps(location: string) {
   const trimmedLocation = (location || "").trim();
 
@@ -96,6 +115,45 @@ export function PlanningPage() {
     return activities.filter((activity) => activity.category === activeFilter);
   }, [activities, activeFilter]);
 
+  const listedActivities = useMemo(() => {
+    const todayIsoDate = toIsoDate(new Date());
+    const recurringByTemplate = new Map<string, Activity[]>();
+    const nonRecurringActivities: Activity[] = [];
+
+    for (const activity of filteredActivities) {
+      const recurringTemplateId = getRecurringTemplateId(activity.id);
+
+      if (!recurringTemplateId) {
+        nonRecurringActivities.push(activity);
+        continue;
+      }
+
+      const templateActivities = recurringByTemplate.get(recurringTemplateId) ?? [];
+      templateActivities.push(activity);
+      recurringByTemplate.set(recurringTemplateId, templateActivities);
+    }
+
+    const recurringRepresentatives = Array.from(recurringByTemplate.values()).map((templateActivities) => {
+      const sortedTemplateActivities = [...templateActivities].sort(compareActivitiesByDate);
+      return sortedTemplateActivities.find((activity) => activity.date >= todayIsoDate) ?? sortedTemplateActivities[0];
+    });
+
+    return [...nonRecurringActivities, ...recurringRepresentatives].sort(compareActivitiesByDate);
+  }, [filteredActivities]);
+
+  const recurringOccurrencesCountByTemplate = useMemo(() => {
+    return filteredActivities.reduce<Record<string, number>>((accumulator, activity) => {
+      const recurringTemplateId = getRecurringTemplateId(activity.id);
+
+      if (!recurringTemplateId) {
+        return accumulator;
+      }
+
+      accumulator[recurringTemplateId] = (accumulator[recurringTemplateId] ?? 0) + 1;
+      return accumulator;
+    }, {});
+  }, [filteredActivities]);
+
   const activitiesByDate = useMemo(() => {
     return filteredActivities.reduce<Record<string, Activity[]>>((accumulator, activity) => {
       const existing = accumulator[activity.date] ?? [];
@@ -163,7 +221,8 @@ export function PlanningPage() {
     setSelectedDate(null);
   };
 
-  const nextActivity = filteredActivities[0];
+  const todayIsoDate = toIsoDate(new Date());
+  const nextActivity = filteredActivities.find((activity) => activity.date >= todayIsoDate) ?? filteredActivities[0];
   const tournamentCount = activities.filter((activity) => activity.category === "tournoi").length;
   const trainingCount = activities.filter((activity) => activity.category === "entrainement").length;
 
@@ -396,7 +455,13 @@ export function PlanningPage() {
           ) : null}
 
           <div className="grid lg:grid-cols-2 gap-8">
-            {filteredActivities.map((activity, index) => (
+            {listedActivities.map((activity, index) => {
+              const recurringTemplateId = getRecurringTemplateId(activity.id);
+              const recurringOccurrencesCount = recurringTemplateId
+                ? recurringOccurrencesCountByTemplate[recurringTemplateId] ?? 1
+                : 1;
+
+              return (
               <motion.div
                 key={activity.id}
                 initial={{ opacity: 0, y: 24 }}
@@ -446,13 +511,17 @@ export function PlanningPage() {
                       <p className="font-semibold mb-1">Details</p>
                       <p className="text-muted-foreground">{activity.description}</p>
                     </div>
+                    {recurringTemplateId ? (
+                      <p className="text-sm text-muted-foreground">Type recurrent • {recurringOccurrencesCount} seances planifiees</p>
+                    ) : null}
                   </CardContent>
                 </Card>
               </motion.div>
-            ))}
+              );
+            })}
           </div>
 
-          {filteredActivities.length === 0 ? (
+          {listedActivities.length === 0 ? (
             <Card className="mt-8 border-dashed">
               <CardContent className="py-10 text-center text-muted-foreground">
                 Aucune activite ne correspond au filtre selectionne.
