@@ -4,6 +4,7 @@ import { list, put } from "@vercel/blob";
 const STORE_PATH = "club/wall-of-fame.json";
 const BLOB_CONFIG_ERROR = "Le stockage Vercel Blob n'est pas configure. Ajoutez BLOB_READ_WRITE_TOKEN dans le projet Vercel.";
 const MAX_DATA_URL_LENGTH = 8_000_000;
+const ALLOWED_FUNCTIONS = new Set(["coach", "joueur", "benevole", "president"]);
 
 function isBlobConfigured() {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
@@ -24,9 +25,12 @@ function normalizeMember(member) {
   const palmares = typeof member.palmares === "string" ? member.palmares.trim() : "";
   const memberSince = typeof member.memberSince === "string" ? member.memberSince.trim() : "";
   const photoSrc = typeof member.photoSrc === "string" ? member.photoSrc : "";
+  const functions = Array.isArray(member.functions)
+    ? member.functions.filter((entry) => typeof entry === "string" && ALLOWED_FUNCTIONS.has(entry))
+    : [];
   const createdAt = typeof member.createdAt === "string" ? member.createdAt : new Date().toISOString();
 
-  if (!id || !firstName || !lastName || !palmares || !memberSince || !photoSrc) {
+  if (!id || !firstName || !lastName || !palmares || !memberSince || !photoSrc || functions.length === 0) {
     return null;
   }
 
@@ -37,6 +41,7 @@ function normalizeMember(member) {
     palmares,
     memberSince,
     photoSrc,
+    functions,
     createdAt,
   };
 }
@@ -114,6 +119,9 @@ function validateNewMember(memberInput) {
   const palmares = typeof memberInput.palmares === "string" ? memberInput.palmares.trim() : "";
   const memberSince = typeof memberInput.memberSince === "string" ? memberInput.memberSince.trim() : "";
   const photoSrc = typeof memberInput.photoSrc === "string" ? memberInput.photoSrc : "";
+  const functions = Array.isArray(memberInput.functions)
+    ? [...new Set(memberInput.functions.filter((entry) => typeof entry === "string" && ALLOWED_FUNCTIONS.has(entry)))]
+    : [];
 
   if (!firstName || !lastName) {
     throw new Error("Le prénom et le nom sont obligatoires.");
@@ -125,6 +133,10 @@ function validateNewMember(memberInput) {
 
   if (!memberSince) {
     throw new Error("Le champ 'adhérent depuis' est obligatoire.");
+  }
+
+  if (functions.length === 0) {
+    throw new Error("Sélectionnez au moins une fonction.");
   }
 
   if (!photoSrc.startsWith("data:image/")) {
@@ -142,6 +154,7 @@ function validateNewMember(memberInput) {
     palmares,
     memberSince,
     photoSrc,
+    functions,
     createdAt: new Date().toISOString(),
   };
 }
@@ -155,6 +168,9 @@ function validateMemberFields(memberInput) {
   const lastName = typeof memberInput.lastName === "string" ? memberInput.lastName.trim() : "";
   const palmares = typeof memberInput.palmares === "string" ? memberInput.palmares.trim() : "";
   const memberSince = typeof memberInput.memberSince === "string" ? memberInput.memberSince.trim() : "";
+  const functions = Array.isArray(memberInput.functions)
+    ? [...new Set(memberInput.functions.filter((entry) => typeof entry === "string" && ALLOWED_FUNCTIONS.has(entry)))]
+    : [];
 
   if (!firstName || !lastName) {
     throw new Error("Le prénom et le nom sont obligatoires.");
@@ -168,11 +184,16 @@ function validateMemberFields(memberInput) {
     throw new Error("Le champ 'adhérent depuis' est obligatoire.");
   }
 
+  if (functions.length === 0) {
+    throw new Error("Sélectionnez au moins une fonction.");
+  }
+
   return {
     firstName,
     lastName,
     palmares,
     memberSince,
+    functions,
   };
 }
 

@@ -1,9 +1,12 @@
+export type WallOfFameFunction = "coach" | "joueur" | "benevole" | "president";
+
 export type WallOfFameMember = {
   id: string;
   firstName: string;
   lastName: string;
   palmares: string;
   memberSince: string;
+  functions: WallOfFameFunction[];
   photoSrc: string;
   createdAt: string;
 };
@@ -17,6 +20,7 @@ export type CreateWallOfFameMemberInput = {
   lastName: string;
   palmares: string;
   memberSince: string;
+  functions: WallOfFameFunction[];
   photoSrc: string;
 };
 
@@ -26,6 +30,7 @@ export type UpdateWallOfFameMemberInput = {
   lastName: string;
   palmares: string;
   memberSince: string;
+  functions: WallOfFameFunction[];
   photoSrc?: string;
 };
 

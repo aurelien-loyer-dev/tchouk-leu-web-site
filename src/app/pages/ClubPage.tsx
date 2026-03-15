@@ -5,6 +5,13 @@ import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { useEffect, useState } from "react";
 import { loadWallOfFameMembers, type WallOfFameMember } from "../data/wallOfFame";
 
+const wallFunctionLabelByValue = {
+  coach: "Coach",
+  joueur: "Joueur",
+  benevole: "Bénévole",
+  president: "Président",
+} as const;
+
 export function ClubPage() {
   const [wallOfFameMembers, setWallOfFameMembers] = useState<WallOfFameMember[]>([]);
 
@@ -172,6 +179,12 @@ export function ClubPage() {
                       <div className="p-6">
                         <CardTitle className="text-2xl mb-4">{member.firstName} {member.lastName}</CardTitle>
                         <div className="space-y-4 text-muted-foreground">
+                          <div>
+                            <p className="text-sm uppercase tracking-wide">Fonctions</p>
+                            <p className="text-base text-foreground">
+                              {member.functions.map((value) => wallFunctionLabelByValue[value] ?? value).join(" • ")}
+                            </p>
+                          </div>
                           <div>
                             <p className="text-sm uppercase tracking-wide">Palmarès</p>
                             <p className="text-base text-foreground">{member.palmares}</p>

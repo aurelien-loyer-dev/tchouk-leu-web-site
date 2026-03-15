@@ -25,8 +25,16 @@ import {
   deleteWallOfFameMember,
   loadWallOfFameMembers,
   updateWallOfFameMember,
+  type WallOfFameFunction,
   type WallOfFameMember,
 } from "../data/wallOfFame";
+
+const wallFunctionOptions: Array<{ value: WallOfFameFunction; label: string }> = [
+  { value: "coach", label: "Coach" },
+  { value: "joueur", label: "Joueur" },
+  { value: "benevole", label: "Bénévole" },
+  { value: "president", label: "Président" },
+];
 
 const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   day: "numeric",
@@ -87,6 +95,7 @@ export function AdminPage() {
   const [wallLastName, setWallLastName] = useState("");
   const [wallPalmares, setWallPalmares] = useState("");
   const [wallMemberSince, setWallMemberSince] = useState("");
+  const [wallFunctions, setWallFunctions] = useState<WallOfFameFunction[]>([]);
   const [wallPhotoFile, setWallPhotoFile] = useState<File | null>(null);
   const [editingWallMemberId, setEditingWallMemberId] = useState<string | null>(null);
   const [wallFeedbackMessage, setWallFeedbackMessage] = useState("");
@@ -399,6 +408,7 @@ export function AdminPage() {
     setWallLastName("");
     setWallPalmares("");
     setWallMemberSince("");
+    setWallFunctions([]);
     setWallPhotoFile(null);
     setEditingWallMemberId(null);
   };
@@ -409,8 +419,19 @@ export function AdminPage() {
     setWallLastName(member.lastName);
     setWallPalmares(member.palmares);
     setWallMemberSince(member.memberSince);
+    setWallFunctions(member.functions);
     setWallPhotoFile(null);
     setWallFeedbackMessage("Mode modification activé. Ajoutez une nouvelle photo uniquement si nécessaire.");
+  };
+
+  const toggleWallFunction = (functionValue: WallOfFameFunction) => {
+    setWallFunctions((current) => {
+      if (current.includes(functionValue)) {
+        return current.filter((entry) => entry !== functionValue);
+      }
+
+      return [...current, functionValue];
+    });
   };
 
   const handleSubmitWallOfFameMember = async () => {
@@ -426,6 +447,11 @@ export function AdminPage() {
 
     if (!wallMemberSince.trim()) {
       setWallFeedbackMessage("Le champ 'adhérent depuis' est obligatoire.");
+      return;
+    }
+
+    if (wallFunctions.length === 0) {
+      setWallFeedbackMessage("Sélectionnez au moins une fonction.");
       return;
     }
 
@@ -450,6 +476,7 @@ export function AdminPage() {
             lastName: wallLastName.trim(),
             palmares: wallPalmares.trim(),
             memberSince: wallMemberSince.trim(),
+            functions: wallFunctions,
             ...(photoSrc ? { photoSrc } : {}),
           })
         : await createWallOfFameMember({
@@ -457,6 +484,7 @@ export function AdminPage() {
             lastName: wallLastName.trim(),
             palmares: wallPalmares.trim(),
             memberSince: wallMemberSince.trim(),
+            functions: wallFunctions,
             photoSrc,
           });
 
@@ -985,6 +1013,22 @@ export function AdminPage() {
                   </div>
 
                   <div>
+                    <p className="mb-2 block font-medium">Fonctions</p>
+                    <div className="grid grid-cols-2 gap-2 rounded-md border border-border/60 p-3">
+                      {wallFunctionOptions.map((option) => (
+                        <label key={option.value} className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <input
+                            type="checkbox"
+                            checked={wallFunctions.includes(option.value)}
+                            onChange={() => toggleWallFunction(option.value)}
+                          />
+                          <span>{option.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
                     <label htmlFor="wall-palmares" className="mb-2 block font-medium">Palmarès</label>
                     <Textarea
                       id="wall-palmares"
@@ -1029,6 +1073,7 @@ export function AdminPage() {
                           <div className="p-3 space-y-2">
                             <p className="text-sm font-semibold">{member.firstName} {member.lastName}</p>
                             <p className="text-xs text-muted-foreground">Adhérent depuis: {member.memberSince}</p>
+                            <p className="text-xs text-muted-foreground">Fonctions: {member.functions.join(" • ")}</p>
                             <p className="text-xs text-muted-foreground line-clamp-2">{member.palmares}</p>
                             <div className="grid grid-cols-2 gap-2">
                               <Button
