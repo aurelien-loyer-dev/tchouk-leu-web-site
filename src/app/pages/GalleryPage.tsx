@@ -14,48 +14,8 @@ export function GalleryPage() {
 
   const galleryImages = [
     {
-      src: "https://images.unsplash.com/photo-1663246544635-118c34cc488b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0Y2hvdWtiYWxsJTIwc3BvcnQlMjBhY3Rpb24lMjBnYW1lfGVufDF8fHx8MTc3MzU1Nzk0M3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+      src: "",
       alt: "Match de tchoukball",
-      category: "matches",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1759787851041-0d45d2b2db84?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0ZWFtJTIwc3BvcnRzJTIwaW5kb29yJTIwdHJhaW5pbmd8ZW58MXx8fHwxNzczNTU3OTQzfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      alt: "Entraînement en salle",
-      category: "training",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1772724317499-14aa7ee0d2d3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzcG9ydHMlMjB0ZWFtJTIwY2VsZWJyYXRpb24lMjB0b2dldGhlcnxlbnwxfHx8fDE3NzM1NTc5NDR8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      alt: "Célébration d'équipe",
-      category: "events",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1739675176333-82ddf9790226?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxneW0lMjBoYW5kYmFsbCUyMHRyYWluaW5nJTIwc3BvcnRzfGVufDF8fHx8MTc3MzU1Nzk0OHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      alt: "Session en gymnase",
-      category: "training",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1705008199869-2e0bf9c6f3e4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzcG9ydHMlMjBjb2FjaCUyMHRlYW0lMjBhdGhsZXRlfGVufDF8fHx8MTc3MzU1Nzk0OHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      alt: "Coaching",
-      category: "training",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1765187948029-016dc0bd1804?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiZWFjaCUyMHZvbGxleWJhbGwlMjBwbGF5ZXIlMjB0cmFpbmluZ3xlbnwxfHx8fDE3NzM1NTc5NDd8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      alt: "Entraînement plage",
-      category: "events",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1663246544635-118c34cc488b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0Y2hvdWtiYWxsJTIwc3BvcnQlMjBhY3Rpb24lMjBnYW1lfGVufDF8fHx8MTc3MzU1Nzk0M3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      alt: "Action de jeu",
-      category: "matches",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1759787851041-0d45d2b2db84?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0ZWFtJTIwc3BvcnRzJTIwaW5kb29yJTIwdHJhaW5pbmd8ZW58MXx8fHwxNzczNTU3OTQzfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      alt: "Équipe au complet",
-      category: "events",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1772724317499-14aa7ee0d2d3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzcG9ydHMlMjB0ZWFtJTIwY2VsZWJyYXRpb24lMjB0b2dldGhlcnxlbnwxfHx8fDE3NzM1NTc5NDR8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      alt: "Moment de célébration",
       category: "matches",
     },
   ];
