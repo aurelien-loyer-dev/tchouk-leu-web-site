@@ -1,10 +1,17 @@
-export type AttendanceVote = "present" | "maybe" | "absent";
+export type AttendanceVote = "present" | "absent";
+
+export type AttendanceVoter = {
+  voterId: string;
+  firstName: string;
+  lastName: string;
+  vote: AttendanceVote;
+};
 
 export type AttendanceSummary = {
   present: number;
-  maybe: number;
   absent: number;
   total: number;
+  voters: AttendanceVoter[];
 };
 
 type VoteResponse = {
@@ -18,6 +25,8 @@ type AttendanceSummaryResponse = {
 };
 
 const VOTER_ID_STORAGE_KEY = "tchoukleu_presence_voter_id";
+const VOTER_FIRST_NAME_STORAGE_KEY = "tchoukleu_presence_first_name";
+const VOTER_LAST_NAME_STORAGE_KEY = "tchoukleu_presence_last_name";
 
 export function getOrCreateAttendanceVoterId() {
   if (typeof window === "undefined") {
@@ -32,6 +41,26 @@ export function getOrCreateAttendanceVoterId() {
   const newVoterId = crypto.randomUUID();
   window.localStorage.setItem(VOTER_ID_STORAGE_KEY, newVoterId);
   return newVoterId;
+}
+
+export function getSavedAttendanceIdentity() {
+  if (typeof window === "undefined") {
+    return { firstName: "", lastName: "" };
+  }
+
+  return {
+    firstName: window.localStorage.getItem(VOTER_FIRST_NAME_STORAGE_KEY) || "",
+    lastName: window.localStorage.getItem(VOTER_LAST_NAME_STORAGE_KEY) || "",
+  };
+}
+
+export function saveAttendanceIdentity(firstName: string, lastName: string) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(VOTER_FIRST_NAME_STORAGE_KEY, firstName.trim());
+  window.localStorage.setItem(VOTER_LAST_NAME_STORAGE_KEY, lastName.trim());
 }
 
 function ensureOkResponse(response: Response, defaultErrorMessage: string) {
@@ -64,15 +93,17 @@ async function ensureOkApiResponse(response: Response, defaultErrorMessage: stri
   throw new Error(apiError || defaultErrorMessage);
 }
 
-export async function submitAttendanceVote(activityId: string, vote: AttendanceVote) {
+export async function submitAttendanceVote(activityId: string, vote: AttendanceVote, firstName: string, lastName: string) {
   const voterId = getOrCreateAttendanceVoterId();
+  saveAttendanceIdentity(firstName, lastName);
+
   const response = await fetch("/api/attendance-votes", {
     method: "POST",
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ activityId, voterId, vote }),
+    body: JSON.stringify({ activityId, voterId, vote, firstName, lastName }),
   });
 
   await ensureOkApiResponse(response, "Impossible d'enregistrer votre presence.");

@@ -2,7 +2,15 @@ import { list, put } from "@vercel/blob";
 
 const STORE_PATH = "planning/attendance-votes.json";
 const BLOB_CONFIG_ERROR = "Le stockage Vercel Blob n'est pas configure. Ajoutez BLOB_READ_WRITE_TOKEN dans le projet Vercel.";
-const ALLOWED_VOTES = new Set(["present", "maybe", "absent"]);
+const ALLOWED_VOTES = new Set(["present", "absent"]);
+
+function sanitizeName(value) {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  return value.trim().slice(0, 80);
+}
 
 function isBlobConfigured() {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
@@ -17,6 +25,7 @@ function getBlobHeaders() {
 function createEmptyVotePayload() {
   return {
     votesByActivity: {},
+    votersById: {},
   };
 }
 
@@ -30,7 +39,10 @@ function normalizeVotePayload(rawPayload) {
     return createEmptyVotePayload();
   }
 
+  const votersById = rawPayload.votersById;
+
   const sanitizedVotesByActivity = {};
+  const sanitizedVotersById = {};
 
   for (const [activityId, activityVotes] of Object.entries(votesByActivity)) {
     if (!activityId || typeof activityVotes !== "object" || !activityVotes) {
@@ -54,8 +66,29 @@ function normalizeVotePayload(rawPayload) {
     sanitizedVotesByActivity[activityId] = sanitizedVotes;
   }
 
+  if (votersById && typeof votersById === "object") {
+    for (const [voterId, voterInfo] of Object.entries(votersById)) {
+      if (!voterId || typeof voterInfo !== "object" || !voterInfo) {
+        continue;
+      }
+
+      const firstName = sanitizeName(voterInfo.firstName);
+      const lastName = sanitizeName(voterInfo.lastName);
+
+      if (!firstName || !lastName) {
+        continue;
+      }
+
+      sanitizedVotersById[voterId] = {
+        firstName,
+        lastName,
+      };
+    }
+  }
+
   return {
     votesByActivity: sanitizedVotesByActivity,
+    votersById: sanitizedVotersById,
   };
 }
 
@@ -126,37 +159,43 @@ async function writeAttendanceVotesPayload(payload) {
   return safePayload;
 }
 
-export function toAttendanceSummaryByActivity(votesByActivity) {
+export function toAttendanceSummaryByActivity(votesByActivity, votersById) {
   const summaryByActivity = {};
 
   for (const [activityId, activityVotes] of Object.entries(votesByActivity || {})) {
-    const voteValues = Object.values(activityVotes || {});
+    const voteEntries = Object.entries(activityVotes || {});
     let present = 0;
-    let maybe = 0;
     let absent = 0;
+    const voters = [];
 
-    for (const voteValue of voteValues) {
+    for (const [voterId, voteValue] of voteEntries) {
       if (voteValue === "present") {
         present += 1;
-      } else if (voteValue === "maybe") {
-        maybe += 1;
       } else if (voteValue === "absent") {
         absent += 1;
       }
+
+      const voterInfo = votersById?.[voterId];
+      voters.push({
+        voterId,
+        firstName: sanitizeName(voterInfo?.firstName) || "Anonyme",
+        lastName: sanitizeName(voterInfo?.lastName) || "",
+        vote: voteValue,
+      });
     }
 
     summaryByActivity[activityId] = {
       present,
-      maybe,
       absent,
-      total: present + maybe + absent,
+      total: present + absent,
+      voters,
     };
   }
 
   return summaryByActivity;
 }
 
-export async function submitAttendanceVote(activityId, voterId, vote) {
+export async function submitAttendanceVote(activityId, voterId, vote, firstName, lastName) {
   if (!activityId || typeof activityId !== "string") {
     throw new Error("activityId is required");
   }
@@ -169,23 +208,35 @@ export async function submitAttendanceVote(activityId, voterId, vote) {
     throw new Error("Invalid vote value");
   }
 
+  const safeFirstName = sanitizeName(firstName);
+  const safeLastName = sanitizeName(lastName);
+
+  if (!safeFirstName || !safeLastName) {
+    throw new Error("Le nom et le prenom sont obligatoires");
+  }
+
   const currentPayload = await readAttendanceVotesPayload();
   const votesByActivity = { ...currentPayload.votesByActivity };
+  const votersById = { ...currentPayload.votersById };
   const currentVotesForActivity = { ...(votesByActivity[activityId] || {}) };
 
   currentVotesForActivity[voterId] = vote;
   votesByActivity[activityId] = currentVotesForActivity;
+  votersById[voterId] = {
+    firstName: safeFirstName,
+    lastName: safeLastName,
+  };
 
-  const savedPayload = await writeAttendanceVotesPayload({ votesByActivity });
-  const summaryByActivity = toAttendanceSummaryByActivity(savedPayload.votesByActivity);
+  const savedPayload = await writeAttendanceVotesPayload({ votesByActivity, votersById });
+  const summaryByActivity = toAttendanceSummaryByActivity(savedPayload.votesByActivity, savedPayload.votersById);
 
   return {
     activityId,
-    summary: summaryByActivity[activityId] || { present: 0, maybe: 0, absent: 0, total: 0 },
+    summary: summaryByActivity[activityId] || { present: 0, absent: 0, total: 0, voters: [] },
   };
 }
 
 export async function getAttendanceSummaryByActivity() {
   const payload = await readAttendanceVotesPayload();
-  return toAttendanceSummaryByActivity(payload.votesByActivity);
+  return toAttendanceSummaryByActivity(payload.votesByActivity, payload.votersById);
 }

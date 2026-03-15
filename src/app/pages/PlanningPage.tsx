@@ -3,8 +3,9 @@ import { motion } from "motion/react";
 import { CalendarDays, ChevronLeft, ChevronRight, Clock3, ExternalLink, Filter, MapPin, Trophy } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Input } from "../components/ui/input";
 import { ActivityCategory, getCategoryLabel, loadActivities, type Activity } from "../data/activities";
-import { submitAttendanceVote, type AttendanceVote } from "../data/attendanceVotes";
+import { getSavedAttendanceIdentity, submitAttendanceVote, type AttendanceVote } from "../data/attendanceVotes";
 
 const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   day: "numeric",
@@ -78,6 +79,8 @@ export function PlanningPage() {
   const [voteMessage, setVoteMessage] = useState("");
   const [voteByActivity, setVoteByActivity] = useState<Record<string, AttendanceVote>>({});
   const [votingActivityId, setVotingActivityId] = useState<string | null>(null);
+  const [voterFirstName, setVoterFirstName] = useState("");
+  const [voterLastName, setVoterLastName] = useState("");
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -86,6 +89,10 @@ export function PlanningPage() {
   const [selectedLocation, setSelectedLocation] = useState<string>("");
 
   useEffect(() => {
+    const identity = getSavedAttendanceIdentity();
+    setVoterFirstName(identity.firstName);
+    setVoterLastName(identity.lastName);
+
     const fetchActivities = async () => {
       try {
         const nextActivities = await loadActivities();
@@ -232,11 +239,19 @@ export function PlanningPage() {
   const quickVoteActivities = listedActivities.filter((activity) => activity.date >= todayIsoDate).slice(0, 3);
 
   const handleVote = async (activityId: string, vote: AttendanceVote) => {
+    const safeFirstName = voterFirstName.trim();
+    const safeLastName = voterLastName.trim();
+
+    if (!safeFirstName || !safeLastName) {
+      setVoteMessage("Renseignez votre nom et prenom avant de voter.");
+      return;
+    }
+
     setVotingActivityId(activityId);
     setVoteMessage("");
 
     try {
-      await submitAttendanceVote(activityId, vote);
+      await submitAttendanceVote(activityId, vote, safeFirstName, safeLastName);
       setVoteByActivity((current) => ({ ...current, [activityId]: vote }));
       setVoteMessage("Merci, votre presence a ete prise en compte.");
     } catch (error) {
@@ -349,6 +364,27 @@ export function PlanningPage() {
               <p className="text-muted-foreground">Vote ici directement pour les prochaines activites, sans descendre plus bas.</p>
             </CardHeader>
             <CardContent>
+              <div className="grid md:grid-cols-2 gap-3 mb-4">
+                <div>
+                  <label htmlFor="vote-first-name" className="mb-1 block text-sm font-medium">Prenom</label>
+                  <Input
+                    id="vote-first-name"
+                    value={voterFirstName}
+                    onChange={(event) => setVoterFirstName(event.target.value)}
+                    placeholder="Votre prenom"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="vote-last-name" className="mb-1 block text-sm font-medium">Nom</label>
+                  <Input
+                    id="vote-last-name"
+                    value={voterLastName}
+                    onChange={(event) => setVoterLastName(event.target.value)}
+                    placeholder="Votre nom"
+                  />
+                </div>
+              </div>
+
               {quickVoteActivities.length > 0 ? (
                 <div className="grid md:grid-cols-3 gap-4">
                   {quickVoteActivities.map((activity) => (
@@ -364,7 +400,6 @@ export function PlanningPage() {
                       <div className="flex flex-wrap gap-2">
                         {([
                           { value: "present", label: "Present" },
-                          { value: "maybe", label: "Peut-etre" },
                           { value: "absent", label: "Absent" },
                         ] as const).map((option) => (
                           <Button
@@ -593,31 +628,6 @@ export function PlanningPage() {
                     <div>
                       <p className="font-semibold mb-1">Details</p>
                       <p className="text-muted-foreground">{activity.description}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold mb-2">Presence</p>
-                      <div className="flex flex-wrap gap-2">
-                        {([
-                          { value: "present", label: "Present" },
-                          { value: "maybe", label: "Peut-etre" },
-                          { value: "absent", label: "Absent" },
-                        ] as const).map((option) => (
-                          <Button
-                            key={`${activity.id}-${option.value}`}
-                            type="button"
-                            size="sm"
-                            variant={voteByActivity[activity.id] === option.value ? "default" : "outline"}
-                            className={voteByActivity[activity.id] === option.value ? "bg-[#4C93C3] text-white hover:bg-[#3a7ba8]" : ""}
-                            disabled={votingActivityId === activity.id}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              void handleVote(activity.id, option.value);
-                            }}
-                          >
-                            {option.label}
-                          </Button>
-                        ))}
-                      </div>
                     </div>
                     {recurringTemplateId ? (
                       <p className="text-sm text-muted-foreground">Type recurrent • {recurringOccurrencesCount} seances planifiees</p>

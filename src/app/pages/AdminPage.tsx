@@ -164,12 +164,11 @@ export function AdminPage() {
         }
 
         accumulator.present += summary.present;
-        accumulator.maybe += summary.maybe;
         accumulator.absent += summary.absent;
         accumulator.total += summary.total;
         return accumulator;
       },
-      { present: 0, maybe: 0, absent: 0, total: 0 },
+      { present: 0, absent: 0, total: 0 },
     );
   }, [filteredAttendanceActivities, attendanceSummaryByActivity]);
 
@@ -601,20 +600,27 @@ export function AdminPage() {
                 </div>
 
                 <div className="rounded-md border border-border/60 bg-background px-3 py-2 text-xs text-muted-foreground">
-                  Totaux filtres • Present: {attendanceTotals.present} • Peut-etre: {attendanceTotals.maybe} • Absent: {attendanceTotals.absent} • Votes: {attendanceTotals.total}
+                  Totaux filtres • Present: {attendanceTotals.present} • Absent: {attendanceTotals.absent} • Votes: {attendanceTotals.total}
                 </div>
 
                 {filteredAttendanceActivities.length > 0 ? (
                   <div className="space-y-2">
                     {filteredAttendanceActivities.map((activity) => {
-                      const summary = attendanceSummaryByActivity[activity.id] ?? { present: 0, maybe: 0, absent: 0, total: 0 };
+                      const summary = attendanceSummaryByActivity[activity.id] ?? { present: 0, absent: 0, total: 0, voters: [] };
 
                       return (
                         <div key={`attendance-${activity.id}`} className="rounded-md border border-border/60 bg-background px-3 py-2">
                           <p className="font-medium text-sm">{activity.title}</p>
                           <p className="text-xs text-muted-foreground">
-                            Present: {summary.present} • Peut-etre: {summary.maybe} • Absent: {summary.absent} • Total: {summary.total}
+                            Present: {summary.present} • Absent: {summary.absent} • Total: {summary.total}
                           </p>
+                          {summary.voters && summary.voters.length > 0 ? (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {summary.voters
+                                .map((voter) => `${voter.firstName} ${voter.lastName} (${voter.vote})`)
+                                .join(" • ")}
+                            </p>
+                          ) : null}
                         </div>
                       );
                     })}

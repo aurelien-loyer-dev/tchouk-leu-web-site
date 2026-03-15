@@ -37,13 +37,15 @@ export default async function handler(request, response) {
     const activityId = typeof parsedBody.activityId === "string" ? parsedBody.activityId : "";
     const voterId = typeof parsedBody.voterId === "string" ? parsedBody.voterId : "";
     const vote = typeof parsedBody.vote === "string" ? parsedBody.vote : "";
+    const firstName = typeof parsedBody.firstName === "string" ? parsedBody.firstName : "";
+    const lastName = typeof parsedBody.lastName === "string" ? parsedBody.lastName : "";
 
-    if (!activityId || !voterId || !isValidAttendanceVote(vote)) {
+    if (!activityId || !voterId || !isValidAttendanceVote(vote) || !firstName.trim() || !lastName.trim()) {
       return sendJson(response, 400, { error: "Invalid vote payload" });
     }
 
     try {
-      const result = await submitAttendanceVote(activityId, voterId, vote);
+      const result = await submitAttendanceVote(activityId, voterId, vote, firstName, lastName);
       return sendJson(response, 200, { ok: true, ...result });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to save vote";
