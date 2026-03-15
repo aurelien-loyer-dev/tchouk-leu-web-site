@@ -2,12 +2,25 @@ import { motion } from "motion/react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { useEffect, useState } from "react";
 import { loadGalleryPhotos, type GalleryPhoto } from "../data/gallery";
+import { Dialog, DialogContent, DialogTitle } from "../components/ui/dialog";
+import { Button } from "../components/ui/button";
+import { Download } from "lucide-react";
+
+function toDownloadFileName(image: GalleryPhoto) {
+  const normalizedBaseName = (image.alt || "photo")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
+  return `${normalizedBaseName || "photo"}.jpg`;
+}
 
 export function GalleryPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [galleryImages, setGalleryImages] = useState<GalleryPhoto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [selectedImage, setSelectedImage] = useState<GalleryPhoto | null>(null);
 
   const categories = [
     { id: "all", label: "Tout" },
@@ -88,11 +101,12 @@ export function GalleryPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredImages.map((image, index) => (
               <motion.div
-                key={index}
+                key={image.id}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: index * 0.05 }}
                 className="relative overflow-hidden rounded-xl group cursor-pointer aspect-square"
+                onClick={() => setSelectedImage(image)}
               >
                 <ImageWithFallback
                   src={image.src}
@@ -117,6 +131,31 @@ export function GalleryPage() {
           )}
         </div>
       </section>
+
+      <Dialog open={Boolean(selectedImage)} onOpenChange={(isOpen) => (!isOpen ? setSelectedImage(null) : null)}>
+        <DialogContent className="max-w-5xl p-3 sm:p-4">
+          <DialogTitle className="sr-only">Aperçu de la photo</DialogTitle>
+          {selectedImage ? (
+            <div className="space-y-3">
+              <div className="max-h-[75vh] overflow-hidden rounded-md bg-black/5 flex items-center justify-center">
+                <ImageWithFallback
+                  src={selectedImage.src}
+                  alt={selectedImage.alt}
+                  className="max-h-[75vh] w-auto max-w-full object-contain"
+                />
+              </div>
+              <div className="flex justify-end">
+                <Button asChild className="bg-[#4C93C3] text-white hover:bg-[#3a7ba8]">
+                  <a href={selectedImage.src} download={toDownloadFileName(selectedImage)}>
+                    <Download className="h-4 w-4" />
+                    Télécharger
+                  </a>
+                </Button>
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

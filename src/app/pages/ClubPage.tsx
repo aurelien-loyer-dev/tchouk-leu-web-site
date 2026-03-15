@@ -1,19 +1,16 @@
 import { motion } from "motion/react";
 import { Trophy, Users, Heart, Target } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 
 export function ClubPage() {
-  const topPlayers = [
-    { name: "Léna Hoarau", role: "Ailière", highlight: "Meilleure marqueuse 2025" },
-    { name: "Mathis Robert", role: "Centre", highlight: "MVP régional 2024" },
-    { name: "Evan Payet", role: "Défenseur", highlight: "Leader défensif du club" },
-  ];
-
-  const clubRepresentatives = [
-    { name: "Sarah Fontaine", role: "Capitaine", highlight: "Représentante officielle en compétition" },
-    { name: "Kévin Grondin", role: "Coach principal", highlight: "Responsable de la formation sportive" },
-    { name: "Lila Rivière", role: "Référente jeunes", highlight: "Ambassadrice des sections U12/U15" },
-  ];
+  const wallOfFameProfile = {
+    fullName: "Lucas Hoareau",
+    palmares: "MVP régional 2025 • Capitaine champion interclubs 2024",
+    memberSince: "Adhérent depuis 2019",
+    photo:
+      "https://images.unsplash.com/photo-1566753323558-f4e0952af115?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+  };
 
   const values = [
     {
@@ -140,55 +137,42 @@ export function ClubPage() {
             <Trophy className="h-16 w-16 mx-auto mb-6 text-[#4C93C3]" />
             <h2 className="text-5xl font-bold mb-4">Wall of Fame</h2>
             <p className="text-xl text-muted-foreground">
-              Nos meilleurs joueurs et les représentants du club
+              Un exemple de profil mis à l'honneur
             </p>
           </motion.div>
 
-          <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <Card className="h-full border-2 border-[#4C93C3]/20">
-                <CardHeader>
-                  <CardTitle className="text-2xl">Meilleurs joueurs</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {topPlayers.map((player) => (
-                    <div key={player.name} className="rounded-lg border border-border/70 bg-muted/20 p-4">
-                      <p className="text-lg font-semibold">{player.name}</p>
-                      <p className="text-sm text-muted-foreground">{player.role}</p>
-                      <p className="text-sm mt-1">{player.highlight}</p>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="max-w-3xl mx-auto"
+          >
+            <Card className="border-2 border-[#4C93C3]/20 overflow-hidden">
+              <CardContent className="p-0 md:grid md:grid-cols-[240px_1fr]">
+                <div className="h-64 md:h-full">
+                  <ImageWithFallback
+                    src={wallOfFameProfile.photo}
+                    alt={`Photo de ${wallOfFameProfile.fullName}`}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="p-6 md:p-8">
+                  <CardTitle className="text-3xl mb-4">{wallOfFameProfile.fullName}</CardTitle>
+                  <div className="space-y-4 text-muted-foreground">
+                    <div>
+                      <p className="text-sm uppercase tracking-wide">Palmarès</p>
+                      <p className="text-base text-foreground">{wallOfFameProfile.palmares}</p>
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <Card className="h-full border-2 border-[#4C93C3]/20">
-                <CardHeader>
-                  <CardTitle className="text-2xl">Représentants du club</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {clubRepresentatives.map((representative) => (
-                    <div key={representative.name} className="rounded-lg border border-border/70 bg-muted/20 p-4">
-                      <p className="text-lg font-semibold">{representative.name}</p>
-                      <p className="text-sm text-muted-foreground">{representative.role}</p>
-                      <p className="text-sm mt-1">{representative.highlight}</p>
+                    <div>
+                      <p className="text-sm uppercase tracking-wide">Ancienneté</p>
+                      <p className="text-base text-foreground">{wallOfFameProfile.memberSince}</p>
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
       </section>
     </div>
