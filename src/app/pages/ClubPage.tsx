@@ -2,15 +2,24 @@ import { motion } from "motion/react";
 import { Trophy, Users, Heart, Target } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { useEffect, useState } from "react";
+import { loadWallOfFameMembers, type WallOfFameMember } from "../data/wallOfFame";
 
 export function ClubPage() {
-  const wallOfFameProfile = {
-    fullName: "Lucas Hoareau",
-    palmares: "MVP régional 2025 • Capitaine champion interclubs 2024",
-    memberSince: "Adhérent depuis 2019",
-    photo:
-      "https://images.unsplash.com/photo-1566753323558-f4e0952af115?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-  };
+  const [wallOfFameMembers, setWallOfFameMembers] = useState<WallOfFameMember[]>([]);
+
+  useEffect(() => {
+    const initializeWallOfFame = async () => {
+      try {
+        const loadedMembers = await loadWallOfFameMembers();
+        setWallOfFameMembers(loadedMembers);
+      } catch {
+        setWallOfFameMembers([]);
+      }
+    };
+
+    void initializeWallOfFame();
+  }, []);
 
   const values = [
     {
@@ -137,42 +146,52 @@ export function ClubPage() {
             <Trophy className="h-16 w-16 mx-auto mb-6 text-[#4C93C3]" />
             <h2 className="text-5xl font-bold mb-4">Wall of Fame</h2>
             <p className="text-xl text-muted-foreground">
-              Un exemple de profil mis à l'honneur
+              Les personnes mises à l'honneur par le club
             </p>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="max-w-3xl mx-auto"
-          >
-            <Card className="border-2 border-[#4C93C3]/20 overflow-hidden">
-              <CardContent className="p-0 md:grid md:grid-cols-[240px_1fr]">
-                <div className="h-64 md:h-full">
-                  <ImageWithFallback
-                    src={wallOfFameProfile.photo}
-                    alt={`Photo de ${wallOfFameProfile.fullName}`}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div className="p-6 md:p-8">
-                  <CardTitle className="text-3xl mb-4">{wallOfFameProfile.fullName}</CardTitle>
-                  <div className="space-y-4 text-muted-foreground">
-                    <div>
-                      <p className="text-sm uppercase tracking-wide">Palmarès</p>
-                      <p className="text-base text-foreground">{wallOfFameProfile.palmares}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm uppercase tracking-wide">Ancienneté</p>
-                      <p className="text-base text-foreground">{wallOfFameProfile.memberSince}</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+          {wallOfFameMembers.length > 0 ? (
+            <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+              {wallOfFameMembers.map((member, index) => (
+                <motion.div
+                  key={member.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                >
+                  <Card className="border-2 border-[#4C93C3]/20 overflow-hidden h-full">
+                    <CardContent className="p-0 md:grid md:grid-cols-[220px_1fr]">
+                      <div className="h-56 md:h-full">
+                        <ImageWithFallback
+                          src={member.photoSrc}
+                          alt={`Photo de ${member.firstName} ${member.lastName}`}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="p-6">
+                        <CardTitle className="text-2xl mb-4">{member.firstName} {member.lastName}</CardTitle>
+                        <div className="space-y-4 text-muted-foreground">
+                          <div>
+                            <p className="text-sm uppercase tracking-wide">Palmarès</p>
+                            <p className="text-base text-foreground">{member.palmares}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm uppercase tracking-wide">Adhérent depuis</p>
+                            <p className="text-base text-foreground">{member.memberSince}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="max-w-3xl mx-auto rounded-xl border border-border/70 bg-muted/20 px-6 py-8 text-center text-muted-foreground">
+              Aucun profil Wall of Fame pour le moment.
+            </div>
+          )}
         </div>
       </section>
     </div>

@@ -20,6 +20,13 @@ import {
 } from "../data/activities";
 import { loadAttendanceSummaryForAdmin, type AttendanceSummary } from "../data/attendanceVotes";
 import { deleteGalleryPhoto, loadGalleryPhotos, uploadGalleryAlbum, type GalleryCategory, type GalleryPhoto } from "../data/gallery";
+import {
+  createWallOfFameMember,
+  deleteWallOfFameMember,
+  loadWallOfFameMembers,
+  updateWallOfFameMember,
+  type WallOfFameMember,
+} from "../data/wallOfFame";
 
 const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   day: "numeric",
@@ -75,6 +82,15 @@ export function AdminPage() {
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [galleryFeedbackMessage, setGalleryFeedbackMessage] = useState("");
   const [isGallerySaving, setIsGallerySaving] = useState(false);
+  const [wallOfFameMembers, setWallOfFameMembers] = useState<WallOfFameMember[]>([]);
+  const [wallFirstName, setWallFirstName] = useState("");
+  const [wallLastName, setWallLastName] = useState("");
+  const [wallPalmares, setWallPalmares] = useState("");
+  const [wallMemberSince, setWallMemberSince] = useState("");
+  const [wallPhotoFile, setWallPhotoFile] = useState<File | null>(null);
+  const [editingWallMemberId, setEditingWallMemberId] = useState<string | null>(null);
+  const [wallFeedbackMessage, setWallFeedbackMessage] = useState("");
+  const [isWallSaving, setIsWallSaving] = useState(false);
 
   useEffect(() => {
     const initializeAdmin = async () => {
@@ -88,8 +104,10 @@ export function AdminPage() {
 
         const loadedActivities = await loadActivities();
         const loadedGalleryPhotos = await loadGalleryPhotos();
+        const loadedWallOfFameMembers = await loadWallOfFameMembers();
         setActivities(loadedActivities);
         setGalleryPhotos(loadedGalleryPhotos);
+        setWallOfFameMembers(loadedWallOfFameMembers);
         setSelectedId(loadedActivities[0]?.id ?? null);
         setDraft(loadedActivities[0] ?? createEmptyActivity());
         await refreshAttendanceSummary();
@@ -216,9 +234,11 @@ export function AdminPage() {
 
       const loadedActivities = await loadActivities();
       const loadedGalleryPhotos = await loadGalleryPhotos();
+      const loadedWallOfFameMembers = await loadWallOfFameMembers();
       setIsAuthenticated(true);
       setActivities(loadedActivities);
       setGalleryPhotos(loadedGalleryPhotos);
+      setWallOfFameMembers(loadedWallOfFameMembers);
       setSelectedId(loadedActivities[0]?.id ?? null);
       setDraft(loadedActivities[0] ?? createEmptyActivity());
       setUsername("");
@@ -371,6 +391,104 @@ export function AdminPage() {
       }
     } finally {
       setIsGallerySaving(false);
+    }
+  };
+
+  const resetWallForm = () => {
+    setWallFirstName("");
+    setWallLastName("");
+    setWallPalmares("");
+    setWallMemberSince("");
+    setWallPhotoFile(null);
+    setEditingWallMemberId(null);
+  };
+
+  const handleEditWallOfFameMember = (member: WallOfFameMember) => {
+    setEditingWallMemberId(member.id);
+    setWallFirstName(member.firstName);
+    setWallLastName(member.lastName);
+    setWallPalmares(member.palmares);
+    setWallMemberSince(member.memberSince);
+    setWallPhotoFile(null);
+    setWallFeedbackMessage("Mode modification activé. Ajoutez une nouvelle photo uniquement si nécessaire.");
+  };
+
+  const handleSubmitWallOfFameMember = async () => {
+    if (!wallFirstName.trim() || !wallLastName.trim()) {
+      setWallFeedbackMessage("Le prénom et le nom sont obligatoires.");
+      return;
+    }
+
+    if (!wallPalmares.trim()) {
+      setWallFeedbackMessage("Le palmarès est obligatoire.");
+      return;
+    }
+
+    if (!wallMemberSince.trim()) {
+      setWallFeedbackMessage("Le champ 'adhérent depuis' est obligatoire.");
+      return;
+    }
+
+    if (!editingWallMemberId && !wallPhotoFile) {
+      setWallFeedbackMessage("Ajoutez une photo.");
+      return;
+    }
+
+    try {
+      setIsWallSaving(true);
+      setWallFeedbackMessage("");
+      const photoSrc = wallPhotoFile ? await fileToDataUrl(wallPhotoFile) : "";
+
+      if (wallPhotoFile && !photoSrc) {
+        throw new Error("Impossible de convertir la photo.");
+      }
+
+      const nextMembers = editingWallMemberId
+        ? await updateWallOfFameMember({
+            id: editingWallMemberId,
+            firstName: wallFirstName.trim(),
+            lastName: wallLastName.trim(),
+            palmares: wallPalmares.trim(),
+            memberSince: wallMemberSince.trim(),
+            ...(photoSrc ? { photoSrc } : {}),
+          })
+        : await createWallOfFameMember({
+            firstName: wallFirstName.trim(),
+            lastName: wallLastName.trim(),
+            palmares: wallPalmares.trim(),
+            memberSince: wallMemberSince.trim(),
+            photoSrc,
+          });
+
+      setWallOfFameMembers(nextMembers);
+      resetWallForm();
+      setWallFeedbackMessage(editingWallMemberId ? "Profil modifié dans le Wall of Fame." : "Profil ajouté au Wall of Fame.");
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setWallFeedbackMessage(error.message);
+      } else {
+        setWallFeedbackMessage("Impossible d'ajouter le profil.");
+      }
+    } finally {
+      setIsWallSaving(false);
+    }
+  };
+
+  const handleDeleteWallOfFameMember = async (memberId: string) => {
+    try {
+      setIsWallSaving(true);
+      setWallFeedbackMessage("");
+      const nextMembers = await deleteWallOfFameMember(memberId);
+      setWallOfFameMembers(nextMembers);
+      setWallFeedbackMessage("Profil supprimé du Wall of Fame.");
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setWallFeedbackMessage(error.message);
+      } else {
+        setWallFeedbackMessage("Impossible de supprimer le profil.");
+      }
+    } finally {
+      setIsWallSaving(false);
     }
   };
 
@@ -805,6 +923,141 @@ export function AdminPage() {
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">Aucune photo dans la galerie pour le moment.</p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      <section className="pb-20 px-6 bg-background">
+        <div className="max-w-7xl mx-auto">
+          <Card className="border-2 border-[#4C93C3]/20">
+            <CardHeader>
+              <CardTitle className="text-2xl">Wall of Fame</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid lg:grid-cols-[1.1fr_1.9fr] gap-6">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label htmlFor="wall-first-name" className="mb-2 block font-medium">Prénom</label>
+                      <Input
+                        id="wall-first-name"
+                        value={wallFirstName}
+                        onChange={(event) => setWallFirstName(event.target.value)}
+                        placeholder="Ex: Lucas"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="wall-last-name" className="mb-2 block font-medium">Nom</label>
+                      <Input
+                        id="wall-last-name"
+                        value={wallLastName}
+                        onChange={(event) => setWallLastName(event.target.value)}
+                        placeholder="Ex: Hoareau"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="wall-member-since" className="mb-2 block font-medium">Adhérent depuis</label>
+                    <Input
+                      id="wall-member-since"
+                      value={wallMemberSince}
+                      onChange={(event) => setWallMemberSince(event.target.value)}
+                      placeholder="Ex: 2019"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="wall-photo" className="mb-2 block font-medium">Photo</label>
+                    <Input
+                      id="wall-photo"
+                      type="file"
+                      accept="image/*"
+                      onChange={(event) => setWallPhotoFile(event.target.files?.[0] ?? null)}
+                    />
+                    {editingWallMemberId ? (
+                      <p className="mt-1 text-xs text-muted-foreground">Laissez vide pour conserver la photo actuelle.</p>
+                    ) : null}
+                  </div>
+
+                  <div>
+                    <label htmlFor="wall-palmares" className="mb-2 block font-medium">Palmarès</label>
+                    <Textarea
+                      id="wall-palmares"
+                      value={wallPalmares}
+                      onChange={(event) => setWallPalmares(event.target.value)}
+                      placeholder="Ex: MVP régional 2025"
+                      className="min-h-24"
+                    />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      className="flex-1 bg-[#4C93C3] text-white hover:bg-[#3a7ba8]"
+                      onClick={() => void handleSubmitWallOfFameMember()}
+                      disabled={isWallSaving}
+                    >
+                      {isWallSaving ? "Enregistrement..." : editingWallMemberId ? "Modifier" : "Ajouter"}
+                    </Button>
+                    {editingWallMemberId ? (
+                      <Button type="button" variant="outline" onClick={resetWallForm} disabled={isWallSaving}>
+                        Annuler
+                      </Button>
+                    ) : null}
+                  </div>
+
+                  {wallFeedbackMessage ? (
+                    <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">{wallFeedbackMessage}</p>
+                  ) : null}
+                </div>
+
+                <div>
+                  {wallOfFameMembers.length > 0 ? (
+                    <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {wallOfFameMembers.map((member) => (
+                        <div key={member.id} className="rounded-xl border border-border overflow-hidden bg-background">
+                          <ImageWithFallback
+                            src={member.photoSrc}
+                            alt={`${member.firstName} ${member.lastName}`}
+                            className="h-36 w-full object-cover"
+                          />
+                          <div className="p-3 space-y-2">
+                            <p className="text-sm font-semibold">{member.firstName} {member.lastName}</p>
+                            <p className="text-xs text-muted-foreground">Adhérent depuis: {member.memberSince}</p>
+                            <p className="text-xs text-muted-foreground line-clamp-2">{member.palmares}</p>
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="w-full"
+                                onClick={() => handleEditWallOfFameMember(member)}
+                                disabled={isWallSaving}
+                              >
+                                Modifier
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="w-full"
+                                onClick={() => void handleDeleteWallOfFameMember(member.id)}
+                                disabled={isWallSaving}
+                              >
+                                Supprimer
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Aucun profil Wall of Fame pour le moment.</p>
                   )}
                 </div>
               </div>
