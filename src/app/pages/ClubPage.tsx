@@ -186,7 +186,7 @@ export function ClubPage() {
                           </div>
                           <div>
                             <p className="text-sm uppercase tracking-wide">Palmarès</p>
-                            <p className="text-base text-foreground">{member.palmares}</p>
+                            <p className="text-base whitespace-pre-line text-foreground">{member.palmares}</p>
                           </div>
                           <div>
                             <p className="text-sm uppercase tracking-wide">Adhérent depuis</p>
