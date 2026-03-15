@@ -92,6 +92,16 @@ function ensureOkResponse(response: Response, defaultErrorMessage: string) {
   }
 }
 
+async function parseJsonResponse<T>(response: Response, apiName: string) {
+  const contentType = response.headers.get("content-type") || "";
+
+  if (!contentType.includes("application/json")) {
+    throw new Error(`${apiName} est inaccessible (réponse non JSON). Vérifiez le déploiement Vercel.`);
+  }
+
+  return (await response.json()) as T;
+}
+
 async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit, timeoutMs = 10000) {
   const abortController = new AbortController();
   const timeoutId = window.setTimeout(() => abortController.abort(), timeoutMs);
@@ -112,7 +122,7 @@ export async function loadActivities() {
 
   ensureOkResponse(response, "Impossible de charger les activites.");
 
-  const payload = (await response.json()) as ActivitiesApiResponse;
+  const payload = await parseJsonResponse<ActivitiesApiResponse>(response, "/api/activities");
   return sortActivities(payload.activities ?? defaultActivities);
 }
 
@@ -128,7 +138,7 @@ export async function saveActivities(activities: Activity[]) {
 
   ensureOkResponse(response, "Impossible d'enregistrer les activites.");
 
-  const payload = (await response.json()) as ActivitiesApiResponse;
+  const payload = await parseJsonResponse<ActivitiesApiResponse>(response, "/api/activities");
   return sortActivities(payload.activities ?? activities);
 }
 
@@ -140,26 +150,35 @@ export async function checkAdminSession() {
   });
 
   ensureOkResponse(response, "Impossible de verifier la session admin.");
-  const payload = (await response.json()) as AdminSessionResponse;
+  const payload = await parseJsonResponse<AdminSessionResponse>(response, "/api/admin-session");
   return Boolean(payload.authenticated);
 }
 
 export async function loginAsAdmin(username: string, password: string) {
-  const response = await fetchWithTimeout("/api/admin-login", {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ username, password }),
-  });
+  try {
+    const response = await fetchWithTimeout("/api/admin-login", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, password }),
+    });
 
-  if (response.status === 401 || response.status === 403) {
-    return false;
+    if (response.status === 401 || response.status === 403) {
+      return false;
+    }
+
+    ensureOkResponse(response, "Impossible de se connecter.");
+    await parseJsonResponse<{ ok: boolean }>(response, "/api/admin-login");
+    return true;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+
+    throw new Error("API admin inaccessible. Vérifiez le déploiement Vercel et les variables d'environnement.");
   }
-
-  ensureOkResponse(response, "Impossible de se connecter.");
-  return true;
 }
 
 export async function logoutAdmin() {

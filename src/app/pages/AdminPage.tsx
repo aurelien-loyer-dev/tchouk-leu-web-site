@@ -86,8 +86,12 @@ export function AdminPage() {
       setUsername("");
       setPassword("");
       setLoginError("");
-    } catch {
-      setLoginError("Connexion impossible pour le moment.");
+    } catch (error) {
+      if (error instanceof Error) {
+        setLoginError(error.message);
+      } else {
+        setLoginError("Connexion impossible pour le moment.");
+      }
     }
   };
 
