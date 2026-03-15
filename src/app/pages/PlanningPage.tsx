@@ -229,6 +229,7 @@ export function PlanningPage() {
   const nextActivity = filteredActivities.find((activity) => activity.date >= todayIsoDate) ?? filteredActivities[0];
   const tournamentCount = activities.filter((activity) => activity.category === "tournoi").length;
   const trainingCount = activities.filter((activity) => activity.category === "entrainement").length;
+  const quickVoteActivities = listedActivities.filter((activity) => activity.date >= todayIsoDate).slice(0, 3);
 
   const handleVote = async (activityId: string, vote: AttendanceVote) => {
     setVotingActivityId(activityId);
@@ -334,6 +335,59 @@ export function PlanningPage() {
               </Button>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="py-10 px-6 bg-background border-b border-border/60">
+        <div className="max-w-7xl mx-auto">
+          <Card className="border-2 border-[#4C93C3]/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3 text-2xl">
+                <Clock3 className="h-6 w-6 text-[#4C93C3]" />
+                Vote de presence rapide
+              </CardTitle>
+              <p className="text-muted-foreground">Vote ici directement pour les prochaines activites, sans descendre plus bas.</p>
+            </CardHeader>
+            <CardContent>
+              {quickVoteActivities.length > 0 ? (
+                <div className="grid md:grid-cols-3 gap-4">
+                  {quickVoteActivities.map((activity) => (
+                    <div key={`quick-vote-${activity.id}`} className="rounded-lg border border-border/70 bg-background p-4 space-y-3">
+                      <div>
+                        <p className="font-semibold">{activity.title}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {dateFormatter.format(new Date(`${activity.date}T00:00:00`))} • {activity.startTime} - {activity.endTime}
+                        </p>
+                        <p className="text-sm text-muted-foreground">{activity.location}</p>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        {([
+                          { value: "present", label: "Present" },
+                          { value: "maybe", label: "Peut-etre" },
+                          { value: "absent", label: "Absent" },
+                        ] as const).map((option) => (
+                          <Button
+                            key={`quick-${activity.id}-${option.value}`}
+                            type="button"
+                            size="sm"
+                            variant={voteByActivity[activity.id] === option.value ? "default" : "outline"}
+                            className={voteByActivity[activity.id] === option.value ? "bg-[#4C93C3] text-white hover:bg-[#3a7ba8]" : ""}
+                            disabled={votingActivityId === activity.id}
+                            onClick={() => void handleVote(activity.id, option.value)}
+                          >
+                            {option.label}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Aucune activite future a voter pour le moment.</p>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </section>
 
