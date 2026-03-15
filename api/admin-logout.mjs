@@ -1,21 +1,19 @@
-import { clearSessionCookieValue } from "./_lib/activitiesStore.mjs";
+import { clearSessionCookieValue } from "./_lib/adminAuth.mjs";
 
-function jsonResponse(statusCode, body, additionalHeaders = {}) {
-  return {
-    statusCode,
-    headers: {
-      "Content-Type": "application/json",
-      "Cache-Control": "no-store",
-      ...additionalHeaders,
-    },
-    body: JSON.stringify(body),
-  };
-}
+function sendJson(response, statusCode, body, additionalHeaders = {}) {
+  response.setHeader("Cache-Control", "no-store");
 
-export default async function handler(request) {
-  if (request.method !== "POST") {
-    return jsonResponse(405, { error: "Method not allowed" });
+  for (const [headerName, headerValue] of Object.entries(additionalHeaders)) {
+    response.setHeader(headerName, headerValue);
   }
 
-  return jsonResponse(200, { ok: true }, { "Set-Cookie": clearSessionCookieValue() });
+  response.status(statusCode).json(body);
+}
+
+export default async function handler(request, response) {
+  if (request.method !== "POST") {
+    return sendJson(response, 405, { error: "Method not allowed" });
+  }
+
+  return sendJson(response, 200, { ok: true }, { "Set-Cookie": clearSessionCookieValue() });
 }

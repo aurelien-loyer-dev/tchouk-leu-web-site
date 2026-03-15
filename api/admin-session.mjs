@@ -1,19 +1,12 @@
-import { isAuthenticatedRequest } from "./_lib/activitiesStore.mjs";
+import { isAuthenticatedRequest } from "./_lib/adminAuth.mjs";
 
-export default async function handler(request) {
+export default async function handler(request, response) {
+  response.setHeader("Cache-Control", "no-store");
+
   if (request.method !== "GET") {
-    return {
-      statusCode: 405,
-      headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
-      body: JSON.stringify({ error: "Method not allowed" }),
-    };
+    return response.status(405).json({ error: "Method not allowed" });
   }
 
   const authenticated = isAuthenticatedRequest(request);
-
-  return {
-    statusCode: 200,
-    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
-    body: JSON.stringify({ authenticated }),
-  };
+  return response.status(200).json({ authenticated });
 }

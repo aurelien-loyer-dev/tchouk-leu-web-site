@@ -1,31 +1,46 @@
-import { readActivities, writeActivities, isAuthenticatedRequest } from "./_lib/activitiesStore.mjs";
+import { readActivities, writeActivities } from "./_lib/activitiesStore.mjs";
+import { isAuthenticatedRequest } from "./_lib/adminAuth.mjs";
 
-function jsonResponse(statusCode, body) {
-  return {
-    statusCode,
-    headers: {
-      "Content-Type": "application/json",
-      "Cache-Control": "no-store",
-    },
-    body: JSON.stringify(body),
-  };
+function sendJson(response, statusCode, body) {
+  response.setHeader("Cache-Control", "no-store");
+  response.status(statusCode).json(body);
 }
 
-export default async function handler(request) {
+function parseBody(requestBody) {
+  if (!requestBody) {
+    return {};
+  }
+
+  if (typeof requestBody === "string") {
+    return JSON.parse(requestBody);
+  }
+
+  return requestBody;
+}
+
+export default async function handler(request, response) {
+  response.setHeader("Cache-Control", "no-store");
+
   if (request.method === "GET") {
     const activities = await readActivities();
-    return jsonResponse(200, { activities });
+    return sendJson(response, 200, { activities });
   }
 
   if (request.method === "PUT") {
     if (!isAuthenticatedRequest(request)) {
-      return jsonResponse(401, { error: "Unauthorized" });
+      return sendJson(response, 401, { error: "Unauthorized" });
     }
 
-    const parsedBody = typeof request.body === "string" ? JSON.parse(request.body || "{}") : request.body || {};
+    let parsedBody = {};
+    try {
+      parsedBody = parseBody(request.body);
+    } catch {
+      return sendJson(response, 400, { error: "Invalid JSON body" });
+    }
+
     const savedActivities = await writeActivities(parsedBody.activities);
-    return jsonResponse(200, { activities: savedActivities });
+    return sendJson(response, 200, { activities: savedActivities });
   }
 
-  return jsonResponse(405, { error: "Method not allowed" });
+  return sendJson(response, 405, { error: "Method not allowed" });
 }
