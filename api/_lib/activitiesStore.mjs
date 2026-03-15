@@ -5,6 +5,9 @@ const STORE_PATH = "planning/activities.json";
 const AUTH_COOKIE_NAME = "__Host-tchoukleu_admin_session";
 const SESSION_DURATION_MS = 1000 * 60 * 60 * 12;
 const BLOB_CONFIG_ERROR = "Le stockage Vercel Blob n'est pas configure. Ajoutez BLOB_READ_WRITE_TOKEN dans le projet Vercel.";
+const RECURRING_ID_PREFIX = "recurring";
+const RECURRING_DAYS_BEHIND = 14;
+const RECURRING_WEEKS_AHEAD = 52;
 
 const defaultActivities = [
   {
@@ -74,6 +77,144 @@ function toSortedActivities(activities) {
 
 function getDefaultActivities() {
   return toSortedActivities(defaultActivities);
+}
+
+function parseIsoDate(isoDate) {
+  const [year, month, day] = String(isoDate).split("-").map(Number);
+  return new Date(Date.UTC(year, (month || 1) - 1, day || 1));
+}
+
+function formatIsoDate(date) {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function addUtcDays(date, days) {
+  const nextDate = new Date(date);
+  nextDate.setUTCDate(nextDate.getUTCDate() + days);
+  return nextDate;
+}
+
+function getTodayUtc() {
+  const currentDate = new Date();
+  return new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate()));
+}
+
+function isWednesdayOrSaturday(isoDate) {
+  const weekDay = parseIsoDate(isoDate).getUTCDay();
+  return weekDay === 3 || weekDay === 6;
+}
+
+function getRecurringTemplates() {
+  return defaultActivities.filter((activity) => activity.category === "entrainement" && isWednesdayOrSaturday(activity.date));
+}
+
+function getDefaultManualActivities() {
+  const recurringTemplateIds = new Set(getRecurringTemplates().map((template) => template.id));
+  return defaultActivities.filter((activity) => !recurringTemplateIds.has(activity.id));
+}
+
+function toRecurringActivityId(templateId, isoDate) {
+  return `${RECURRING_ID_PREFIX}:${templateId}:${isoDate}`;
+}
+
+function buildRecurringOccurrence(template, isoDate) {
+  return {
+    ...template,
+    id: toRecurringActivityId(template.id, isoDate),
+    date: isoDate,
+  };
+}
+
+function generateRecurringActivities(referenceDate = getTodayUtc()) {
+  const startWindow = addUtcDays(referenceDate, -RECURRING_DAYS_BEHIND);
+  const endWindow = addUtcDays(referenceDate, RECURRING_WEEKS_AHEAD * 7);
+  const recurringActivities = [];
+
+  for (const template of getRecurringTemplates()) {
+    let occurrenceDate = parseIsoDate(template.date);
+
+    while (occurrenceDate < startWindow) {
+      occurrenceDate = addUtcDays(occurrenceDate, 7);
+    }
+
+    while (occurrenceDate <= endWindow) {
+      recurringActivities.push(buildRecurringOccurrence(template, formatIsoDate(occurrenceDate)));
+      occurrenceDate = addUtcDays(occurrenceDate, 7);
+    }
+  }
+
+  return toSortedActivities(recurringActivities);
+}
+
+function areActivitiesEqual(leftActivity, rightActivity) {
+  return (
+    leftActivity?.id === rightActivity?.id &&
+    leftActivity?.title === rightActivity?.title &&
+    leftActivity?.category === rightActivity?.category &&
+    leftActivity?.date === rightActivity?.date &&
+    leftActivity?.startTime === rightActivity?.startTime &&
+    leftActivity?.endTime === rightActivity?.endTime &&
+    leftActivity?.location === rightActivity?.location &&
+    leftActivity?.audience === rightActivity?.audience &&
+    leftActivity?.description === rightActivity?.description
+  );
+}
+
+function normalizeStorePayload(rawPayload) {
+  if (Array.isArray(rawPayload)) {
+    return {
+      manualActivities: rawPayload,
+      deletedRecurringIds: [],
+    };
+  }
+
+  if (rawPayload && typeof rawPayload === "object") {
+    const manualActivities = Array.isArray(rawPayload.manualActivities)
+      ? rawPayload.manualActivities
+      : Array.isArray(rawPayload.activities)
+        ? rawPayload.activities
+        : [];
+
+    const deletedRecurringIds = Array.isArray(rawPayload.deletedRecurringIds)
+      ? rawPayload.deletedRecurringIds.filter((id) => typeof id === "string")
+      : [];
+
+    return {
+      manualActivities,
+      deletedRecurringIds,
+    };
+  }
+
+  return {
+    manualActivities: [],
+    deletedRecurringIds: [],
+  };
+}
+
+function buildStorePayload(manualActivities, deletedRecurringIds) {
+  return {
+    manualActivities: toSortedActivities(manualActivities),
+    deletedRecurringIds: [...new Set(deletedRecurringIds)].sort(),
+  };
+}
+
+function mergeActivities(manualActivities, deletedRecurringIds) {
+  const deletedIds = new Set(deletedRecurringIds);
+  const recurringActivities = generateRecurringActivities().filter((activity) => !deletedIds.has(activity.id));
+  const activityMap = new Map();
+
+  for (const activity of recurringActivities) {
+    activityMap.set(activity.id, activity);
+  }
+
+  for (const activity of manualActivities) {
+    activityMap.set(activity.id, activity);
+  }
+
+  return toSortedActivities(Array.from(activityMap.values()));
 }
 
 function isBlobConfigured() {
@@ -227,7 +368,7 @@ export async function ensureActivitiesInitialized() {
     return existingBlob.url;
   }
 
-  const createdBlob = await put(STORE_PATH, JSON.stringify(defaultActivities), {
+  const createdBlob = await put(STORE_PATH, JSON.stringify(buildStorePayload(getDefaultManualActivities(), [])), {
     access: "private",
     contentType: "application/json",
     addRandomSuffix: false,
@@ -239,27 +380,28 @@ export async function ensureActivitiesInitialized() {
 
 export async function readActivities() {
   if (!isBlobConfigured()) {
-    return getDefaultActivities();
+    return mergeActivities(getDefaultManualActivities(), []);
   }
 
   try {
     const blobUrl = await ensureActivitiesInitialized();
-    const response = await fetch(blobUrl, { cache: "no-store" });
+    const response = await fetch(blobUrl, {
+      cache: "no-store",
+      headers: {
+        Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
+      },
+    });
 
     if (!response.ok) {
       throw new Error(`Blob fetch failed with status ${response.status}`);
     }
 
-    const parsedActivities = await response.json();
-
-    if (!Array.isArray(parsedActivities)) {
-      return getDefaultActivities();
-    }
-
-    return toSortedActivities(parsedActivities);
+    const parsedPayload = await response.json();
+    const { manualActivities, deletedRecurringIds } = normalizeStorePayload(parsedPayload);
+    return mergeActivities(manualActivities, deletedRecurringIds);
   } catch (error) {
     console.error("Unable to read activities from Vercel Blob", error);
-    return getDefaultActivities();
+    return mergeActivities(getDefaultManualActivities(), []);
   }
 }
 
@@ -268,18 +410,48 @@ export async function writeActivities(activities) {
     throw new Error(BLOB_CONFIG_ERROR);
   }
 
-  const safeActivities = Array.isArray(activities) ? activities : defaultActivities;
-  await put(STORE_PATH, JSON.stringify(toSortedActivities(safeActivities)), {
+  const safeActivities = Array.isArray(activities) ? activities : getDefaultActivities();
+  const recurringActivities = generateRecurringActivities();
+  const recurringById = new Map(recurringActivities.map((activity) => [activity.id, activity]));
+  const selectedRecurringIds = new Set();
+  const manualActivities = [];
+
+  for (const activity of safeActivities) {
+    if (!activity || typeof activity.id !== "string") {
+      continue;
+    }
+
+    const recurringActivity = recurringById.get(activity.id);
+
+    if (!recurringActivity) {
+      manualActivities.push(activity);
+      continue;
+    }
+
+    selectedRecurringIds.add(activity.id);
+
+    if (!areActivitiesEqual(activity, recurringActivity)) {
+      manualActivities.push(activity);
+    }
+  }
+
+  const deletedRecurringIds = recurringActivities
+    .map((activity) => activity.id)
+    .filter((id) => !selectedRecurringIds.has(id));
+
+  const payload = buildStorePayload(manualActivities, deletedRecurringIds);
+
+  await put(STORE_PATH, JSON.stringify(payload), {
     access: "private",
     contentType: "application/json",
     addRandomSuffix: false,
     allowOverwrite: true,
   });
 
-  return toSortedActivities(safeActivities);
+  return mergeActivities(payload.manualActivities, payload.deletedRecurringIds);
 }
 
 export async function resetActivities() {
-  await writeActivities(defaultActivities);
-  return getDefaultActivities();
+  await writeActivities(mergeActivities(getDefaultManualActivities(), []));
+  return mergeActivities(getDefaultManualActivities(), []);
 }
