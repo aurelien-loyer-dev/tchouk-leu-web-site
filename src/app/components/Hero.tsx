@@ -40,9 +40,7 @@ export function Hero() {
           transition={{ duration: 0.8 }}
           className="mb-8 flex justify-center"
         >
-          <div className="bg-white/90 dark:bg-background/90 p-6 rounded-full shadow-2xl backdrop-blur-sm">
-            <img src="/images/logo.png" alt="Logo TchoukLeu" className="h-24 w-24 rounded-full object-cover" />
-          </div>
+          <img src="/images/logo.png" alt="Logo TchoukLeu" className="h-24 w-auto object-contain" />
         </motion.div>
 
         {/* Title */}
