@@ -24,6 +24,25 @@ const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   year: "numeric",
 });
 
+function getRecurringTemplateId(activityId: string) {
+  if (!activityId.startsWith("recurring:")) {
+    return null;
+  }
+
+  const segments = activityId.split(":");
+  if (segments.length < 3) {
+    return null;
+  }
+
+  return segments[1];
+}
+
+function compareActivitiesByDate(left: Activity, right: Activity) {
+  const leftValue = `${left.date}T${left.startTime}`;
+  const rightValue = `${right.date}T${right.startTime}`;
+  return leftValue.localeCompare(rightValue);
+}
+
 export function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState("");
@@ -63,6 +82,46 @@ export function AdminPage() {
     () => activities.find((activity) => activity.id === selectedId) ?? null,
     [activities, selectedId],
   );
+
+  const listedActivities = useMemo(() => {
+    const todayIsoDate = new Date().toISOString().slice(0, 10);
+    const recurringByTemplate = new Map<string, Activity[]>();
+    const nonRecurringActivities: Activity[] = [];
+
+    for (const activity of activities) {
+      const recurringTemplateId = getRecurringTemplateId(activity.id);
+
+      if (!recurringTemplateId) {
+        nonRecurringActivities.push(activity);
+        continue;
+      }
+
+      const existingTemplateActivities = recurringByTemplate.get(recurringTemplateId) ?? [];
+      existingTemplateActivities.push(activity);
+      recurringByTemplate.set(recurringTemplateId, existingTemplateActivities);
+    }
+
+    const recurringRepresentatives = Array.from(recurringByTemplate.values()).map((templateActivities) => {
+      const sortedTemplateActivities = [...templateActivities].sort(compareActivitiesByDate);
+      return sortedTemplateActivities.find((activity) => activity.date >= todayIsoDate) ?? sortedTemplateActivities[0];
+    });
+
+    const mergedActivities = [...nonRecurringActivities, ...recurringRepresentatives].filter(Boolean);
+    return mergedActivities.sort(compareActivitiesByDate);
+  }, [activities]);
+
+  const recurringOccurrencesCountByTemplate = useMemo(() => {
+    return activities.reduce<Record<string, number>>((accumulator, activity) => {
+      const recurringTemplateId = getRecurringTemplateId(activity.id);
+
+      if (!recurringTemplateId) {
+        return accumulator;
+      }
+
+      accumulator[recurringTemplateId] = (accumulator[recurringTemplateId] ?? 0) + 1;
+      return accumulator;
+    }, {});
+  }, [activities]);
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -277,7 +336,13 @@ export function AdminPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {activities.map((activity) => (
+              {listedActivities.map((activity) => {
+                const recurringTemplateId = getRecurringTemplateId(activity.id);
+                const recurringOccurrencesCount = recurringTemplateId
+                  ? recurringOccurrencesCountByTemplate[recurringTemplateId] ?? 1
+                  : 1;
+
+                return (
                 <button
                   key={activity.id}
                   type="button"
@@ -298,8 +363,12 @@ export function AdminPage() {
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground mt-2">{activity.location}</p>
+                  {recurringTemplateId ? (
+                    <p className="text-xs text-muted-foreground mt-1">Type recurrent • {recurringOccurrencesCount} seances affichees</p>
+                  ) : null}
                 </button>
-              ))}
+                );
+              })}
             </CardContent>
           </Card>
 
