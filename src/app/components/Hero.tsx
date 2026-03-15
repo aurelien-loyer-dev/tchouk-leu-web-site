@@ -40,7 +40,7 @@ export function Hero() {
           transition={{ duration: 0.8 }}
           className="mb-8 flex justify-center"
         >
-          <img src="/images/logo.png" alt="Logo TchoukLeu" className="h-32 md:h-40 w-auto object-contain" />
+          <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-32 md:h-40 w-auto object-contain" />
         </motion.div>
 
         {/* Title */}
@@ -50,7 +50,7 @@ export function Hero() {
           transition={{ duration: 0.8, delay: 0.4 }}
           className="text-6xl md:text-8xl font-bold mb-4 text-white drop-shadow-lg"
         >
-          TchoukLeu
+          Tchouk'Leu
         </motion.h1>
 
         {/* Subtitle */}
@@ -63,16 +63,6 @@ export function Hero() {
           Tchoukball Club – Saint-Leu, Réunion
         </motion.p>
 
-        {/* Tagline */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="text-lg md:text-xl mb-12 text-white/80 italic"
-        >
-          "Entre lagon, lumière et esprit d'équipe"
-        </motion.p>
-
         {/* Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -82,7 +72,7 @@ export function Hero() {
         >
           <Button
             size="lg"
-            className="bg-[#4C93C3] hover:bg-[#3a7ba8] text-white px-8 py-6 text-lg"
+            className="bg-white hover:bg-white/90 text-foreground px-8 py-6 text-lg"
             onClick={scrollToContent}
           >
             Découvrir le club
@@ -90,7 +80,7 @@ export function Hero() {
           <Button
             size="lg"
             variant="outline"
-            className="border-2 border-foreground/80 bg-background/80 backdrop-blur-sm hover:bg-foreground/10 px-8 py-6 text-lg"
+            className="border-2 border-white bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 px-8 py-6 text-lg"
             onClick={() => navigate("/contact")}
           >
             Nous contacter
@@ -110,7 +100,7 @@ export function Hero() {
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
-          <ChevronDown className="h-10 w-10 text-foreground/60" />
+          <ChevronDown className="h-10 w-10 text-white" />
         </motion.div>
       </motion.div>
     </section>

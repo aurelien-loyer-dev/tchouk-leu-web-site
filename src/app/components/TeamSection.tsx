@@ -38,7 +38,7 @@ export function TeamSection() {
         >
           <h2 className="text-5xl font-bold mb-4">Notre équipe</h2>
           <p className="text-xl text-muted-foreground">
-            Rencontrez les passionnés qui font vivre TchoukLeu
+            Rencontrez les passionnés qui font vivre Tchouk'Leu
           </p>
         </motion.div>
 

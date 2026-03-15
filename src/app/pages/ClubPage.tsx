@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 
 export function ClubPage() {
   const achievements = [
-    { year: "2014", title: "Création du club", description: "TchoukLeu voit le jour à Saint-Leu" },
+    { year: "2014", title: "Création du club", description: "Tchouk'Leu voit le jour à Saint-Leu" },
     { year: "2016", title: "Premier championnat régional", description: "3ème place au championnat de la Réunion" },
     { year: "2018", title: "Champion régional", description: "1ère place au championnat de la Réunion" },
     { year: "2020", title: "Développement jeunes", description: "Ouverture des catégories jeunes" },
@@ -40,9 +40,9 @@ export function ClubPage() {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            <h1 className="text-6xl font-bold mb-6">Le Club TchoukLeu</h1>
+            <h1 className="text-6xl font-bold mb-6">Le Club Tchouk'Leu</h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Depuis 2014, TchoukLeu est le club de tchoukball de référence à Saint-Leu, 
+              Depuis 2014, Tchouk'Leu est le club de tchoukball de référence à Saint-Leu, 
               alliant passion sportive et esprit insulaire.
             </p>
           </motion.div>
@@ -61,13 +61,13 @@ export function ClubPage() {
             <h2 className="text-5xl font-bold mb-12 text-center">Notre histoire</h2>
             <div className="max-w-4xl mx-auto">
               <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-                TchoukLeu est né en 2014 de la passion d'un groupe d'amis pour le tchoukball, 
+                Tchouk'Leu est né en 2014 de la passion d'un groupe d'amis pour le tchoukball, 
                 un sport encore peu connu à la Réunion. Inspirés par les valeurs de fair-play et 
                 de respect qui caractérisent ce sport, ils ont décidé de créer un club à Saint-Leu.
               </p>
               <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
                 Au fil des années, le club a su grandir et se développer, attirant des joueurs de 
-                tous niveaux et de tous âges. Aujourd'hui, TchoukLeu compte plusieurs dizaines de 
+                tous niveaux et de tous âges. Aujourd'hui, Tchouk'Leu compte plusieurs dizaines de 
                 licenciés et participe activement aux compétitions régionales et interrégionales.
               </p>
               <p className="text-lg text-muted-foreground leading-relaxed">

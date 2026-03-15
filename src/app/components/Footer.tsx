@@ -19,9 +19,9 @@ export function Footer() {
           {/* Logo & Info */}
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <img src="/images/logo.png" alt="Logo TchoukLeu" className="h-10 w-10 rounded-full object-cover" />
+              <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-10 w-10 rounded-full object-cover" />
               <div>
-                <h3 className="text-2xl font-bold">TchoukLeu</h3>
+                <h3 className="text-2xl font-bold">Tchouk'Leu</h3>
                 <p className="text-sm text-muted-foreground">Depuis 2014</p>
               </div>
             </div>
@@ -83,7 +83,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-border text-center text-muted-foreground">
-          <p>&copy; 2026 TchoukLeu. Tous droits réservés.</p>
+          <p>&copy; 2026 Tchouk'Leu. Tous droits réservés.</p>
         </div>
       </div>
     </footer>

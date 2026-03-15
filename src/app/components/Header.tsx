@@ -9,7 +9,7 @@ export function Header() {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > window.innerHeight * 0.8) {
+      if (window.scrollY > 10) {
         setIsVisible(true);
       } else {
         setIsVisible(false);
@@ -18,6 +18,7 @@ export function Header() {
 
     if (isHomePage) {
       window.addEventListener("scroll", handleScroll);
+      handleScroll();
       return () => window.removeEventListener("scroll", handleScroll);
     } else {
       setIsVisible(true);
@@ -32,9 +33,8 @@ export function Header() {
     >
       <div className="bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/images/logo.png" alt="Logo TchoukLeu" className="h-8 w-8 rounded-full object-cover" />
-            <span className="font-bold text-xl">TchoukLeu</span>
+          <Link to="/" className="flex items-center">
+            <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-8 w-auto object-contain" />
           </Link>
           
           <nav className="hidden md:flex items-center gap-8">

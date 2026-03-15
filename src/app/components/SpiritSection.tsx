@@ -21,9 +21,9 @@ export function SpiritSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-5xl font-bold mb-6">L'esprit de TchoukLeu</h2>
+            <h2 className="text-5xl font-bold mb-6">L'esprit de Tchouk'Leu</h2>
             <p className="text-xl mb-8 text-muted-foreground leading-relaxed">
-              TchoukLeu est un club de tchoukball basé à Saint-Leu sur l'île de la Réunion.
+              Tchouk'Leu est un club de tchoukball basé à Saint-Leu sur l'île de la Réunion.
               Inspiré par l'énergie de l'océan et l'esprit de fair-play, le club rassemble des joueurs
               passionnés par le travail d'équipe et le sport.
             </p>

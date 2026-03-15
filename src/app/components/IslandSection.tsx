@@ -23,7 +23,7 @@ export function IslandSection() {
         >
           <h2 className="text-5xl font-bold mb-6 text-[#1F2A37] dark:text-white">Notre île</h2>
           <p className="text-xl max-w-3xl mx-auto text-[#1F2A37]/80 dark:text-white/80 leading-relaxed">
-            "Enraciné à Saint-Leu, TchoukLeu reflète l'énergie de l'île de la Réunion — 
+            "Enraciné à Saint-Leu, Tchouk'Leu reflète l'énergie de l'île de la Réunion — 
             l'océan, le vent et la liberté de mouvement."
           </p>
         </motion.div>
