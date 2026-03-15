@@ -3,12 +3,16 @@ import { Trophy, Users, Heart, Target } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 
 export function ClubPage() {
-  const achievements = [
-    { year: "2014", title: "Création du club", description: "Tchouk'Leu voit le jour à Saint-Leu" },
-    { year: "2016", title: "Premier championnat régional", description: "3ème place au championnat de la Réunion" },
-    { year: "2018", title: "Champion régional", description: "1ère place au championnat de la Réunion" },
-    { year: "2020", title: "Développement jeunes", description: "Ouverture des catégories jeunes" },
-    { year: "2023", title: "Tournoi international", description: "Participation au tournoi de l'Océan Indien" },
+  const topPlayers = [
+    { name: "Léna Hoarau", role: "Ailière", highlight: "Meilleure marqueuse 2025" },
+    { name: "Mathis Robert", role: "Centre", highlight: "MVP régional 2024" },
+    { name: "Evan Payet", role: "Défenseur", highlight: "Leader défensif du club" },
+  ];
+
+  const clubRepresentatives = [
+    { name: "Sarah Fontaine", role: "Capitaine", highlight: "Représentante officielle en compétition" },
+    { name: "Kévin Grondin", role: "Coach principal", highlight: "Responsable de la formation sportive" },
+    { name: "Lila Rivière", role: "Référente jeunes", highlight: "Ambassadrice des sections U12/U15" },
   ];
 
   const values = [
@@ -123,7 +127,7 @@ export function ClubPage() {
         </div>
       </section>
 
-      {/* Palmarès */}
+      {/* Wall of Fame */}
       <section className="py-20 px-6 bg-background">
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -134,33 +138,56 @@ export function ClubPage() {
             className="text-center mb-16"
           >
             <Trophy className="h-16 w-16 mx-auto mb-6 text-[#4C93C3]" />
-            <h2 className="text-5xl font-bold mb-4">Palmarès</h2>
+            <h2 className="text-5xl font-bold mb-4">Wall of Fame</h2>
             <p className="text-xl text-muted-foreground">
-              Les moments clés de notre histoire
+              Nos meilleurs joueurs et les représentants du club
             </p>
           </motion.div>
 
-          <div className="max-w-4xl mx-auto">
-            {achievements.map((achievement, index) => (
-              <motion.div
-                key={achievement.year}
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="flex gap-8 mb-12 last:mb-0"
-              >
-                <div className="flex-shrink-0">
-                  <div className="w-20 h-20 bg-[#4C93C3] text-white rounded-full flex items-center justify-center font-bold text-lg">
-                    {achievement.year}
-                  </div>
-                </div>
-                <div className="flex-1 pt-2">
-                  <h3 className="text-2xl font-bold mb-2">{achievement.title}</h3>
-                  <p className="text-muted-foreground text-lg">{achievement.description}</p>
-                </div>
-              </motion.div>
-            ))}
+          <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <Card className="h-full border-2 border-[#4C93C3]/20">
+                <CardHeader>
+                  <CardTitle className="text-2xl">Meilleurs joueurs</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {topPlayers.map((player) => (
+                    <div key={player.name} className="rounded-lg border border-border/70 bg-muted/20 p-4">
+                      <p className="text-lg font-semibold">{player.name}</p>
+                      <p className="text-sm text-muted-foreground">{player.role}</p>
+                      <p className="text-sm mt-1">{player.highlight}</p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <Card className="h-full border-2 border-[#4C93C3]/20">
+                <CardHeader>
+                  <CardTitle className="text-2xl">Représentants du club</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {clubRepresentatives.map((representative) => (
+                    <div key={representative.name} className="rounded-lg border border-border/70 bg-muted/20 p-4">
+                      <p className="text-lg font-semibold">{representative.name}</p>
+                      <p className="text-sm text-muted-foreground">{representative.role}</p>
+                      <p className="text-sm mt-1">{representative.highlight}</p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         </div>
       </section>
