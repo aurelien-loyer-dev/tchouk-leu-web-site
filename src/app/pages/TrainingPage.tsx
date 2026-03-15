@@ -1,37 +1,26 @@
 import { motion } from "motion/react";
-import { Calendar, MapPin, Clock, Users, Baby, User, UserCheck } from "lucide-react";
+import { Calendar, MapPin, Users, User, UserCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 
 export function TrainingPage() {
   const categories = [
     {
-      icon: Baby,
-      name: "Mini-Tchouk (6-10 ans)",
-      description: "Initiation au tchoukball dans une ambiance ludique et pédagogique",
-      schedule: [
-        { day: "Mercredi", time: "14h00 - 15h30" },
-        { day: "Samedi", time: "09h00 - 10h30" },
-      ],
-      color: "#BFE6FF",
-    },
-    {
       icon: User,
-      name: "Jeunes (11-17 ans)",
-      description: "Développement des compétences techniques et tactiques",
+      name: "M12 / M15",
+      description: "Entraînements adaptés aux jeunes catégories",
       schedule: [
-        { day: "Mercredi", time: "16h00 - 18h00" },
-        { day: "Samedi", time: "10h30 - 12h30" },
+        { day: "Mercredi", time: "14h00 - 17h00", location: "Gymnase de Stella" },
+        { day: "Samedi", time: "15h30 - 17h00", location: "Terrain de Beach de Saint-Leu" },
       ],
       color: "#4C93C3",
     },
     {
       icon: UserCheck,
-      name: "Adultes (18+ ans)",
+      name: "Seniors (18+ ans)",
       description: "Entraînements compétitifs et perfectionnement",
       schedule: [
-        { day: "Lundi", time: "18h00 - 20h00" },
-        { day: "Mercredi", time: "18h00 - 20h00" },
-        { day: "Samedi", time: "10h00 - 12h00" },
+        { day: "Mercredi", time: "14h00 - 17h00", location: "Gymnase de Stella" },
+        { day: "Samedi", time: "17h00 - 19h00", location: "Terrain de Beach de Saint-Leu" },
       ],
       color: "#1F2A37",
     },
@@ -67,19 +56,19 @@ export function TrainingPage() {
           >
             <h2 className="text-5xl font-bold mb-12 text-center">Où nous trouver</h2>
             
-            <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="grid md:grid-cols-2 gap-8">
               <Card className="border-2 border-[#4C93C3]">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-3xl">
                     <MapPin className="h-8 w-8 text-[#4C93C3]" />
-                    Gymnase de Saint-Leu
+                    Gymnase de Stella
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 text-lg">
                   <div>
-                    <p className="font-semibold mb-2">Adresse complète :</p>
+                    <p className="font-semibold mb-2">Adresse :</p>
                     <p className="text-muted-foreground">
-                      Rue du Stade<br />
+                      Stella<br />
                       97436 Saint-Leu<br />
                       Île de la Réunion
                     </p>
@@ -87,53 +76,71 @@ export function TrainingPage() {
                   <div>
                     <p className="font-semibold mb-2">Accès :</p>
                     <p className="text-muted-foreground">
-                      Parking gratuit disponible<br />
-                      Arrêt de bus : "Gymnase Saint-Leu"<br />
-                      À 5 minutes du centre-ville
+                      Parking disponible
                     </p>
                   </div>
                   <div>
-                    <p className="font-semibold mb-2">Équipements :</p>
+                    <p className="font-semibold mb-2">Créneaux :</p>
                     <p className="text-muted-foreground">
-                      Vestiaires avec douches<br />
-                      Terrain homologué<br />
-                      Matériel fourni par le club
+                      Mercredi 14h00 - 17h00 (toutes catégories)
                     </p>
                   </div>
                 </CardContent>
               </Card>
 
-              <div className="bg-muted/30 dark:bg-muted/10 rounded-xl p-8">
-                <h3 className="text-2xl font-bold mb-6">Informations pratiques</h3>
-                <div className="space-y-6">
-                  <div className="flex items-start gap-4">
-                    <Clock className="h-6 w-6 text-[#4C93C3] flex-shrink-0 mt-1" />
-                    <div>
-                      <p className="font-semibold mb-1">Horaires d'ouverture</p>
-                      <p className="text-muted-foreground">
-                        Lundi, Mercredi, Samedi<br />
-                        Selon les créneaux d'entraînement
-                      </p>
-                    </div>
+              <Card className="border-2 border-[#4C93C3]">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3 text-3xl">
+                    <MapPin className="h-8 w-8 text-[#4C93C3]" />
+                    Terrain de Beach de Saint-Leu
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 text-lg">
+                  <div>
+                    <p className="font-semibold mb-2">Adresse :</p>
+                    <p className="text-muted-foreground">
+                      Front de mer de Saint-Leu<br />
+                      97436 Saint-Leu<br />
+                      Île de la Réunion
+                    </p>
                   </div>
-                  <div className="flex items-start gap-4">
-                    <Users className="h-6 w-6 text-[#4C93C3] flex-shrink-0 mt-1" />
-                    <div>
-                      <p className="font-semibold mb-1">Débutants bienvenus</p>
-                      <p className="text-muted-foreground">
-                        Séances d'essai gratuites<br />
-                        Encadrement adapté à tous les niveaux
-                      </p>
-                    </div>
+                  <div>
+                    <p className="font-semibold mb-2">Accès :</p>
+                    <p className="text-muted-foreground">
+                      Parking à proximité
+                    </p>
                   </div>
-                  <div className="flex items-start gap-4">
-                    <MapPin className="h-6 w-6 text-[#4C93C3] flex-shrink-0 mt-1" />
-                    <div>
-                      <p className="font-semibold mb-1">Contact</p>
-                      <p className="text-muted-foreground">
-                        Pour plus d'informations, visitez notre page contact
-                      </p>
-                    </div>
+                  <div>
+                    <p className="font-semibold mb-2">Créneaux :</p>
+                    <p className="text-muted-foreground">
+                      Samedi 15h30 - 17h00 (M12/M15)<br />
+                      Samedi 17h00 - 19h00 (Seniors)
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="mt-10 bg-muted/30 dark:bg-muted/10 rounded-xl p-8">
+              <h3 className="text-2xl font-bold mb-6">Informations pratiques</h3>
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <Users className="h-6 w-6 text-[#4C93C3] flex-shrink-0 mt-1" />
+                  <div>
+                    <p className="font-semibold mb-1">Débutants bienvenus</p>
+                    <p className="text-muted-foreground">
+                      Séances d'essai gratuites<br />
+                      Encadrement adapté à tous les niveaux
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <MapPin className="h-6 w-6 text-[#4C93C3] flex-shrink-0 mt-1" />
+                  <div>
+                    <p className="font-semibold mb-1">Contact</p>
+                    <p className="text-muted-foreground">
+                      Pour plus d'informations, visitez notre page contact
+                    </p>
                   </div>
                 </div>
               </div>
@@ -158,7 +165,7 @@ export function TrainingPage() {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 gap-8">
             {categories.map((category, index) => (
               <motion.div
                 key={category.name}
@@ -196,10 +203,11 @@ export function TrainingPage() {
                         {category.schedule.map((slot, i) => (
                           <div 
                             key={i}
-                            className="flex justify-between items-center bg-background dark:bg-card p-3 rounded-lg"
+                            className="bg-background dark:bg-card p-3 rounded-lg"
                           >
-                            <span className="font-medium">{slot.day}</span>
-                            <span className="text-muted-foreground">{slot.time}</span>
+                            <p className="font-medium">{slot.day}</p>
+                            <p className="text-muted-foreground">{slot.time}</p>
+                            <p className="text-muted-foreground">{slot.location}</p>
                           </div>
                         ))}
                       </div>
