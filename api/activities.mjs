@@ -38,8 +38,13 @@ export default async function handler(request, response) {
       return sendJson(response, 400, { error: "Invalid JSON body" });
     }
 
-    const savedActivities = await writeActivities(parsedBody.activities);
-    return sendJson(response, 200, { activities: savedActivities });
+    try {
+      const savedActivities = await writeActivities(parsedBody.activities);
+      return sendJson(response, 200, { activities: savedActivities });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to save activities";
+      return sendJson(response, 503, { error: message });
+    }
   }
 
   return sendJson(response, 405, { error: "Method not allowed" });

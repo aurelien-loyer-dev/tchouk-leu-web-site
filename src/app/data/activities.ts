@@ -92,6 +92,30 @@ function ensureOkResponse(response: Response, defaultErrorMessage: string) {
   }
 }
 
+async function extractApiError(response: Response) {
+  const contentType = response.headers.get("content-type") || "";
+
+  if (!contentType.includes("application/json")) {
+    return null;
+  }
+
+  try {
+    const payload = (await response.clone().json()) as { error?: string };
+    return typeof payload.error === "string" && payload.error ? payload.error : null;
+  } catch {
+    return null;
+  }
+}
+
+async function ensureOkApiResponse(response: Response, defaultErrorMessage: string) {
+  if (response.ok) {
+    return;
+  }
+
+  const apiError = await extractApiError(response);
+  throw new Error(apiError || defaultErrorMessage);
+}
+
 async function parseJsonResponse<T>(response: Response, apiName: string) {
   const contentType = response.headers.get("content-type") || "";
 
@@ -130,7 +154,7 @@ export async function loadActivities() {
     cache: "no-store",
   });
 
-  ensureOkResponse(response, "Impossible de charger les activites.");
+  await ensureOkApiResponse(response, "Impossible de charger les activites.");
 
   const payload = await parseJsonResponse<ActivitiesApiResponse>(response, "/api/activities");
   return sortActivities(payload.activities ?? defaultActivities);
@@ -146,7 +170,7 @@ export async function saveActivities(activities: Activity[]) {
     body: JSON.stringify({ activities: sortActivities(activities) }),
   });
 
-  ensureOkResponse(response, "Impossible d'enregistrer les activites.");
+  await ensureOkApiResponse(response, "Impossible d'enregistrer les activites.");
 
   const payload = await parseJsonResponse<ActivitiesApiResponse>(response, "/api/activities");
   return sortActivities(payload.activities ?? activities);
@@ -179,7 +203,7 @@ export async function loginAsAdmin(username: string, password: string) {
       return false;
     }
 
-    ensureOkResponse(response, "Impossible de se connecter.");
+    await ensureOkApiResponse(response, "Impossible de se connecter.");
     await parseJsonResponse<{ ok: boolean }>(response, "/api/admin-login");
     return true;
   } catch (error) {
@@ -197,7 +221,7 @@ export async function logoutAdmin() {
     credentials: "include",
   });
 
-  ensureOkResponse(response, "Impossible de se deconnecter.");
+  await ensureOkApiResponse(response, "Impossible de se deconnecter.");
 }
 
 export function createEmptyActivity(): Activity {

@@ -4,6 +4,7 @@ import { list, put } from "@vercel/blob";
 const STORE_PATH = "planning/activities.json";
 const AUTH_COOKIE_NAME = "__Host-tchoukleu_admin_session";
 const SESSION_DURATION_MS = 1000 * 60 * 60 * 12;
+const BLOB_CONFIG_ERROR = "Le stockage Vercel Blob n'est pas configure. Ajoutez BLOB_READ_WRITE_TOKEN dans le projet Vercel.";
 
 const defaultActivities = [
   {
@@ -69,6 +70,14 @@ function toSortedActivities(activities) {
     const rightValue = `${right.date}T${right.startTime}`;
     return leftValue.localeCompare(rightValue);
   });
+}
+
+function getDefaultActivities() {
+  return toSortedActivities(defaultActivities);
+}
+
+function isBlobConfigured() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 }
 
 export function getAdminPassword() {
@@ -207,6 +216,10 @@ export function clearSessionCookieValue() {
 }
 
 export async function ensureActivitiesInitialized() {
+  if (!isBlobConfigured()) {
+    throw new Error(BLOB_CONFIG_ERROR);
+  }
+
   const allBlobs = await list({ prefix: "planning/", limit: 20 });
   const existingBlob = allBlobs.blobs.find((blob) => blob.pathname === STORE_PATH);
 
@@ -225,18 +238,36 @@ export async function ensureActivitiesInitialized() {
 }
 
 export async function readActivities() {
-  const blobUrl = await ensureActivitiesInitialized();
-  const response = await fetch(blobUrl, { cache: "no-store" });
-  const parsedActivities = await response.json();
-
-  if (!Array.isArray(parsedActivities)) {
-    return toSortedActivities(defaultActivities);
+  if (!isBlobConfigured()) {
+    return getDefaultActivities();
   }
 
-  return toSortedActivities(parsedActivities);
+  try {
+    const blobUrl = await ensureActivitiesInitialized();
+    const response = await fetch(blobUrl, { cache: "no-store" });
+
+    if (!response.ok) {
+      throw new Error(`Blob fetch failed with status ${response.status}`);
+    }
+
+    const parsedActivities = await response.json();
+
+    if (!Array.isArray(parsedActivities)) {
+      return getDefaultActivities();
+    }
+
+    return toSortedActivities(parsedActivities);
+  } catch (error) {
+    console.error("Unable to read activities from Vercel Blob", error);
+    return getDefaultActivities();
+  }
 }
 
 export async function writeActivities(activities) {
+  if (!isBlobConfigured()) {
+    throw new Error(BLOB_CONFIG_ERROR);
+  }
+
   const safeActivities = Array.isArray(activities) ? activities : defaultActivities;
   await put(STORE_PATH, JSON.stringify(toSortedActivities(safeActivities)), {
     access: "public",
@@ -250,5 +281,5 @@ export async function writeActivities(activities) {
 
 export async function resetActivities() {
   await writeActivities(defaultActivities);
-  return toSortedActivities(defaultActivities);
+  return getDefaultActivities();
 }
