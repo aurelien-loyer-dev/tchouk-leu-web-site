@@ -19,7 +19,7 @@ export function Footer() {
           {/* Logo & Info */}
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <img src="/images/logo.jpg" alt="Logo TchoukLeu" className="h-10 w-10 rounded-full object-cover" />
+              <img src="/images/logo.png" alt="Logo TchoukLeu" className="h-10 w-10 rounded-full object-cover" />
               <div>
                 <h3 className="text-2xl font-bold">TchoukLeu</h3>
                 <p className="text-sm text-muted-foreground">Depuis 2014</p>

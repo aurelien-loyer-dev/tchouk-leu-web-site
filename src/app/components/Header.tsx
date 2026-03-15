@@ -33,7 +33,7 @@ export function Header() {
       <div className="bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/images/logo.jpg" alt="Logo TchoukLeu" className="h-8 w-8 rounded-full object-cover" />
+            <img src="/images/logo.png" alt="Logo TchoukLeu" className="h-8 w-8 rounded-full object-cover" />
             <span className="font-bold text-xl">TchoukLeu</span>
           </Link>
           

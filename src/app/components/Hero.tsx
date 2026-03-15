@@ -41,7 +41,7 @@ export function Hero() {
           className="mb-8 flex justify-center"
         >
           <div className="bg-white/90 dark:bg-background/90 p-6 rounded-full shadow-2xl backdrop-blur-sm">
-            <img src="/images/logo.jpg" alt="Logo TchoukLeu" className="h-24 w-24 rounded-full object-cover" />
+            <img src="/images/logo.png" alt="Logo TchoukLeu" className="h-24 w-24 rounded-full object-cover" />
           </div>
         </motion.div>
 
