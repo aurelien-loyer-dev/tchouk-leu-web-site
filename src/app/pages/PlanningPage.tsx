@@ -297,7 +297,7 @@ export function PlanningPage() {
                     <p className="text-muted-foreground">{nextActivity.startTime} - {nextActivity.endTime}</p>
                   </div>
                 ) : (
-                  <p className="text-muted-foreground">Aucune activite planifiee pour le moment.</p>
+                  <p className="text-muted-foreground">Aucune activité planifiée pour le moment.</p>
                 )}
               </CardContent>
             </Card>
@@ -306,12 +306,12 @@ export function PlanningPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-2xl">
                   <Clock3 className="h-6 w-6 text-[#4C93C3]" />
-                  Entrainements planifies
+                  Entrainements planifiés
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold text-[#4C93C3]">{trainingCount}</p>
-                <p className="text-muted-foreground mt-2">Seances visibles dans le planning actuel.</p>
+                <p className="text-muted-foreground mt-2">Séances visibles dans le planning actuel.</p>
               </CardContent>
             </Card>
 
@@ -319,12 +319,12 @@ export function PlanningPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-2xl">
                   <Trophy className="h-6 w-6 text-[#4C93C3]" />
-                  Tournois annonces
+                  Tournois annoncés
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold text-[#4C93C3]">{tournamentCount}</p>
-                <p className="text-muted-foreground mt-2">Dates competitives deja ajoutees par le club.</p>
+                <p className="text-muted-foreground mt-2">Dates compétitives déjà ajoutées par le club.</p>
               </CardContent>
             </Card>
           </div>
@@ -335,7 +335,7 @@ export function PlanningPage() {
         <div className="max-w-7xl mx-auto flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Filter className="h-4 w-4" />
-            <span>Filtrer les activites</span>
+            <span>Filtrer les activités</span>
           </div>
           <div className="flex flex-wrap gap-3">
             {(["all", "entrainement", "tournoi", "evenement"] as const).map((filter) => (
@@ -359,9 +359,9 @@ export function PlanningPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-2xl">
                 <Clock3 className="h-6 w-6 text-[#4C93C3]" />
-                Vote de presence rapide
+                Vote de présence rapide
               </CardTitle>
-              <p className="text-muted-foreground">Vote ici directement pour les prochaines activites, sans descendre plus bas.</p>
+              <p className="text-muted-foreground">Votez ici directement pour les prochaines activités, sans descendre plus bas.</p>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-2 gap-3 mb-4">
