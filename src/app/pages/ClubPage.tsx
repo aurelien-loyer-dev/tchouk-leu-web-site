@@ -167,16 +167,15 @@ export function ClubPage() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                 >
-                  <Card className="border-2 border-[#4C93C3]/20 overflow-hidden h-full">
-                    <CardContent className="h-full p-0 md:grid md:grid-cols-[220px_1fr] md:items-stretch">
-                      <div className="relative min-h-72 overflow-hidden md:h-full md:min-h-full">
+                  <Card className="h-full overflow-hidden border-2 border-[#4C93C3]/20 md:grid md:grid-cols-[220px_1fr] md:items-stretch">
+                    <div className="relative min-h-72 overflow-hidden md:h-full md:min-h-full">
                         <ImageWithFallback
                           src={member.photoSrc}
                           alt={`Photo de ${member.firstName} ${member.lastName}`}
                           className="absolute inset-0 h-full w-full object-cover"
                         />
-                      </div>
-                      <div className="p-6">
+                    </div>
+                    <CardContent className="p-6">
                         <CardTitle className="text-2xl mb-4">{member.firstName} {member.lastName}</CardTitle>
                         <div className="space-y-4 text-muted-foreground">
                           <div>
@@ -194,7 +193,6 @@ export function ClubPage() {
                             <p className="text-base text-foreground">{member.memberSince}</p>
                           </div>
                         </div>
-                      </div>
                     </CardContent>
                   </Card>
                 </motion.div>
