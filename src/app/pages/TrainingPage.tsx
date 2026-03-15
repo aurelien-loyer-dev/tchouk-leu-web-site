@@ -16,7 +16,7 @@ export function TrainingPage() {
     },
     {
       icon: UserCheck,
-      name: "Seniors (18+ ans)",
+      name: "Seniors (+18 ans)",
       description: "Entraînements compétitifs et perfectionnement",
       schedule: [
         { day: "Mercredi", time: "14h00 - 17h00", location: "Gymnase de Stella" },
@@ -27,9 +27,9 @@ export function TrainingPage() {
   ];
 
   return (
-    <div className="min-h-screen pt-24">
+    <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="py-20 px-6 bg-gradient-to-b from-[#DDF4FF] to-background dark:from-[#1a3a4a] dark:to-background">
+      <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-[#DDF4FF] to-background dark:from-[#1a3a4a] dark:to-background">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -39,7 +39,7 @@ export function TrainingPage() {
           >
             <h1 className="text-6xl font-bold mb-6">Entraînements</h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Rejoignez-nous pour des sessions dynamiques adaptées à tous les âges et tous les niveaux
+              Rejoignez-nous pour des sessions adaptées à tous les âges et tous les niveaux
             </p>
           </motion.div>
         </div>
@@ -236,7 +236,7 @@ export function TrainingPage() {
               Venez essayer gratuitement lors d'une séance d'entraînement !
             </p>
             <p className="text-lg text-[#1F2A37]/80 dark:text-white/80">
-              Contactez-nous pour réserver votre première séance et découvrir le tchoukball dans une ambiance conviviale.
+              Contactez-nous pour votre première séance et découvrir le tchoukball dans une ambiance conviviale.
             </p>
           </motion.div>
         </div>

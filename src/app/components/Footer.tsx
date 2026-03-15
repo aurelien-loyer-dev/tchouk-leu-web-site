@@ -19,7 +19,7 @@ export function Footer() {
           {/* Logo & Info */}
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-10 w-10 rounded-full object-cover" />
+              <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-12 w-10" />
               <div>
                 <h3 className="text-2xl font-bold">Tchouk'Leu</h3>
                 <p className="text-sm text-muted-foreground">Depuis 2014</p>
@@ -42,6 +42,11 @@ export function Footer() {
               <li>
                 <Link to="/club" className="text-muted-foreground hover:text-[#4C93C3] transition-colors">
                   Le Club
+                </Link>
+              </li>
+              <li>
+                <Link to="/planning" className="text-muted-foreground hover:text-[#4C93C3] transition-colors">
+                  Planning
                 </Link>
               </li>
               <li>
@@ -68,7 +73,14 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center gap-3 text-muted-foreground">
                 <Instagram className="h-5 w-5 text-[#4C93C3]" />
-                <span>@tchoukleu</span>
+                <a
+                  href="https://www.instagram.com/tchouk_leu/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-[#4C93C3] transition-colors"
+                >
+                  @tchouk_leu
+                </a>
               </li>
               <li className="flex items-center gap-3 text-muted-foreground">
                 <Mail className="h-5 w-5 text-[#4C93C3]" />

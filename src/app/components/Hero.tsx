@@ -40,18 +40,8 @@ export function Hero() {
           transition={{ duration: 0.8 }}
           className="mb-8 flex justify-center"
         >
-          <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-36 md:h-44 w-auto object-contain" />
+          <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-72 md:h-88 w-auto object-contain" />
         </motion.div>
-
-        {/* Title */}
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="text-6xl md:text-8xl font-bold mb-4 text-white drop-shadow-lg"
-        >
-          Tchouk'Leu
-        </motion.h1>
 
         {/* Subtitle */}
         <motion.p

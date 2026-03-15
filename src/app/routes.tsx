@@ -5,6 +5,8 @@ import { ClubPage } from "./pages/ClubPage";
 import { TrainingPage } from "./pages/TrainingPage";
 import { GalleryPage } from "./pages/GalleryPage";
 import { ContactPage } from "./pages/ContactPage";
+import { PlanningPage } from "./pages/PlanningPage";
+import { AdminPage } from "./pages/AdminPage";
 
 export const router = createBrowserRouter([
   {
@@ -13,9 +15,11 @@ export const router = createBrowserRouter([
     children: [
       { index: true, Component: HomePage },
       { path: "club", Component: ClubPage },
+      { path: "planning", Component: PlanningPage },
       { path: "entrainements", Component: TrainingPage },
       { path: "galerie", Component: GalleryPage },
       { path: "contact", Component: ContactPage },
+      { path: "admin", Component: AdminPage },
     ],
   },
 ]);
