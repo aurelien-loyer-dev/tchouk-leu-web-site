@@ -4,6 +4,7 @@ import { CalendarDays, ChevronLeft, ChevronRight, Clock3, ExternalLink, Filter, 
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { ActivityCategory, getCategoryLabel, loadActivities, type Activity } from "../data/activities";
+import { submitAttendanceVote, type AttendanceVote } from "../data/attendanceVotes";
 
 const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   day: "numeric",
@@ -74,6 +75,9 @@ export function PlanningPage() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activeFilter, setActiveFilter] = useState<ActivityCategory | "all">("all");
   const [loadingError, setLoadingError] = useState("");
+  const [voteMessage, setVoteMessage] = useState("");
+  const [voteByActivity, setVoteByActivity] = useState<Record<string, AttendanceVote>>({});
+  const [votingActivityId, setVotingActivityId] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -225,6 +229,25 @@ export function PlanningPage() {
   const nextActivity = filteredActivities.find((activity) => activity.date >= todayIsoDate) ?? filteredActivities[0];
   const tournamentCount = activities.filter((activity) => activity.category === "tournoi").length;
   const trainingCount = activities.filter((activity) => activity.category === "entrainement").length;
+
+  const handleVote = async (activityId: string, vote: AttendanceVote) => {
+    setVotingActivityId(activityId);
+    setVoteMessage("");
+
+    try {
+      await submitAttendanceVote(activityId, vote);
+      setVoteByActivity((current) => ({ ...current, [activityId]: vote }));
+      setVoteMessage("Merci, votre presence a ete prise en compte.");
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setVoteMessage(error.message);
+      } else {
+        setVoteMessage("Impossible d'enregistrer votre presence.");
+      }
+    } finally {
+      setVotingActivityId(null);
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -454,6 +477,12 @@ export function PlanningPage() {
             </Card>
           ) : null}
 
+          {voteMessage ? (
+            <Card className="mb-8 border-[#4C93C3]/40">
+              <CardContent className="py-4 text-center text-sm text-muted-foreground">{voteMessage}</CardContent>
+            </Card>
+          ) : null}
+
           <div className="grid lg:grid-cols-2 gap-8">
             {listedActivities.map((activity, index) => {
               const recurringTemplateId = getRecurringTemplateId(activity.id);
@@ -510,6 +539,31 @@ export function PlanningPage() {
                     <div>
                       <p className="font-semibold mb-1">Details</p>
                       <p className="text-muted-foreground">{activity.description}</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold mb-2">Presence</p>
+                      <div className="flex flex-wrap gap-2">
+                        {([
+                          { value: "present", label: "Present" },
+                          { value: "maybe", label: "Peut-etre" },
+                          { value: "absent", label: "Absent" },
+                        ] as const).map((option) => (
+                          <Button
+                            key={`${activity.id}-${option.value}`}
+                            type="button"
+                            size="sm"
+                            variant={voteByActivity[activity.id] === option.value ? "default" : "outline"}
+                            className={voteByActivity[activity.id] === option.value ? "bg-[#4C93C3] text-white hover:bg-[#3a7ba8]" : ""}
+                            disabled={votingActivityId === activity.id}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              void handleVote(activity.id, option.value);
+                            }}
+                          >
+                            {option.label}
+                          </Button>
+                        ))}
+                      </div>
                     </div>
                     {recurringTemplateId ? (
                       <p className="text-sm text-muted-foreground">Type recurrent • {recurringOccurrencesCount} seances planifiees</p>

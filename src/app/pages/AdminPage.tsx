@@ -17,6 +17,7 @@ import {
   type Activity,
   type ActivityCategory,
 } from "../data/activities";
+import { loadAttendanceSummaryForAdmin, type AttendanceSummary } from "../data/attendanceVotes";
 
 const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   day: "numeric",
@@ -53,6 +54,10 @@ export function AdminPage() {
   const [draft, setDraft] = useState<Activity>(createEmptyActivity());
   const [isLoading, setIsLoading] = useState(true);
   const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [attendanceSummaryByActivity, setAttendanceSummaryByActivity] = useState<Record<string, AttendanceSummary>>({});
+  const [attendancePeriodFilter, setAttendancePeriodFilter] = useState<"upcoming" | "past" | "all">("upcoming");
+  const [attendanceCategoryFilter, setAttendanceCategoryFilter] = useState<ActivityCategory | "all">("all");
+  const [attendanceOnlyWithVotes, setAttendanceOnlyWithVotes] = useState(false);
 
   useEffect(() => {
     const initializeAdmin = async () => {
@@ -68,6 +73,7 @@ export function AdminPage() {
         setActivities(loadedActivities);
         setSelectedId(loadedActivities[0]?.id ?? null);
         setDraft(loadedActivities[0] ?? createEmptyActivity());
+        await refreshAttendanceSummary();
       } catch {
         setLoginError("Impossible de charger la session admin.");
       } finally {
@@ -123,6 +129,59 @@ export function AdminPage() {
     }, {});
   }, [activities]);
 
+  const filteredAttendanceActivities = useMemo(() => {
+    const todayIsoDate = new Date().toISOString().slice(0, 10);
+
+    return listedActivities.filter((activity) => {
+      if (attendancePeriodFilter === "upcoming" && activity.date < todayIsoDate) {
+        return false;
+      }
+
+      if (attendancePeriodFilter === "past" && activity.date >= todayIsoDate) {
+        return false;
+      }
+
+      if (attendanceCategoryFilter !== "all" && activity.category !== attendanceCategoryFilter) {
+        return false;
+      }
+
+      if (!attendanceOnlyWithVotes) {
+        return true;
+      }
+
+      const summary = attendanceSummaryByActivity[activity.id];
+      return Boolean(summary && summary.total > 0);
+    });
+  }, [listedActivities, attendancePeriodFilter, attendanceCategoryFilter, attendanceOnlyWithVotes, attendanceSummaryByActivity]);
+
+  const attendanceTotals = useMemo(() => {
+    return filteredAttendanceActivities.reduce(
+      (accumulator, activity) => {
+        const summary = attendanceSummaryByActivity[activity.id];
+
+        if (!summary) {
+          return accumulator;
+        }
+
+        accumulator.present += summary.present;
+        accumulator.maybe += summary.maybe;
+        accumulator.absent += summary.absent;
+        accumulator.total += summary.total;
+        return accumulator;
+      },
+      { present: 0, maybe: 0, absent: 0, total: 0 },
+    );
+  }, [filteredAttendanceActivities, attendanceSummaryByActivity]);
+
+  const refreshAttendanceSummary = async () => {
+    try {
+      const nextSummary = await loadAttendanceSummaryForAdmin();
+      setAttendanceSummaryByActivity(nextSummary);
+    } catch {
+      setAttendanceSummaryByActivity({});
+    }
+  };
+
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -145,6 +204,7 @@ export function AdminPage() {
       setUsername("");
       setPassword("");
       setLoginError("");
+      await refreshAttendanceSummary();
     } catch (error) {
       if (error instanceof Error) {
         setLoginError(error.message);
@@ -180,6 +240,7 @@ export function AdminPage() {
       const nextSelectedActivity = savedActivities.find((activity) => activity.id === nextSelectedId);
       setDraft(nextSelectedActivity ?? createEmptyActivity());
       setFeedbackMessage("Planning enregistre avec succes.");
+      await refreshAttendanceSummary();
     } catch (error) {
       if (error instanceof Error && error.message) {
         setFeedbackMessage(error.message);
@@ -477,6 +538,90 @@ export function AdminPage() {
                     Supprimer
                   </Button>
                 ) : null}
+              </div>
+
+              <div className="rounded-lg border border-border/70 bg-muted/20 p-4 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="font-semibold">Compte rendu des presences</p>
+                  <Button type="button" variant="outline" size="sm" onClick={() => void refreshAttendanceSummary()}>
+                    Actualiser
+                  </Button>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={attendancePeriodFilter === "upcoming" ? "default" : "outline"}
+                    className={attendancePeriodFilter === "upcoming" ? "bg-[#4C93C3] text-white hover:bg-[#3a7ba8]" : ""}
+                    onClick={() => setAttendancePeriodFilter("upcoming")}
+                  >
+                    Futures
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={attendancePeriodFilter === "past" ? "default" : "outline"}
+                    className={attendancePeriodFilter === "past" ? "bg-[#4C93C3] text-white hover:bg-[#3a7ba8]" : ""}
+                    onClick={() => setAttendancePeriodFilter("past")}
+                  >
+                    Passees
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={attendancePeriodFilter === "all" ? "default" : "outline"}
+                    className={attendancePeriodFilter === "all" ? "bg-[#4C93C3] text-white hover:bg-[#3a7ba8]" : ""}
+                    onClick={() => setAttendancePeriodFilter("all")}
+                  >
+                    Toutes
+                  </Button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-4">
+                  <select
+                    value={attendanceCategoryFilter}
+                    onChange={(event) => setAttendanceCategoryFilter(event.target.value as ActivityCategory | "all")}
+                    className="dark:bg-input/30 border-input focus-visible:border-ring focus-visible:ring-ring/50 h-9 rounded-md border bg-input-background px-3 outline-none focus-visible:ring-[3px]"
+                  >
+                    <option value="all">Tous les types</option>
+                    <option value="entrainement">Entrainements</option>
+                    <option value="tournoi">Tournois</option>
+                    <option value="evenement">Evenements</option>
+                  </select>
+
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      checked={attendanceOnlyWithVotes}
+                      onChange={(event) => setAttendanceOnlyWithVotes(event.target.checked)}
+                    />
+                    Avec votes uniquement
+                  </label>
+                </div>
+
+                <div className="rounded-md border border-border/60 bg-background px-3 py-2 text-xs text-muted-foreground">
+                  Totaux filtres • Present: {attendanceTotals.present} • Peut-etre: {attendanceTotals.maybe} • Absent: {attendanceTotals.absent} • Votes: {attendanceTotals.total}
+                </div>
+
+                {filteredAttendanceActivities.length > 0 ? (
+                  <div className="space-y-2">
+                    {filteredAttendanceActivities.map((activity) => {
+                      const summary = attendanceSummaryByActivity[activity.id] ?? { present: 0, maybe: 0, absent: 0, total: 0 };
+
+                      return (
+                        <div key={`attendance-${activity.id}`} className="rounded-md border border-border/60 bg-background px-3 py-2">
+                          <p className="font-medium text-sm">{activity.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Present: {summary.present} • Peut-etre: {summary.maybe} • Absent: {summary.absent} • Total: {summary.total}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Aucune activite ne correspond aux filtres.</p>
+                )}
               </div>
             </CardContent>
           </Card>
