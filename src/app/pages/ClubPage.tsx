@@ -61,7 +61,7 @@ export function ClubPage() {
             <h2 className="text-5xl font-bold mb-12 text-center">Notre histoire</h2>
             <div className="max-w-4xl mx-auto">
               <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-                Tchouk'Leu est né en 2014 de la passion d'un groupe d'amis pour le tchoukball, 
+                Tchouk'Leu est né en 2014 de la volonté d'un groupe de passionnés de tchoukball, 
                 un sport encore peu connu à la Réunion. Inspirés par les valeurs de fair-play et 
                 de respect qui caractérisent ce sport, ils ont décidé de créer un club à Saint-Leu.
               </p>
