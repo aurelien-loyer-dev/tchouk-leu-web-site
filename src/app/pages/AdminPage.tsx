@@ -221,9 +221,6 @@ export function AdminPage() {
                     <Button type="submit" className="w-full bg-[#4C93C3] text-white hover:bg-[#3a7ba8]">
                       Entrer dans le panel admin
                     </Button>
-                    <p className="text-xs text-muted-foreground">
-                      Configurez `ADMIN_USERNAME`, `ADMIN_PASSWORD` et `ADMIN_SESSION_SECRET` sur Vercel.
-                    </p>
                   </form>
                 </CardContent>
               </Card>
