@@ -40,7 +40,7 @@ export function Hero() {
           transition={{ duration: 0.8 }}
           className="mb-8 flex justify-center"
         >
-          <img src="/images/logo.png" alt="Logo TchoukLeu" className="h-24 w-auto object-contain" />
+          <img src="/images/logo.png" alt="Logo TchoukLeu" className="h-32 md:h-40 w-auto object-contain" />
         </motion.div>
 
         {/* Title */}
@@ -48,7 +48,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="text-6xl md:text-8xl font-bold mb-4 text-foreground drop-shadow-lg"
+          className="text-6xl md:text-8xl font-bold mb-4 text-white drop-shadow-lg"
         >
           TchoukLeu
         </motion.h1>
@@ -58,7 +58,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="text-2xl md:text-3xl mb-3 text-foreground/90"
+          className="text-2xl md:text-3xl mb-3 text-white/90"
         >
           Tchoukball Club – Saint-Leu, Réunion
         </motion.p>
@@ -68,7 +68,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.8 }}
-          className="text-lg md:text-xl mb-12 text-foreground/80 italic"
+          className="text-lg md:text-xl mb-12 text-white/80 italic"
         >
           "Entre lagon, lumière et esprit d'équipe"
         </motion.p>
