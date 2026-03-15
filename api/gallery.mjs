@@ -1,4 +1,4 @@
-import { addGalleryPhoto, readGalleryPhotos, removeGalleryPhoto } from "./_lib/galleryStore.mjs";
+import { addGalleryAlbum, addGalleryPhoto, readGalleryPhotos, removeGalleryPhoto } from "./_lib/galleryStore.mjs";
 import { isAuthenticatedRequest } from "./_lib/adminAuth.mjs";
 
 function sendJson(response, statusCode, body) {
@@ -39,7 +39,9 @@ export default async function handler(request, response) {
     }
 
     try {
-      const photos = await addGalleryPhoto(parsedBody);
+      const photos = Array.isArray(parsedBody.photos)
+        ? await addGalleryAlbum(parsedBody)
+        : await addGalleryPhoto(parsedBody);
       return sendJson(response, 200, { photos });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to add photo";

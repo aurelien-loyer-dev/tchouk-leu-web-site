@@ -19,7 +19,7 @@ import {
   type ActivityCategory,
 } from "../data/activities";
 import { loadAttendanceSummaryForAdmin, type AttendanceSummary } from "../data/attendanceVotes";
-import { deleteGalleryPhoto, loadGalleryPhotos, uploadGalleryPhoto, type GalleryCategory, type GalleryPhoto } from "../data/gallery";
+import { deleteGalleryPhoto, loadGalleryPhotos, uploadGalleryAlbum, type GalleryCategory, type GalleryPhoto } from "../data/gallery";
 
 const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   day: "numeric",
@@ -71,8 +71,8 @@ export function AdminPage() {
   const [attendanceOnlyWithVotes, setAttendanceOnlyWithVotes] = useState(false);
   const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>([]);
   const [galleryCategory, setGalleryCategory] = useState<GalleryCategory>("events");
-  const [galleryAlt, setGalleryAlt] = useState("");
-  const [galleryFile, setGalleryFile] = useState<File | null>(null);
+  const [galleryAlbumTitle, setGalleryAlbumTitle] = useState("");
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [galleryFeedbackMessage, setGalleryFeedbackMessage] = useState("");
   const [isGallerySaving, setIsGallerySaving] = useState(false);
 
@@ -306,41 +306,50 @@ export function AdminPage() {
     await persistActivities(resetActivities, resetActivities[0]?.id ?? null);
   };
 
-  const handleUploadGalleryPhoto = async () => {
-    if (!galleryFile) {
-      setGalleryFeedbackMessage("Selectionnez une photo a ajouter.");
+  const handleUploadGalleryAlbum = async () => {
+    if (galleryFiles.length === 0) {
+      setGalleryFeedbackMessage("Selectionnez au moins une photo pour l'album.");
       return;
     }
 
-    if (!galleryAlt.trim()) {
-      setGalleryFeedbackMessage("Ajoutez un texte descriptif pour la photo.");
+    if (!galleryAlbumTitle.trim()) {
+      setGalleryFeedbackMessage("Ajoutez un titre d'album.");
       return;
     }
 
     try {
       setIsGallerySaving(true);
       setGalleryFeedbackMessage("");
-      const src = await fileToDataUrl(galleryFile);
+      const albumPhotoPayload = await Promise.all(
+        galleryFiles.map(async (file) => {
+          const src = await fileToDataUrl(file);
 
-      if (!src) {
-        throw new Error("Impossible de convertir la photo.");
-      }
+          if (!src) {
+            throw new Error("Impossible de convertir une des photos.");
+          }
 
-      const nextPhotos = await uploadGalleryPhoto({
-        src,
-        alt: galleryAlt.trim(),
+          return {
+            src,
+            alt: file.name,
+          };
+        }),
+      );
+
+      const nextPhotos = await uploadGalleryAlbum({
+        title: galleryAlbumTitle.trim(),
         category: galleryCategory,
+        photos: albumPhotoPayload,
       });
 
       setGalleryPhotos(nextPhotos);
-      setGalleryAlt("");
-      setGalleryFile(null);
-      setGalleryFeedbackMessage("Photo ajoutee dans la galerie.");
+      setGalleryAlbumTitle("");
+      setGalleryFiles([]);
+      setGalleryFeedbackMessage("Album ajoute dans la galerie.");
     } catch (error) {
       if (error instanceof Error && error.message) {
         setGalleryFeedbackMessage(error.message);
       } else {
-        setGalleryFeedbackMessage("Impossible d'ajouter la photo.");
+        setGalleryFeedbackMessage("Impossible d'ajouter l'album.");
       }
     } finally {
       setIsGallerySaving(false);
@@ -729,15 +738,16 @@ export function AdminPage() {
                       id="gallery-file"
                       type="file"
                       accept="image/*"
-                      onChange={(event) => setGalleryFile(event.target.files?.[0] ?? null)}
+                      multiple
+                      onChange={(event) => setGalleryFiles(Array.from(event.target.files ?? []))}
                     />
                   </div>
                   <div>
-                    <label htmlFor="gallery-alt" className="mb-2 block font-medium">Description</label>
+                    <label htmlFor="gallery-alt" className="mb-2 block font-medium">Titre de l'album</label>
                     <Input
                       id="gallery-alt"
-                      value={galleryAlt}
-                      onChange={(event) => setGalleryAlt(event.target.value)}
+                      value={galleryAlbumTitle}
+                      onChange={(event) => setGalleryAlbumTitle(event.target.value)}
                       placeholder="Ex: Tournoi regional 2026"
                     />
                   </div>
@@ -758,10 +768,10 @@ export function AdminPage() {
                   <Button
                     type="button"
                     className="w-full bg-[#4C93C3] text-white hover:bg-[#3a7ba8]"
-                    onClick={() => void handleUploadGalleryPhoto()}
+                    onClick={() => void handleUploadGalleryAlbum()}
                     disabled={isGallerySaving}
                   >
-                    {isGallerySaving ? "Enregistrement..." : "Ajouter la photo"}
+                    {isGallerySaving ? "Enregistrement..." : "Ajouter l'album"}
                   </Button>
 
                   {galleryFeedbackMessage ? (
@@ -777,6 +787,7 @@ export function AdminPage() {
                           <ImageWithFallback src={photo.src} alt={photo.alt} className="h-36 w-full object-cover" />
                           <div className="p-3 space-y-2">
                             <p className="text-sm font-medium line-clamp-2">{photo.alt}</p>
+                            {photo.albumTitle ? <p className="text-xs text-muted-foreground">Album: {photo.albumTitle}</p> : null}
                             <p className="text-xs text-muted-foreground">{photo.category}</p>
                             <Button
                               type="button"

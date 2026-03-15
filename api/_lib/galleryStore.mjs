@@ -24,6 +24,7 @@ function normalizePhoto(photo) {
   const alt = typeof photo.alt === "string" ? photo.alt : "";
   const category = typeof photo.category === "string" ? photo.category : "";
   const createdAt = typeof photo.createdAt === "string" ? photo.createdAt : new Date().toISOString();
+  const albumTitle = typeof photo.albumTitle === "string" ? photo.albumTitle.trim() : "";
 
   if (!id || !src || !alt || !ALLOWED_CATEGORIES.has(category)) {
     return null;
@@ -35,6 +36,7 @@ function normalizePhoto(photo) {
     alt,
     category,
     createdAt,
+    ...(albumTitle ? { albumTitle } : {}),
   };
 }
 
@@ -128,12 +130,42 @@ function validateNewPhotoInput(photoInput) {
     throw new Error("La photo est trop volumineuse.");
   }
 
+  const albumTitle = typeof photoInput.albumTitle === "string" ? photoInput.albumTitle.trim() : "";
+
   return {
     id: crypto.randomUUID(),
     src,
     alt,
     category,
     createdAt: new Date().toISOString(),
+    ...(albumTitle ? { albumTitle } : {}),
+  };
+}
+
+function validatePhotoSource(photoSourceInput, fallbackAlt) {
+  if (!isObject(photoSourceInput)) {
+    throw new Error("Photo invalide.");
+  }
+
+  const src = typeof photoSourceInput.src === "string" ? photoSourceInput.src : "";
+  const altRaw = typeof photoSourceInput.alt === "string" ? photoSourceInput.alt.trim() : "";
+  const alt = altRaw || fallbackAlt;
+
+  if (!alt) {
+    throw new Error("Le texte alternatif est obligatoire.");
+  }
+
+  if (!src.startsWith("data:image/")) {
+    throw new Error("Le format de photo est invalide.");
+  }
+
+  if (src.length > MAX_DATA_URL_LENGTH) {
+    throw new Error("Une des photos est trop volumineuse.");
+  }
+
+  return {
+    src,
+    alt,
   };
 }
 
@@ -156,6 +188,46 @@ export async function addGalleryPhoto(photoInput) {
   const nextPhoto = validateNewPhotoInput(photoInput);
   const existingPhotos = await readGalleryPhotos();
   const nextPhotos = [nextPhoto, ...existingPhotos].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  return writeGalleryPhotos(nextPhotos);
+}
+
+export async function addGalleryAlbum(albumInput) {
+  if (!isObject(albumInput)) {
+    throw new Error("Album invalide.");
+  }
+
+  const title = typeof albumInput.title === "string" ? albumInput.title.trim() : "";
+  const category = typeof albumInput.category === "string" ? albumInput.category : "";
+  const photosInput = Array.isArray(albumInput.photos) ? albumInput.photos : [];
+
+  if (!title) {
+    throw new Error("Le titre de l'album est obligatoire.");
+  }
+
+  if (!ALLOWED_CATEGORIES.has(category)) {
+    throw new Error("Categorie de photo invalide.");
+  }
+
+  if (photosInput.length === 0) {
+    throw new Error("Ajoutez au moins une photo dans l'album.");
+  }
+
+  const createdAt = new Date().toISOString();
+  const nextAlbumPhotos = photosInput.map((photoInput, index) => {
+    const normalizedPhotoSource = validatePhotoSource(photoInput, `${title} ${index + 1}`);
+
+    return {
+      id: crypto.randomUUID(),
+      src: normalizedPhotoSource.src,
+      alt: normalizedPhotoSource.alt,
+      category,
+      createdAt,
+      albumTitle: title,
+    };
+  });
+
+  const existingPhotos = await readGalleryPhotos();
+  const nextPhotos = [...nextAlbumPhotos, ...existingPhotos].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
   return writeGalleryPhotos(nextPhotos);
 }
 

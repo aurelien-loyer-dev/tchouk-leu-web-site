@@ -6,6 +6,16 @@ export type GalleryPhoto = {
   alt: string;
   category: GalleryCategory;
   createdAt: string;
+  albumTitle?: string;
+};
+
+export type GalleryAlbumUploadInput = {
+  title: string;
+  category: GalleryCategory;
+  photos: Array<{
+    src: string;
+    alt?: string;
+  }>;
 };
 
 type GalleryApiResponse = {
@@ -90,6 +100,21 @@ export async function uploadGalleryPhoto(input: Omit<GalleryPhoto, "id" | "creat
   });
 
   await ensureOkApiResponse(response, "Impossible d'ajouter la photo.");
+  const payload = await parseJsonResponse<GalleryApiResponse>(response, "/api/gallery");
+  return payload.photos ?? [];
+}
+
+export async function uploadGalleryAlbum(input: GalleryAlbumUploadInput) {
+  const response = await fetchWithTimeout("/api/gallery", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+
+  await ensureOkApiResponse(response, "Impossible d'ajouter l'album.");
   const payload = await parseJsonResponse<GalleryApiResponse>(response, "/api/gallery");
   return payload.photos ?? [];
 }
