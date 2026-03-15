@@ -47,7 +47,7 @@ export function Header() {
             <Link to="/planning" className="hover:text-[#4C93C3] transition-colors">
               Planning
             </Link>
-            <Link to="/entrainements" className="hover:text-[#4C93C3] transition-colors">
+            <Link to="/planning" className="hover:text-[#4C93C3] transition-colors">
               Entraînements
             </Link>
             <Link to="/galerie" className="hover:text-[#4C93C3] transition-colors">

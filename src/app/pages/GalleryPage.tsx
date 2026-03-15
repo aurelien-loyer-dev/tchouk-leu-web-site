@@ -1,9 +1,13 @@
 import { motion } from "motion/react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { loadGalleryPhotos, type GalleryPhoto } from "../data/gallery";
 
 export function GalleryPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [galleryImages, setGalleryImages] = useState<GalleryPhoto[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const categories = [
     { id: "all", label: "Tout" },
@@ -12,13 +16,27 @@ export function GalleryPage() {
     { id: "events", label: "Événements" },
   ];
 
-  const galleryImages = [
-    {
-      src: "",
-      alt: "Match de tchoukball",
-      category: "matches",
-    },
-  ];
+  useEffect(() => {
+    const initializeGallery = async () => {
+      try {
+        const photos = await loadGalleryPhotos();
+        setGalleryImages(photos);
+        setErrorMessage("");
+      } catch (error) {
+        setGalleryImages([]);
+
+        if (error instanceof Error && error.message) {
+          setErrorMessage(error.message);
+        } else {
+          setErrorMessage("Impossible de charger la galerie pour le moment.");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void initializeGallery();
+  }, []);
 
   const filteredImages = selectedCategory === "all" 
     ? galleryImages 
@@ -92,9 +110,13 @@ export function GalleryPage() {
 
           {filteredImages.length === 0 && (
             <div className="text-center py-20">
-              <p className="text-xl text-muted-foreground">
-                Aucune photo dans cette catégorie pour le moment.
-              </p>
+              {isLoading ? (
+                <p className="text-xl text-muted-foreground">Chargement des photos...</p>
+              ) : errorMessage ? (
+                <p className="text-xl text-red-600">{errorMessage}</p>
+              ) : (
+                <p className="text-xl text-muted-foreground">Aucune photo dans cette catégorie pour le moment.</p>
+              )}
             </div>
           )}
         </div>

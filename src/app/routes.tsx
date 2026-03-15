@@ -2,7 +2,6 @@ import { createBrowserRouter } from "react-router";
 import { Layout } from "./components/Layout";
 import { HomePage } from "./pages/HomePage";
 import { ClubPage } from "./pages/ClubPage";
-import { TrainingPage } from "./pages/TrainingPage";
 import { GalleryPage } from "./pages/GalleryPage";
 import { ContactPage } from "./pages/ContactPage";
 import { PlanningPage } from "./pages/PlanningPage";
@@ -16,7 +15,7 @@ export const router = createBrowserRouter([
       { index: true, Component: HomePage },
       { path: "club", Component: ClubPage },
       { path: "planning", Component: PlanningPage },
-      { path: "entrainements", Component: TrainingPage },
+      { path: "entrainements", Component: PlanningPage },
       { path: "galerie", Component: GalleryPage },
       { path: "contact", Component: ContactPage },
       { path: "admin", Component: AdminPage },

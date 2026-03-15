@@ -5,6 +5,7 @@ import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
+import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import {
   checkAdminSession,
   createEmptyActivity,
@@ -18,6 +19,7 @@ import {
   type ActivityCategory,
 } from "../data/activities";
 import { loadAttendanceSummaryForAdmin, type AttendanceSummary } from "../data/attendanceVotes";
+import { deleteGalleryPhoto, loadGalleryPhotos, uploadGalleryPhoto, type GalleryCategory, type GalleryPhoto } from "../data/gallery";
 
 const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   day: "numeric",
@@ -44,6 +46,15 @@ function compareActivitiesByDate(left: Activity, right: Activity) {
   return leftValue.localeCompare(rightValue);
 }
 
+function fileToDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const fileReader = new FileReader();
+    fileReader.onload = () => resolve(typeof fileReader.result === "string" ? fileReader.result : "");
+    fileReader.onerror = () => reject(new Error("Impossible de lire le fichier image."));
+    fileReader.readAsDataURL(file);
+  });
+}
+
 export function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState("");
@@ -58,6 +69,12 @@ export function AdminPage() {
   const [attendancePeriodFilter, setAttendancePeriodFilter] = useState<"upcoming" | "past" | "all">("upcoming");
   const [attendanceCategoryFilter, setAttendanceCategoryFilter] = useState<ActivityCategory | "all">("all");
   const [attendanceOnlyWithVotes, setAttendanceOnlyWithVotes] = useState(false);
+  const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>([]);
+  const [galleryCategory, setGalleryCategory] = useState<GalleryCategory>("events");
+  const [galleryAlt, setGalleryAlt] = useState("");
+  const [galleryFile, setGalleryFile] = useState<File | null>(null);
+  const [galleryFeedbackMessage, setGalleryFeedbackMessage] = useState("");
+  const [isGallerySaving, setIsGallerySaving] = useState(false);
 
   useEffect(() => {
     const initializeAdmin = async () => {
@@ -70,7 +87,9 @@ export function AdminPage() {
         }
 
         const loadedActivities = await loadActivities();
+        const loadedGalleryPhotos = await loadGalleryPhotos();
         setActivities(loadedActivities);
+        setGalleryPhotos(loadedGalleryPhotos);
         setSelectedId(loadedActivities[0]?.id ?? null);
         setDraft(loadedActivities[0] ?? createEmptyActivity());
         await refreshAttendanceSummary();
@@ -196,8 +215,10 @@ export function AdminPage() {
       }
 
       const loadedActivities = await loadActivities();
+      const loadedGalleryPhotos = await loadGalleryPhotos();
       setIsAuthenticated(true);
       setActivities(loadedActivities);
+      setGalleryPhotos(loadedGalleryPhotos);
       setSelectedId(loadedActivities[0]?.id ?? null);
       setDraft(loadedActivities[0] ?? createEmptyActivity());
       setUsername("");
@@ -283,6 +304,65 @@ export function AdminPage() {
   const handleReset = async () => {
     const resetActivities = [...defaultActivities];
     await persistActivities(resetActivities, resetActivities[0]?.id ?? null);
+  };
+
+  const handleUploadGalleryPhoto = async () => {
+    if (!galleryFile) {
+      setGalleryFeedbackMessage("Selectionnez une photo a ajouter.");
+      return;
+    }
+
+    if (!galleryAlt.trim()) {
+      setGalleryFeedbackMessage("Ajoutez un texte descriptif pour la photo.");
+      return;
+    }
+
+    try {
+      setIsGallerySaving(true);
+      setGalleryFeedbackMessage("");
+      const src = await fileToDataUrl(galleryFile);
+
+      if (!src) {
+        throw new Error("Impossible de convertir la photo.");
+      }
+
+      const nextPhotos = await uploadGalleryPhoto({
+        src,
+        alt: galleryAlt.trim(),
+        category: galleryCategory,
+      });
+
+      setGalleryPhotos(nextPhotos);
+      setGalleryAlt("");
+      setGalleryFile(null);
+      setGalleryFeedbackMessage("Photo ajoutee dans la galerie.");
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setGalleryFeedbackMessage(error.message);
+      } else {
+        setGalleryFeedbackMessage("Impossible d'ajouter la photo.");
+      }
+    } finally {
+      setIsGallerySaving(false);
+    }
+  };
+
+  const handleDeleteGalleryPhoto = async (photoId: string) => {
+    try {
+      setIsGallerySaving(true);
+      setGalleryFeedbackMessage("");
+      const nextPhotos = await deleteGalleryPhoto(photoId);
+      setGalleryPhotos(nextPhotos);
+      setGalleryFeedbackMessage("Photo supprimee de la galerie.");
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setGalleryFeedbackMessage(error.message);
+      } else {
+        setGalleryFeedbackMessage("Impossible de supprimer la photo.");
+      }
+    } finally {
+      setIsGallerySaving(false);
+    }
   };
 
   if (isLoading) {
@@ -628,6 +708,94 @@ export function AdminPage() {
                 ) : (
                   <p className="text-sm text-muted-foreground">Aucune activite ne correspond aux filtres.</p>
                 )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      <section className="pb-20 px-6 bg-background">
+        <div className="max-w-7xl mx-auto">
+          <Card className="border-2 border-[#4C93C3]/20">
+            <CardHeader>
+              <CardTitle className="text-2xl">Galerie photos</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid lg:grid-cols-[1.1fr_1.9fr] gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="gallery-file" className="mb-2 block font-medium">Photo</label>
+                    <Input
+                      id="gallery-file"
+                      type="file"
+                      accept="image/*"
+                      onChange={(event) => setGalleryFile(event.target.files?.[0] ?? null)}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="gallery-alt" className="mb-2 block font-medium">Description</label>
+                    <Input
+                      id="gallery-alt"
+                      value={galleryAlt}
+                      onChange={(event) => setGalleryAlt(event.target.value)}
+                      placeholder="Ex: Tournoi regional 2026"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="gallery-category" className="mb-2 block font-medium">Categorie</label>
+                    <select
+                      id="gallery-category"
+                      value={galleryCategory}
+                      onChange={(event) => setGalleryCategory(event.target.value as GalleryCategory)}
+                      className="dark:bg-input/30 border-input focus-visible:border-ring focus-visible:ring-ring/50 h-10 w-full rounded-md border bg-input-background px-3 outline-none focus-visible:ring-[3px]"
+                    >
+                      <option value="matches">Matchs</option>
+                      <option value="training">Entrainements</option>
+                      <option value="events">Evenements</option>
+                    </select>
+                  </div>
+
+                  <Button
+                    type="button"
+                    className="w-full bg-[#4C93C3] text-white hover:bg-[#3a7ba8]"
+                    onClick={() => void handleUploadGalleryPhoto()}
+                    disabled={isGallerySaving}
+                  >
+                    {isGallerySaving ? "Enregistrement..." : "Ajouter la photo"}
+                  </Button>
+
+                  {galleryFeedbackMessage ? (
+                    <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">{galleryFeedbackMessage}</p>
+                  ) : null}
+                </div>
+
+                <div>
+                  {galleryPhotos.length > 0 ? (
+                    <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {galleryPhotos.map((photo) => (
+                        <div key={photo.id} className="rounded-xl border border-border overflow-hidden bg-background">
+                          <ImageWithFallback src={photo.src} alt={photo.alt} className="h-36 w-full object-cover" />
+                          <div className="p-3 space-y-2">
+                            <p className="text-sm font-medium line-clamp-2">{photo.alt}</p>
+                            <p className="text-xs text-muted-foreground">{photo.category}</p>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="w-full"
+                              onClick={() => void handleDeleteGalleryPhoto(photo.id)}
+                              disabled={isGallerySaving}
+                            >
+                              Supprimer
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Aucune photo dans la galerie pour le moment.</p>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
