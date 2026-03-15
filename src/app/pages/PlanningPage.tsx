@@ -20,13 +20,34 @@ function toIsoDate(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
+function normalizeLocationForMaps(location: string) {
+  const trimmedLocation = (location || "").trim();
+
+  if (!trimmedLocation) {
+    return "Saint-Leu, La Réunion";
+  }
+
+  const lowerCaseLocation = trimmedLocation.toLowerCase();
+  const alreadyLocalized =
+    lowerCaseLocation.includes("reunion") ||
+    lowerCaseLocation.includes("réunion") ||
+    lowerCaseLocation.includes("974") ||
+    lowerCaseLocation.includes("saint-leu");
+
+  if (alreadyLocalized) {
+    return trimmedLocation;
+  }
+
+  return `${trimmedLocation}, Saint-Leu, La Réunion`;
+}
+
 function toMapEmbedUrl(location: string) {
-  const encodedLocation = encodeURIComponent(location || "Saint-Leu Reunion");
+  const encodedLocation = encodeURIComponent(normalizeLocationForMaps(location));
   return `https://maps.google.com/maps?q=${encodedLocation}&z=14&output=embed`;
 }
 
 function toGoogleMapsUrl(location: string) {
-  const encodedLocation = encodeURIComponent(location || "Saint-Leu Reunion");
+  const encodedLocation = encodeURIComponent(normalizeLocationForMaps(location));
   return `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`;
 }
 
@@ -128,7 +149,7 @@ export function PlanningPage() {
 
   useEffect(() => {
     if (locationOptions.length === 0) {
-      setSelectedLocation("Saint-Leu, Reunion");
+      setSelectedLocation("Saint-Leu, La Réunion");
       return;
     }
 
@@ -309,10 +330,15 @@ export function PlanningPage() {
                   displayedDayActivities.length > 0 ? (
                     <div className="space-y-2">
                       {displayedDayActivities.map((activity) => (
-                        <div key={`selected-${activity.id}`} className="rounded-md bg-background p-3 border border-border/70">
+                        <button
+                          key={`selected-${activity.id}`}
+                          type="button"
+                          onClick={() => setSelectedLocation(activity.location)}
+                          className="w-full rounded-md bg-background p-3 border border-border/70 text-left hover:border-[#4C93C3]/60"
+                        >
                           <p className="font-medium">{activity.title}</p>
                           <p className="text-sm text-muted-foreground">{activity.startTime} - {activity.endTime} • {activity.location}</p>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   ) : (
@@ -332,24 +358,10 @@ export function PlanningPage() {
                 Carte interactive des lieux
               </CardTitle>
               <p className="text-muted-foreground">
-                Choisis un lieu pour afficher sa position et ouvrir l'itineraire.
+                Clique sur une activite pour afficher automatiquement son lieu et ouvrir l'itineraire.
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {locationOptions.map((location) => (
-                  <Button
-                    key={location}
-                    type="button"
-                    variant={selectedLocation === location ? "default" : "outline"}
-                    className={selectedLocation === location ? "bg-[#4C93C3] text-white hover:bg-[#3a7ba8]" : ""}
-                    onClick={() => setSelectedLocation(location)}
-                  >
-                    {location}
-                  </Button>
-                ))}
-              </div>
-
               <div className="overflow-hidden rounded-xl border border-border/80 bg-muted/10">
                 <iframe
                   key={selectedLocation}
@@ -392,7 +404,10 @@ export function PlanningPage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.06 }}
               >
-                <Card className="h-full border-2 hover:border-[#4C93C3] transition-colors">
+                <Card
+                  className="h-full border-2 hover:border-[#4C93C3] transition-colors cursor-pointer"
+                  onClick={() => setSelectedLocation(activity.location)}
+                >
                   <CardHeader>
                     <div className="flex items-center justify-between gap-4">
                       <CardTitle className="text-2xl">{activity.title}</CardTitle>
