@@ -50,11 +50,6 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/entrainements" className="text-muted-foreground hover:text-[#4C93C3] transition-colors">
-                  Entraînements
-                </Link>
-              </li>
-              <li>
                 <Link to="/galerie" className="text-muted-foreground hover:text-[#4C93C3] transition-colors">
                   Galerie
                 </Link>
