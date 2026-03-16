@@ -9,7 +9,7 @@ export function Footer() {
   return (
     <footer
       className={`py-16 px-6 relative overflow-hidden ${
-        isWhitesSharkPage ? "bg-violet-50/70 dark:bg-violet-950/25 text-foreground" : "bg-muted/30 dark:bg-muted/10"
+        isWhitesSharkPage ? "bg-violet-100/75 dark:bg-violet-950/25 text-foreground" : "bg-muted/30 dark:bg-muted/10"
       }`}
     >
       {/* Bird decoration */}
@@ -50,7 +50,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/"
-                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
                 >
                   Accueil
                 </Link>
@@ -58,7 +58,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/club"
-                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
                 >
                   Tchouk'Leu
                 </Link>
@@ -66,7 +66,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/planning"
-                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
                 >
                   Planning
                 </Link>
@@ -74,7 +74,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/whites-shark"
-                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
                 >
                   White Sharks
                 </Link>
@@ -82,7 +82,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/galerie"
-                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
                 >
                   Galerie
                 </Link>
@@ -90,7 +90,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/contact"
-                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
                 >
                   Contact
                 </Link>
@@ -108,7 +108,7 @@ export function Footer() {
                   href="https://www.instagram.com/tchouk_leu/"
                   target="_blank"
                   rel="noreferrer"
-                  className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}
                 >
                   @tchouk_leu
                 </a>

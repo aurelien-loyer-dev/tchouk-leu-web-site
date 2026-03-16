@@ -43,7 +43,7 @@ export function Header() {
       <div
         className={`backdrop-blur-md border-b ${
           isWhitesSharkPage
-            ? "bg-background/90 border-violet-300/40 dark:border-violet-400/35"
+            ? "bg-violet-50/90 dark:bg-background/90 border-violet-300/65 dark:border-violet-400/35"
             : "bg-background/80 border-border"
         }`}
       >
@@ -59,22 +59,22 @@ export function Header() {
           </Link>
           
           <nav className="hidden md:flex items-center gap-8">
-            <Link to="/" className={isWhitesSharkPage ? "hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
+            <Link to="/" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
               Accueil
             </Link>
-            <Link to="/club" className={isWhitesSharkPage ? "hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
+            <Link to="/club" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
               Tchouk'Leu
             </Link>
-            <Link to="/planning" className={isWhitesSharkPage ? "hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
+            <Link to="/planning" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
               Planning
             </Link>
-            <Link to="/whites-shark" className={isWhitesSharkPage ? "hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
+            <Link to="/whites-shark" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
               White Sharks
             </Link>
-            <Link to="/galerie" className={isWhitesSharkPage ? "hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
+            <Link to="/galerie" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
               Galerie
             </Link>
-            <Link to="/contact" className={isWhitesSharkPage ? "hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
+            <Link to="/contact" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
               Contact
             </Link>
             <ThemeToggle />
@@ -90,7 +90,7 @@ export function Header() {
               </SheetTrigger>
               <SheetContent
                 side="right"
-                className={`pt-12 ${isWhitesSharkPage ? "bg-background border-violet-300/50 dark:border-violet-400/35" : ""}`}
+                className={`pt-12 ${isWhitesSharkPage ? "bg-violet-50/95 dark:bg-background border-violet-300/65 dark:border-violet-400/35" : ""}`}
               >
                 <SheetTitle className="sr-only">Menu principal</SheetTitle>
                 <nav className="flex flex-col gap-2 px-1">
@@ -98,7 +98,7 @@ export function Header() {
                     <Link
                       to="/"
                       className={`rounded-md px-3 py-2 font-medium ${
-                        isWhitesSharkPage ? "hover:bg-violet-100/70 dark:hover:bg-violet-500/20 hover:text-violet-700 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
+                        isWhitesSharkPage ? "hover:bg-violet-200/70 dark:hover:bg-violet-500/20 hover:text-violet-800 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
                       Accueil
@@ -108,7 +108,7 @@ export function Header() {
                     <Link
                       to="/club"
                       className={`rounded-md px-3 py-2 font-medium ${
-                        isWhitesSharkPage ? "hover:bg-violet-100/70 dark:hover:bg-violet-500/20 hover:text-violet-700 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
+                        isWhitesSharkPage ? "hover:bg-violet-200/70 dark:hover:bg-violet-500/20 hover:text-violet-800 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
                       Tchouk'Leu
@@ -118,7 +118,7 @@ export function Header() {
                     <Link
                       to="/planning"
                       className={`rounded-md px-3 py-2 font-medium ${
-                        isWhitesSharkPage ? "hover:bg-violet-100/70 dark:hover:bg-violet-500/20 hover:text-violet-700 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
+                        isWhitesSharkPage ? "hover:bg-violet-200/70 dark:hover:bg-violet-500/20 hover:text-violet-800 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
                       Planning
@@ -128,7 +128,7 @@ export function Header() {
                     <Link
                       to="/whites-shark"
                       className={`rounded-md px-3 py-2 font-medium ${
-                        isWhitesSharkPage ? "hover:bg-violet-100/70 dark:hover:bg-violet-500/20 hover:text-violet-700 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
+                        isWhitesSharkPage ? "hover:bg-violet-200/70 dark:hover:bg-violet-500/20 hover:text-violet-800 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
                       White Sharks
@@ -138,7 +138,7 @@ export function Header() {
                     <Link
                       to="/galerie"
                       className={`rounded-md px-3 py-2 font-medium ${
-                        isWhitesSharkPage ? "hover:bg-violet-100/70 dark:hover:bg-violet-500/20 hover:text-violet-700 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
+                        isWhitesSharkPage ? "hover:bg-violet-200/70 dark:hover:bg-violet-500/20 hover:text-violet-800 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
                       Galerie
@@ -148,7 +148,7 @@ export function Header() {
                     <Link
                       to="/contact"
                       className={`rounded-md px-3 py-2 font-medium ${
-                        isWhitesSharkPage ? "hover:bg-violet-100/70 dark:hover:bg-violet-500/20 hover:text-violet-700 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
+                        isWhitesSharkPage ? "hover:bg-violet-200/70 dark:hover:bg-violet-500/20 hover:text-violet-800 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
                       Contact
