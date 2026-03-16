@@ -16,8 +16,7 @@ export function WhitesSharkPage() {
             className="h-20 w-auto mx-auto mb-6 rounded-md"
           />
           <h1 className="text-4xl md:text-5xl font-bold mb-4">White Sharks</h1>
-          <p className="text-xl text-muted-foreground">Still working... cette page est en cours de préparation.</p>
-          <p className="mt-3 text-muted-foreground">Nouvelle direction artistique en préparation (violet en couleur secondaire).</p>
+          <p className="text-xl text-muted-foreground">Still working...</p>
         </motion.div>
       </div>
     </section>
