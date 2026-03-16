@@ -10,6 +10,7 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const isHomePage = location.pathname === "/";
+  const isWhitesSharkPage = location.pathname.startsWith("/whites-shark");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -39,29 +40,41 @@ export function Header() {
         isVisible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
       }`}
     >
-      <div className="bg-background/80 backdrop-blur-md border-b border-border">
+      <div
+        className={`backdrop-blur-md border-b ${
+          isWhitesSharkPage
+            ? "bg-violet-900/85 border-violet-300/30 text-white"
+            : "bg-background/80 border-border"
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center">
+          <Link to="/" className="flex items-center gap-3">
             <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-11 w-auto object-contain" />
+            {isWhitesSharkPage && (
+              <>
+                <span className="text-white/80 font-semibold">X</span>
+                <img src="/images/WhiteSharksLogo.jpg" alt="Logo White Sharks" className="h-11 w-auto object-contain rounded-sm" />
+              </>
+            )}
           </Link>
           
           <nav className="hidden md:flex items-center gap-8">
-            <Link to="/" className="hover:text-[#4C93C3] transition-colors">
+            <Link to="/" className={isWhitesSharkPage ? "hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
               Accueil
             </Link>
-            <Link to="/club" className="hover:text-[#4C93C3] transition-colors">
+            <Link to="/club" className={isWhitesSharkPage ? "hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
               Le Club
             </Link>
-            <Link to="/planning" className="hover:text-[#4C93C3] transition-colors">
+            <Link to="/planning" className={isWhitesSharkPage ? "hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
               Planning
             </Link>
-            <Link to="/whites-shark" className="hover:text-[#4C93C3] transition-colors">
+            <Link to="/whites-shark" className={isWhitesSharkPage ? "hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
               White Sharks
             </Link>
-            <Link to="/galerie" className="hover:text-[#4C93C3] transition-colors">
+            <Link to="/galerie" className={isWhitesSharkPage ? "hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
               Galerie
             </Link>
-            <Link to="/contact" className="hover:text-[#4C93C3] transition-colors">
+            <Link to="/contact" className={isWhitesSharkPage ? "hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
               Contact
             </Link>
             <ThemeToggle />
@@ -75,36 +88,69 @@ export function Header() {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="pt-12">
+              <SheetContent
+                side="right"
+                className={`pt-12 ${isWhitesSharkPage ? "bg-violet-950 text-white border-violet-400/30" : ""}`}
+              >
                 <SheetTitle className="sr-only">Menu principal</SheetTitle>
                 <nav className="flex flex-col gap-2 px-1">
                   <SheetClose asChild>
-                    <Link to="/" className="rounded-md px-3 py-2 font-medium hover:bg-accent hover:text-accent-foreground">
+                    <Link
+                      to="/"
+                      className={`rounded-md px-3 py-2 font-medium ${
+                        isWhitesSharkPage ? "hover:bg-white/10 hover:text-white" : "hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                    >
                       Accueil
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>
-                    <Link to="/club" className="rounded-md px-3 py-2 font-medium hover:bg-accent hover:text-accent-foreground">
+                    <Link
+                      to="/club"
+                      className={`rounded-md px-3 py-2 font-medium ${
+                        isWhitesSharkPage ? "hover:bg-white/10 hover:text-white" : "hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                    >
                       Le Club
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>
-                    <Link to="/planning" className="rounded-md px-3 py-2 font-medium hover:bg-accent hover:text-accent-foreground">
+                    <Link
+                      to="/planning"
+                      className={`rounded-md px-3 py-2 font-medium ${
+                        isWhitesSharkPage ? "hover:bg-white/10 hover:text-white" : "hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                    >
                       Planning
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>
-                    <Link to="/whites-shark" className="rounded-md px-3 py-2 font-medium hover:bg-accent hover:text-accent-foreground">
+                    <Link
+                      to="/whites-shark"
+                      className={`rounded-md px-3 py-2 font-medium ${
+                        isWhitesSharkPage ? "hover:bg-white/10 hover:text-white" : "hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                    >
                       White Sharks
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>
-                    <Link to="/galerie" className="rounded-md px-3 py-2 font-medium hover:bg-accent hover:text-accent-foreground">
+                    <Link
+                      to="/galerie"
+                      className={`rounded-md px-3 py-2 font-medium ${
+                        isWhitesSharkPage ? "hover:bg-white/10 hover:text-white" : "hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                    >
                       Galerie
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>
-                    <Link to="/contact" className="rounded-md px-3 py-2 font-medium hover:bg-accent hover:text-accent-foreground">
+                    <Link
+                      to="/contact"
+                      className={`rounded-md px-3 py-2 font-medium ${
+                        isWhitesSharkPage ? "hover:bg-white/10 hover:text-white" : "hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                    >
                       Contact
                     </Link>
                   </SheetClose>

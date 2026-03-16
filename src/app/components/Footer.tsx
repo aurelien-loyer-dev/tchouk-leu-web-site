@@ -1,10 +1,17 @@
 import { Instagram, Mail, MapPin } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 
 export function Footer() {
+  const location = useLocation();
+  const isWhitesSharkPage = location.pathname.startsWith("/whites-shark");
+
   return (
-    <footer className="bg-muted/30 dark:bg-muted/10 py-16 px-6 relative overflow-hidden">
+    <footer
+      className={`py-16 px-6 relative overflow-hidden ${
+        isWhitesSharkPage ? "bg-violet-900 text-white" : "bg-muted/30 dark:bg-muted/10"
+      }`}
+    >
       {/* Bird decoration */}
       <div className="absolute bottom-0 right-0 opacity-5 dark:opacity-5">
         <ImageWithFallback
@@ -20,12 +27,18 @@ export function Footer() {
           <div>
             <div className="flex items-center gap-3 mb-4">
               <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-12 w-10" />
+              {isWhitesSharkPage && (
+                <>
+                  <span className="text-white/80 font-semibold">X</span>
+                  <img src="/images/WhiteSharksLogo.jpg" alt="Logo White Sharks" className="h-12 w-auto object-contain rounded-sm" />
+                </>
+              )}
               <div>
-                <h3 className="text-2xl font-bold">Tchouk'Leu</h3>
-                <p className="text-sm text-muted-foreground">Depuis 2014</p>
+                <h3 className="text-2xl font-bold">{isWhitesSharkPage ? "Tchouk'Leu X White Sharks" : "Tchouk'Leu"}</h3>
+                <p className={isWhitesSharkPage ? "text-sm text-white/80" : "text-sm text-muted-foreground"}>Depuis 2014</p>
               </div>
             </div>
-            <p className="text-muted-foreground">
+            <p className={isWhitesSharkPage ? "text-white/80" : "text-muted-foreground"}>
               Club de tchoukball de Saint-Leu, île de la Réunion
             </p>
           </div>
@@ -35,32 +48,50 @@ export function Footer() {
             <h4 className="font-bold mb-4 text-lg">Liens rapides</h4>
             <ul className="space-y-2">
               <li>
-                <Link to="/" className="text-muted-foreground hover:text-[#4C93C3] transition-colors">
+                <Link
+                  to="/"
+                  className={isWhitesSharkPage ? "text-white/80 hover:text-white transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                >
                   Accueil
                 </Link>
               </li>
               <li>
-                <Link to="/club" className="text-muted-foreground hover:text-[#4C93C3] transition-colors">
+                <Link
+                  to="/club"
+                  className={isWhitesSharkPage ? "text-white/80 hover:text-white transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                >
                   Le Club
                 </Link>
               </li>
               <li>
-                <Link to="/planning" className="text-muted-foreground hover:text-[#4C93C3] transition-colors">
+                <Link
+                  to="/planning"
+                  className={isWhitesSharkPage ? "text-white/80 hover:text-white transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                >
                   Planning
                 </Link>
               </li>
               <li>
-                <Link to="/whites-shark" className="text-muted-foreground hover:text-[#4C93C3] transition-colors">
+                <Link
+                  to="/whites-shark"
+                  className={isWhitesSharkPage ? "text-white/80 hover:text-white transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                >
                   White Sharks
                 </Link>
               </li>
               <li>
-                <Link to="/galerie" className="text-muted-foreground hover:text-[#4C93C3] transition-colors">
+                <Link
+                  to="/galerie"
+                  className={isWhitesSharkPage ? "text-white/80 hover:text-white transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                >
                   Galerie
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="text-muted-foreground hover:text-[#4C93C3] transition-colors">
+                <Link
+                  to="/contact"
+                  className={isWhitesSharkPage ? "text-white/80 hover:text-white transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                >
                   Contact
                 </Link>
               </li>
@@ -71,30 +102,30 @@ export function Footer() {
           <div>
             <h4 className="font-bold mb-4 text-lg">Contact</h4>
             <ul className="space-y-3">
-              <li className="flex items-center gap-3 text-muted-foreground">
-                <Instagram className="h-5 w-5 text-[#4C93C3]" />
+              <li className={isWhitesSharkPage ? "flex items-center gap-3 text-white/80" : "flex items-center gap-3 text-muted-foreground"}>
+                <Instagram className={isWhitesSharkPage ? "h-5 w-5 text-violet-200" : "h-5 w-5 text-[#4C93C3]"} />
                 <a
                   href="https://www.instagram.com/tchouk_leu/"
                   target="_blank"
                   rel="noreferrer"
-                  className="hover:text-[#4C93C3] transition-colors"
+                  className={isWhitesSharkPage ? "hover:text-white transition-colors" : "hover:text-[#4C93C3] transition-colors"}
                 >
                   @tchouk_leu
                 </a>
               </li>
-              <li className="flex items-center gap-3 text-muted-foreground">
-                <Mail className="h-5 w-5 text-[#4C93C3]" />
+              <li className={isWhitesSharkPage ? "flex items-center gap-3 text-white/80" : "flex items-center gap-3 text-muted-foreground"}>
+                <Mail className={isWhitesSharkPage ? "h-5 w-5 text-violet-200" : "h-5 w-5 text-[#4C93C3]"} />
                 <span>bgaillard.pro@gmail.com</span>
               </li>
-              <li className="flex items-center gap-3 text-muted-foreground">
-                <MapPin className="h-5 w-5 text-[#4C93C3]" />
+              <li className={isWhitesSharkPage ? "flex items-center gap-3 text-white/80" : "flex items-center gap-3 text-muted-foreground"}>
+                <MapPin className={isWhitesSharkPage ? "h-5 w-5 text-violet-200" : "h-5 w-5 text-[#4C93C3]"} />
                 <span>Saint-Leu, Réunion</span>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-border text-center text-muted-foreground">
+        <div className={isWhitesSharkPage ? "mt-12 pt-8 border-t border-violet-300/30 text-center text-white/70" : "mt-12 pt-8 border-t border-border text-center text-muted-foreground"}>
           <p>&copy; 2026 Tchouk'Leu. Tous droits réservés.</p>
         </div>
       </div>
