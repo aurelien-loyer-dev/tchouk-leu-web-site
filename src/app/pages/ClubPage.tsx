@@ -57,7 +57,7 @@ export function ClubPage() {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            <h1 className="text-6xl font-bold mb-6">Le Club Tchouk'Leu</h1>
+            <h1 className="text-6xl font-bold mb-6">Le Tchouk'Leu</h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Depuis 2014, Tchouk'Leu est le club de tchoukball de référence à la Réunion, 
               alliant passion sportive et esprit insulaire.

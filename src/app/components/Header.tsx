@@ -63,7 +63,7 @@ export function Header() {
               Accueil
             </Link>
             <Link to="/club" className={isWhitesSharkPage ? "hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
-              Le Club
+              Tchouk'Leu
             </Link>
             <Link to="/planning" className={isWhitesSharkPage ? "hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
               Planning
@@ -111,7 +111,7 @@ export function Header() {
                         isWhitesSharkPage ? "hover:bg-violet-100/70 dark:hover:bg-violet-500/20 hover:text-violet-700 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
-                      Le Club
+                      Tchouk'Leu
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>

@@ -60,7 +60,7 @@ export function Footer() {
                   to="/club"
                   className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
                 >
-                  Le Club
+                  Tchouk'Leu
                 </Link>
               </li>
               <li>
