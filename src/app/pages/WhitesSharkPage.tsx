@@ -15,7 +15,7 @@ export function WhitesSharkPage() {
             alt="Logo White Sharks"
             className="h-20 w-auto mx-auto mb-6 rounded-md"
           />
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-violet-700 dark:text-foreground">White Sharks</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">White Sharks</h1>
           <p className="text-xl text-muted-foreground">Still working...</p>
         </motion.div>
       </div>
