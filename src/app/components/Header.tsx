@@ -56,7 +56,7 @@ export function Header() {
               Planning
             </Link>
             <Link to="/whites-shark" className="hover:text-[#4C93C3] transition-colors">
-              Whites Shark
+              White Sharks
             </Link>
             <Link to="/galerie" className="hover:text-[#4C93C3] transition-colors">
               Galerie
@@ -95,7 +95,7 @@ export function Header() {
                   </SheetClose>
                   <SheetClose asChild>
                     <Link to="/whites-shark" className="rounded-md px-3 py-2 font-medium hover:bg-accent hover:text-accent-foreground">
-                      Whites Shark
+                      White Sharks
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>

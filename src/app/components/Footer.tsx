@@ -51,7 +51,7 @@ export function Footer() {
               </li>
               <li>
                 <Link to="/whites-shark" className="text-muted-foreground hover:text-[#4C93C3] transition-colors">
-                  Whites Shark
+                  White Sharks
                 </Link>
               </li>
               <li>
