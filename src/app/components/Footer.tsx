@@ -9,7 +9,7 @@ export function Footer() {
   return (
     <footer
       className={`py-16 px-6 relative overflow-hidden ${
-        isWhitesSharkPage ? "bg-violet-900 text-white" : "bg-muted/30 dark:bg-muted/10"
+        isWhitesSharkPage ? "bg-violet-50/70 dark:bg-violet-950/25 text-foreground" : "bg-muted/30 dark:bg-muted/10"
       }`}
     >
       {/* Bird decoration */}
@@ -29,16 +29,16 @@ export function Footer() {
               <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-12 w-10" />
               {isWhitesSharkPage && (
                 <>
-                  <span className="text-white/80 font-semibold">X</span>
-                  <img src="/images/WhiteSharksLogo.jpg" alt="Logo White Sharks" className="h-12 w-auto object-contain rounded-sm" />
+                  <span className="font-semibold text-violet-500 dark:text-violet-300">X</span>
+                  <img src="/images/WhiteSharksLogo.png" alt="Logo White Sharks" className="h-12 w-auto object-contain rounded-sm" />
                 </>
               )}
               <div>
                 <h3 className="text-2xl font-bold">{isWhitesSharkPage ? "Tchouk'Leu X White Sharks" : "Tchouk'Leu"}</h3>
-                <p className={isWhitesSharkPage ? "text-sm text-white/80" : "text-sm text-muted-foreground"}>Depuis 2014</p>
+                <p className={isWhitesSharkPage ? "text-sm text-muted-foreground" : "text-sm text-muted-foreground"}>Depuis 2014</p>
               </div>
             </div>
-            <p className={isWhitesSharkPage ? "text-white/80" : "text-muted-foreground"}>
+            <p className={isWhitesSharkPage ? "text-muted-foreground" : "text-muted-foreground"}>
               Club de tchoukball de Saint-Leu, île de la Réunion
             </p>
           </div>
@@ -50,7 +50,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/"
-                  className={isWhitesSharkPage ? "text-white/80 hover:text-white transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
                 >
                   Accueil
                 </Link>
@@ -58,7 +58,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/club"
-                  className={isWhitesSharkPage ? "text-white/80 hover:text-white transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
                 >
                   Le Club
                 </Link>
@@ -66,7 +66,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/planning"
-                  className={isWhitesSharkPage ? "text-white/80 hover:text-white transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
                 >
                   Planning
                 </Link>
@@ -74,7 +74,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/whites-shark"
-                  className={isWhitesSharkPage ? "text-white/80 hover:text-white transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
                 >
                   White Sharks
                 </Link>
@@ -82,7 +82,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/galerie"
-                  className={isWhitesSharkPage ? "text-white/80 hover:text-white transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
                 >
                   Galerie
                 </Link>
@@ -90,7 +90,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/contact"
-                  className={isWhitesSharkPage ? "text-white/80 hover:text-white transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
                 >
                   Contact
                 </Link>
@@ -102,30 +102,30 @@ export function Footer() {
           <div>
             <h4 className="font-bold mb-4 text-lg">Contact</h4>
             <ul className="space-y-3">
-              <li className={isWhitesSharkPage ? "flex items-center gap-3 text-white/80" : "flex items-center gap-3 text-muted-foreground"}>
-                <Instagram className={isWhitesSharkPage ? "h-5 w-5 text-violet-200" : "h-5 w-5 text-[#4C93C3]"} />
+              <li className={isWhitesSharkPage ? "flex items-center gap-3 text-muted-foreground" : "flex items-center gap-3 text-muted-foreground"}>
+                <Instagram className={isWhitesSharkPage ? "h-5 w-5 text-violet-500 dark:text-violet-300" : "h-5 w-5 text-[#4C93C3]"} />
                 <a
                   href="https://www.instagram.com/tchouk_leu/"
                   target="_blank"
                   rel="noreferrer"
-                  className={isWhitesSharkPage ? "hover:text-white transition-colors" : "hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}
                 >
                   @tchouk_leu
                 </a>
               </li>
-              <li className={isWhitesSharkPage ? "flex items-center gap-3 text-white/80" : "flex items-center gap-3 text-muted-foreground"}>
-                <Mail className={isWhitesSharkPage ? "h-5 w-5 text-violet-200" : "h-5 w-5 text-[#4C93C3]"} />
+              <li className={isWhitesSharkPage ? "flex items-center gap-3 text-muted-foreground" : "flex items-center gap-3 text-muted-foreground"}>
+                <Mail className={isWhitesSharkPage ? "h-5 w-5 text-violet-500 dark:text-violet-300" : "h-5 w-5 text-[#4C93C3]"} />
                 <span>bgaillard.pro@gmail.com</span>
               </li>
-              <li className={isWhitesSharkPage ? "flex items-center gap-3 text-white/80" : "flex items-center gap-3 text-muted-foreground"}>
-                <MapPin className={isWhitesSharkPage ? "h-5 w-5 text-violet-200" : "h-5 w-5 text-[#4C93C3]"} />
+              <li className={isWhitesSharkPage ? "flex items-center gap-3 text-muted-foreground" : "flex items-center gap-3 text-muted-foreground"}>
+                <MapPin className={isWhitesSharkPage ? "h-5 w-5 text-violet-500 dark:text-violet-300" : "h-5 w-5 text-[#4C93C3]"} />
                 <span>Saint-Leu, Réunion</span>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className={isWhitesSharkPage ? "mt-12 pt-8 border-t border-violet-300/30 text-center text-white/70" : "mt-12 pt-8 border-t border-border text-center text-muted-foreground"}>
+        <div className={isWhitesSharkPage ? "mt-12 pt-8 border-t border-violet-300/40 dark:border-violet-400/30 text-center text-muted-foreground" : "mt-12 pt-8 border-t border-border text-center text-muted-foreground"}>
           <p>&copy; 2026 Tchouk'Leu. Tous droits réservés.</p>
         </div>
       </div>

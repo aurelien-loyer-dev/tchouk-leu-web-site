@@ -43,7 +43,7 @@ export function Header() {
       <div
         className={`backdrop-blur-md border-b ${
           isWhitesSharkPage
-            ? "bg-violet-900/85 border-violet-300/30 text-white"
+            ? "bg-background/90 border-violet-300/40 dark:border-violet-400/35"
             : "bg-background/80 border-border"
         }`}
       >
@@ -52,8 +52,8 @@ export function Header() {
             <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-11 w-auto object-contain" />
             {isWhitesSharkPage && (
               <>
-                <span className="text-white/80 font-semibold">X</span>
-                <img src="/images/WhiteSharksLogo.jpg" alt="Logo White Sharks" className="h-11 w-auto object-contain rounded-sm" />
+                <span className="font-semibold text-violet-500 dark:text-violet-300">X</span>
+                <img src="/images/WhiteSharksLogo.png" alt="Logo White Sharks" className="h-11 w-auto object-contain rounded-sm" />
               </>
             )}
           </Link>
@@ -90,7 +90,7 @@ export function Header() {
               </SheetTrigger>
               <SheetContent
                 side="right"
-                className={`pt-12 ${isWhitesSharkPage ? "bg-violet-950 text-white border-violet-400/30" : ""}`}
+                className={`pt-12 ${isWhitesSharkPage ? "bg-background border-violet-300/50 dark:border-violet-400/35" : ""}`}
               >
                 <SheetTitle className="sr-only">Menu principal</SheetTitle>
                 <nav className="flex flex-col gap-2 px-1">
@@ -98,7 +98,7 @@ export function Header() {
                     <Link
                       to="/"
                       className={`rounded-md px-3 py-2 font-medium ${
-                        isWhitesSharkPage ? "hover:bg-white/10 hover:text-white" : "hover:bg-accent hover:text-accent-foreground"
+                        isWhitesSharkPage ? "hover:bg-violet-100/70 dark:hover:bg-violet-500/20 hover:text-violet-700 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
                       Accueil
@@ -108,7 +108,7 @@ export function Header() {
                     <Link
                       to="/club"
                       className={`rounded-md px-3 py-2 font-medium ${
-                        isWhitesSharkPage ? "hover:bg-white/10 hover:text-white" : "hover:bg-accent hover:text-accent-foreground"
+                        isWhitesSharkPage ? "hover:bg-violet-100/70 dark:hover:bg-violet-500/20 hover:text-violet-700 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
                       Le Club
@@ -118,7 +118,7 @@ export function Header() {
                     <Link
                       to="/planning"
                       className={`rounded-md px-3 py-2 font-medium ${
-                        isWhitesSharkPage ? "hover:bg-white/10 hover:text-white" : "hover:bg-accent hover:text-accent-foreground"
+                        isWhitesSharkPage ? "hover:bg-violet-100/70 dark:hover:bg-violet-500/20 hover:text-violet-700 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
                       Planning
@@ -128,7 +128,7 @@ export function Header() {
                     <Link
                       to="/whites-shark"
                       className={`rounded-md px-3 py-2 font-medium ${
-                        isWhitesSharkPage ? "hover:bg-white/10 hover:text-white" : "hover:bg-accent hover:text-accent-foreground"
+                        isWhitesSharkPage ? "hover:bg-violet-100/70 dark:hover:bg-violet-500/20 hover:text-violet-700 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
                       White Sharks
@@ -138,7 +138,7 @@ export function Header() {
                     <Link
                       to="/galerie"
                       className={`rounded-md px-3 py-2 font-medium ${
-                        isWhitesSharkPage ? "hover:bg-white/10 hover:text-white" : "hover:bg-accent hover:text-accent-foreground"
+                        isWhitesSharkPage ? "hover:bg-violet-100/70 dark:hover:bg-violet-500/20 hover:text-violet-700 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
                       Galerie
@@ -148,7 +148,7 @@ export function Header() {
                     <Link
                       to="/contact"
                       className={`rounded-md px-3 py-2 font-medium ${
-                        isWhitesSharkPage ? "hover:bg-white/10 hover:text-white" : "hover:bg-accent hover:text-accent-foreground"
+                        isWhitesSharkPage ? "hover:bg-violet-100/70 dark:hover:bg-violet-500/20 hover:text-violet-700 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
                       Contact
