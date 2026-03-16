@@ -55,6 +55,9 @@ export function Header() {
             <Link to="/planning" className="hover:text-[#4C93C3] transition-colors">
               Planning
             </Link>
+            <Link to="/whites-shark" className="hover:text-[#4C93C3] transition-colors">
+              Whites Shark
+            </Link>
             <Link to="/galerie" className="hover:text-[#4C93C3] transition-colors">
               Galerie
             </Link>
@@ -88,6 +91,11 @@ export function Header() {
                   <SheetClose asChild>
                     <Link to="/planning" className="rounded-md px-3 py-2 font-medium hover:bg-accent hover:text-accent-foreground">
                       Planning
+                    </Link>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <Link to="/whites-shark" className="rounded-md px-3 py-2 font-medium hover:bg-accent hover:text-accent-foreground">
+                      Whites Shark
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>
