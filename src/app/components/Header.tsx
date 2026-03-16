@@ -43,7 +43,7 @@ export function Header() {
       <div
         className={`backdrop-blur-md border-b ${
           isWhitesSharkPage
-            ? "bg-violet-50/90 dark:bg-background/90 border-violet-300/65 dark:border-violet-400/35"
+            ? "bg-violet-100/80 dark:bg-background/90 border-violet-300/70 dark:border-violet-400/35"
             : "bg-background/80 border-border"
         }`}
       >
@@ -52,7 +52,7 @@ export function Header() {
             <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-11 w-auto object-contain" />
             {isWhitesSharkPage && (
               <>
-                <span className="font-semibold text-violet-500 dark:text-violet-300">X</span>
+                <span className="font-semibold text-violet-400 dark:text-violet-300">X</span>
                 <img src="/images/WhiteSharksLogo.png" alt="Logo White Sharks" className="h-11 w-auto object-contain rounded-sm" />
               </>
             )}
@@ -90,7 +90,7 @@ export function Header() {
               </SheetTrigger>
               <SheetContent
                 side="right"
-                className={`pt-12 ${isWhitesSharkPage ? "bg-violet-50/95 dark:bg-background border-violet-300/65 dark:border-violet-400/35" : ""}`}
+                className={`pt-12 ${isWhitesSharkPage ? "bg-violet-100/90 dark:bg-background border-violet-300/70 dark:border-violet-400/35" : ""}`}
               >
                 <SheetTitle className="sr-only">Menu principal</SheetTitle>
                 <nav className="flex flex-col gap-2 px-1">
