@@ -19,11 +19,11 @@ export function Hero() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <ImageWithFallback
-          src="images/OIBOI.jpg"
+          src="images/OIBOI.png"
           alt="OIBOI"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#BFE6FF]/20 via-transparent to-background/60 dark:from-black/40 dark:via-black/20 dark:to-background/80" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#F6FBFF]/72 via-[#DDF4FF]/38 to-background/72 dark:from-[#0f1d2a]/55 dark:via-[#102733]/35 dark:to-background/80" />
       </div>
 
       {/* Content */}
@@ -48,7 +48,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="text-2xl md:text-3xl mb-3 text-white/90"
+          className="mb-3 text-2xl md:text-3xl font-semibold text-[#0F172A]"
         >
           Tchoukball Club – Saint-Leu, Réunion
         </motion.p>
@@ -62,7 +62,7 @@ export function Hero() {
         >
           <Button
             size="lg"
-            className="bg-white hover:bg-white/90 text-foreground px-8 py-6 text-lg"
+            className="bg-[#0F172A] hover:bg-[#1e293b] text-white px-8 py-6 text-lg"
             onClick={scrollToContent}
           >
             Découvrir le club
@@ -70,7 +70,7 @@ export function Hero() {
           <Button
             size="lg"
             variant="outline"
-            className="border-2 border-white bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 px-8 py-6 text-lg"
+            className="border-2 border-[#0F172A] bg-[#F6FBFF]/80 text-[#0F172A] backdrop-blur-sm hover:bg-[#DDF4FF] px-8 py-6 text-lg"
             onClick={() => navigate("/contact")}
           >
             Nous contacter
@@ -90,7 +90,7 @@ export function Hero() {
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
-          <ChevronDown className="h-10 w-10 text-white" />
+          <ChevronDown className="h-10 w-10 text-[#0F172A]" />
         </motion.div>
       </motion.div>
     </section>
