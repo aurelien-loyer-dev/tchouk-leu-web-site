@@ -40,12 +40,6 @@ export function ContactPage() {
       content: "@tchoukleu",
       link: "https://instagram.com/tchoukleu",
     },
-    {
-      icon: MapPin,
-      title: "Adresse",
-      content: "Gymnase de Saint-Leu, Rue du Stade, 97436 Saint-Leu",
-      link: null,
-    },
   ];
 
   return (
@@ -211,9 +205,8 @@ export function ContactPage() {
                     Nous sommes disponibles aux horaires d'entraînement :
                   </p>
                   <ul className="space-y-1 text-muted-foreground">
-                    <li>• Lundi : 18h00 - 20h00</li>
-                    <li>• Mercredi : 18h00 - 20h00</li>
-                    <li>• Samedi : 10h00 - 12h00</li>
+                    <li>• Mercredi : 14h00 - 17h00</li>
+                    <li>• Samedi : 15h30 - 19h00</li>
                   </ul>
                 </CardContent>
               </Card>
