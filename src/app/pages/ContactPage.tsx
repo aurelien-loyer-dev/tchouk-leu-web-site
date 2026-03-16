@@ -12,27 +12,79 @@ export function ContactPage() {
     email: "",
     phone: "",
     message: "",
+    website: "",
   });
+  const [formStartedAt, setFormStartedAt] = useState(() => Date.now());
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+  const [submitMessage, setSubmitMessage] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Ici vous pouvez ajouter la logique d'envoi du formulaire
-    alert("Merci pour votre message ! Nous vous répondrons dans les plus brefs délais.");
-    setFormData({ name: "", email: "", phone: "", message: "" });
+
+    try {
+      setIsSubmitting(true);
+      setSubmitStatus("idle");
+      setSubmitMessage("");
+
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          message: formData.message,
+          website: formData.website,
+          formStartedAt,
+        }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = "Impossible d'envoyer le message.";
+
+        try {
+          const payload = (await response.json()) as { error?: string };
+          if (payload.error) {
+            errorMessage = payload.error;
+          }
+        } catch {
+          // Ignore JSON parse fallback.
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      setSubmitStatus("success");
+      setSubmitMessage("Merci pour votre message ! Nous vous répondrons dans les plus brefs délais.");
+      setFormData({ name: "", email: "", phone: "", message: "", website: "" });
+      setFormStartedAt(Date.now());
+    } catch (error) {
+      setSubmitStatus("error");
+      if (error instanceof Error && error.message) {
+        setSubmitMessage(error.message);
+      } else {
+        setSubmitMessage("Impossible d'envoyer le message pour le moment.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactInfo = [
     {
       icon: Mail,
       title: "Email",
-      content: "contact@tchoukleu.re",
-      link: "mailto:contact@tchoukleu.re",
+      content: "bgaillard.pro@gmail.com",
+      link: "mailto:bgaillard.pro@gmail.com",
     },
     {
       icon: Phone,
       title: "Téléphone",
-      content: "+262 692 XX XX XX",
-      link: "tel:+262692XXXXXX",
+      content: "+33 6 56 71 40 37",
+      link: "tel:+33656714037",
     },
     {
       icon: Instagram,
@@ -77,6 +129,19 @@ export function ContactPage() {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+                      <label htmlFor="website">Site web</label>
+                      <input
+                        id="website"
+                        name="website"
+                        type="text"
+                        tabIndex={-1}
+                        autoComplete="off"
+                        value={formData.website}
+                        onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                      />
+                    </div>
+
                     <div>
                       <label htmlFor="name" className="block mb-2">
                         Nom complet *
@@ -140,10 +205,17 @@ export function ContactPage() {
                       type="submit"
                       size="lg"
                       className="w-full bg-[#4C93C3] hover:bg-[#3a7ba8] text-white"
+                      disabled={isSubmitting}
                     >
                       <Send className="mr-2 h-5 w-5" />
-                      Envoyer le message
+                      {isSubmitting ? "Envoi en cours..." : "Envoyer le message"}
                     </Button>
+
+                    {submitMessage ? (
+                      <p className={`text-sm ${submitStatus === "success" ? "text-emerald-600" : "text-red-600"}`}>
+                        {submitMessage}
+                      </p>
+                    ) : null}
                   </form>
                 </CardContent>
               </Card>
