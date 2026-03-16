@@ -300,14 +300,14 @@ export function ContactPage() {
           >
             <h2 className="text-4xl font-bold mb-4">Venez nous rendre visite</h2>
             <p className="text-xl text-muted-foreground mb-8">
-              Retrouvez les prochains créneaux au gymnase de Saint-Leu directement dans le planning.
+              Retrouvez les prochains créneaux directement dans le planning.
             </p>
             <div className="mx-auto max-w-2xl rounded-3xl border border-[#4C93C3]/20 bg-background/90 p-8 shadow-lg shadow-[#4C93C3]/10">
               <div className="flex flex-col items-center text-center">
                 <div className="mb-5 rounded-full bg-[#BFE6FF] p-4 dark:bg-[#4C93C3]/20">
                   <MapPin className="h-8 w-8 text-[#4C93C3]" />
                 </div>
-                <p className="text-lg font-semibold">Gymnase de Saint-Leu</p>
+                <p className="text-lg font-semibold">Gymnase de Stella / Terrain de beach</p>
                 <p className="mt-2 mb-6 max-w-xl text-muted-foreground">
                   Consultez les horaires à jour avant de passer, pour voir les entraînements, stages et événements du club.
                 </p>

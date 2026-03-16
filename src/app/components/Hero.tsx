@@ -48,7 +48,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="mb-3 text-2xl md:text-3xl font-semibold text-[#0F172A]"
+          className="mb-3 text-2xl md:text-3xl font-semibold text-[#0F172A] dark:text-white"
         >
           Tchoukball Club – Saint-Leu, Réunion
         </motion.p>
@@ -70,7 +70,7 @@ export function Hero() {
           <Button
             size="lg"
             variant="outline"
-            className="border-2 border-[#0F172A] bg-[#F6FBFF]/80 text-[#0F172A] backdrop-blur-sm hover:bg-[#DDF4FF] px-8 py-6 text-lg"
+            className="border-2 border-[#0F172A] bg-[#F6FBFF]/80 text-[#0F172A] backdrop-blur-sm hover:bg-[#DDF4FF] px-8 py-6 text-lg dark:border-white/70 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
             onClick={() => navigate("/contact")}
           >
             Nous contacter
@@ -90,7 +90,7 @@ export function Hero() {
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
-          <ChevronDown className="h-10 w-10 text-[#0F172A]" />
+          <ChevronDown className="h-10 w-10 text-[#0F172A] dark:text-white" />
         </motion.div>
       </motion.div>
     </section>
