@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { Eye, LockKeyhole, LogOut, Pencil, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
+import { ChevronDown, Eye, LockKeyhole, LogOut, Pencil, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -100,6 +100,7 @@ export function AdminPage() {
   const [editingWallMemberId, setEditingWallMemberId] = useState<string | null>(null);
   const [wallFeedbackMessage, setWallFeedbackMessage] = useState("");
   const [isWallSaving, setIsWallSaving] = useState(false);
+  const [expandedTemplates, setExpandedTemplates] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const initializeAdmin = async () => {
@@ -173,6 +174,24 @@ export function AdminPage() {
       accumulator[recurringTemplateId] = (accumulator[recurringTemplateId] ?? 0) + 1;
       return accumulator;
     }, {});
+  }, [activities]);
+
+  const recurringOccurrencesByTemplate = useMemo(() => {
+    const map = new Map<string, Activity[]>();
+
+    for (const activity of activities) {
+      const templateId = getRecurringTemplateId(activity.id);
+      if (!templateId) continue;
+      const existing = map.get(templateId) ?? [];
+      existing.push(activity);
+      map.set(templateId, existing);
+    }
+
+    for (const [key, occs] of map.entries()) {
+      map.set(key, [...occs].sort(compareActivitiesByDate));
+    }
+
+    return map;
   }, [activities]);
 
   const filteredAttendanceActivities = useMemo(() => {
@@ -304,6 +323,18 @@ export function AdminPage() {
     const newActivity = createEmptyActivity();
     setSelectedId(newActivity.id);
     setDraft(newActivity);
+  };
+
+  const toggleExpandedTemplate = (templateId: string) => {
+    setExpandedTemplates((current) => {
+      const next = new Set(current);
+      if (next.has(templateId)) {
+        next.delete(templateId);
+      } else {
+        next.add(templateId);
+      }
+      return next;
+    });
   };
 
   const handleSave = async () => {
@@ -637,31 +668,92 @@ export function AdminPage() {
                   ? recurringOccurrencesCountByTemplate[recurringTemplateId] ?? 1
                   : 1;
 
+                if (!recurringTemplateId) {
+                  return (
+                    <button
+                      key={activity.id}
+                      type="button"
+                      onClick={() => handleSelectActivity(activity)}
+                      className={`w-full rounded-xl border p-4 text-left transition-colors ${
+                        selectedId === activity.id ? "border-[#4C93C3] bg-[#4C93C3]/5" : "border-border hover:border-[#4C93C3]/50"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-semibold">{activity.title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {dateFormatter.format(new Date(`${activity.date}T00:00:00`))} • {activity.startTime} - {activity.endTime}
+                          </p>
+                        </div>
+                        <span className="rounded-full bg-[#4C93C3]/10 px-2.5 py-1 text-xs font-medium text-[#4C93C3]">
+                          {getCategoryLabel(activity.category)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">{activity.location}</p>
+                    </button>
+                  );
+                }
+
+                const isExpanded = expandedTemplates.has(recurringTemplateId);
+                const occurrences = recurringOccurrencesByTemplate.get(recurringTemplateId) ?? [];
+                const hasSelectedOccurrence = occurrences.some((o) => o.id === selectedId);
+
                 return (
-                <button
-                  key={activity.id}
-                  type="button"
-                  onClick={() => handleSelectActivity(activity)}
-                  className={`w-full rounded-xl border p-4 text-left transition-colors ${
-                    selectedId === activity.id ? "border-[#4C93C3] bg-[#4C93C3]/5" : "border-border hover:border-[#4C93C3]/50"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-semibold">{activity.title}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {dateFormatter.format(new Date(`${activity.date}T00:00:00`))} • {activity.startTime} - {activity.endTime}
-                      </p>
-                    </div>
-                    <span className="rounded-full bg-[#4C93C3]/10 px-2.5 py-1 text-xs font-medium text-[#4C93C3]">
-                      {getCategoryLabel(activity.category)}
-                    </span>
+                  <div
+                    key={activity.id}
+                    className={`rounded-xl border overflow-hidden transition-colors ${
+                      hasSelectedOccurrence ? "border-[#4C93C3]" : "border-border"
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggleExpandedTemplate(recurringTemplateId)}
+                      className="w-full p-4 text-left hover:bg-muted/30 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold">{activity.title}</p>
+                            <ChevronDown
+                              className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                            />
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            Recurrent • {recurringOccurrencesCount} seances enregistrees
+                          </p>
+                        </div>
+                        <span className="rounded-full bg-[#4C93C3]/10 px-2.5 py-1 text-xs font-medium text-[#4C93C3] shrink-0">
+                          {getCategoryLabel(activity.category)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">{activity.location}</p>
+                    </button>
+
+                    {isExpanded && (
+                      <div className="border-t border-border/60 divide-y divide-border/40 bg-muted/10">
+                        {occurrences.map((occurrence) => (
+                          <button
+                            key={occurrence.id}
+                            type="button"
+                            onClick={() => handleSelectActivity(occurrence)}
+                            className={`w-full px-4 py-3 text-left transition-colors ${
+                              selectedId === occurrence.id
+                                ? "bg-[#4C93C3]/10 text-[#4C93C3]"
+                                : "hover:bg-muted/30"
+                            }`}
+                          >
+                            <p className={`text-sm font-medium ${selectedId === occurrence.id ? "text-[#4C93C3]" : ""}`}>
+                              {dateFormatter.format(new Date(`${occurrence.date}T00:00:00`))}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {occurrence.startTime} - {occurrence.endTime}
+                              {occurrence.audience ? ` • ${occurrence.audience}` : ""}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <p className="text-sm text-muted-foreground mt-2">{activity.location}</p>
-                  {recurringTemplateId ? (
-                    <p className="text-xs text-muted-foreground mt-1">Type recurrent • {recurringOccurrencesCount} seances affichees</p>
-                  ) : null}
-                </button>
                 );
               })}
             </CardContent>
