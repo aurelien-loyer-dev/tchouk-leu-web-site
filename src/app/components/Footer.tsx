@@ -79,7 +79,7 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-3 text-muted-foreground">
                 <Mail className="h-5 w-5 text-[#4C93C3]" />
-                <span>contact@tchoukleu.re</span>
+                <span>bgaillard.pro@gmail.com</span>
               </li>
               <li className="flex items-center gap-3 text-muted-foreground">
                 <MapPin className="h-5 w-5 text-[#4C93C3]" />

@@ -5,6 +5,7 @@ import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Button } from "../components/ui/button";
 import { useState } from "react";
+import { Link } from "react-router";
 
 export function ContactPage() {
   const [formData, setFormData] = useState({
@@ -287,7 +288,7 @@ export function ContactPage() {
         </div>
       </section>
 
-      {/* Map Section (placeholder) */}
+      {/* Visit Section */}
       <section className="py-20 px-6 bg-muted/30 dark:bg-muted/10">
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -299,14 +300,20 @@ export function ContactPage() {
           >
             <h2 className="text-4xl font-bold mb-4">Venez nous rendre visite</h2>
             <p className="text-xl text-muted-foreground mb-8">
-              Gymnase de Saint-Leu, au cœur de la ville
+              Retrouvez les prochains créneaux au gymnase de Saint-Leu directement dans le planning.
             </p>
-            <div className="bg-muted rounded-xl h-96 flex items-center justify-center">
-              <div className="text-center">
-                <MapPin className="h-16 w-16 mx-auto mb-4 text-[#4C93C3]" />
-                <p className="text-lg text-muted-foreground">
-                  Carte interactive (intégration à venir)
+            <div className="mx-auto max-w-2xl rounded-3xl border border-[#4C93C3]/20 bg-background/90 p-8 shadow-lg shadow-[#4C93C3]/10">
+              <div className="flex flex-col items-center text-center">
+                <div className="mb-5 rounded-full bg-[#BFE6FF] p-4 dark:bg-[#4C93C3]/20">
+                  <MapPin className="h-8 w-8 text-[#4C93C3]" />
+                </div>
+                <p className="text-lg font-semibold">Gymnase de Saint-Leu</p>
+                <p className="mt-2 mb-6 max-w-xl text-muted-foreground">
+                  Consultez les horaires à jour avant de passer, pour voir les entraînements, stages et événements du club.
                 </p>
+                <Button asChild size="lg" className="bg-[#4C93C3] text-white hover:bg-[#3a7ba8]">
+                  <Link to="/planning">Voir le planning</Link>
+                </Button>
               </div>
             </div>
           </motion.div>
