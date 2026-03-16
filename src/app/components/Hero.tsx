@@ -19,8 +19,8 @@ export function Hero() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <ImageWithFallback
-          src="images/accueil.jpg"
-          alt="Plage de Saint-Leu"
+          src="images/OIBOI.jpg"
+          alt="OIBOI"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#BFE6FF]/20 via-transparent to-background/60 dark:from-black/40 dark:via-black/20 dark:to-background/80" />
