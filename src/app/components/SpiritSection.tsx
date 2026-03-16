@@ -56,7 +56,7 @@ export function SpiritSection() {
           >
             <div className="relative overflow-hidden rounded-2xl shadow-2xl">
               <ImageWithFallback
-                src="images/OIBOI.png"
+                src="images/tchoukleu.jpg"
                 alt="Action de tchoukball"
                 className="w-full h-[500px] object-cover"
               />
