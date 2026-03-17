@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 export function Footer() {
   const { t } = useTranslation();
   const location = useLocation();
-  const isWhitesSharkPage = location.pathname.startsWith("/whites-shark");
+  const isWhitesSharkPage = location.pathname.startsWith("/white-sharks");
   const currentYear = new Date().getFullYear();
 
   return (
@@ -77,7 +77,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  to="/whites-shark"
+                  to="/white-sharks"
                   className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
                 >
                   White Sharks

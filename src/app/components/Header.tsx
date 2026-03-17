@@ -44,7 +44,7 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const isHomePage = location.pathname === "/";
-  const isWhitesSharkPage = location.pathname.startsWith("/whites-shark");
+  const isWhitesSharkPage = location.pathname.startsWith("/white-sharks");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -102,7 +102,7 @@ export function Header() {
             <Link to="/planning" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
               {t("nav.planning")}
             </Link>
-            <Link to="/whites-shark" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
+            <Link to="/white-sharks" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
               {t("nav.whiteSharks")}
             </Link>
             <Link to="/galerie" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
@@ -162,7 +162,7 @@ export function Header() {
                   </SheetClose>
                   <SheetClose asChild>
                     <Link
-                      to="/whites-shark"
+                      to="/white-sharks"
                       className={`rounded-md px-3 py-2 font-medium ${
                         isWhitesSharkPage ? "hover:bg-violet-200/70 dark:hover:bg-violet-500/20 hover:text-violet-800 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
                       }`}

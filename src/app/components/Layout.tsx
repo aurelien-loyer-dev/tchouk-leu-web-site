@@ -6,7 +6,7 @@ import { ThemeProvider } from "./ThemeProvider";
 
 export function Layout() {
   const location = useLocation();
-  const isWhitesSharkPage = location.pathname.startsWith("/whites-shark");
+  const isWhitesSharkPage = location.pathname.startsWith("/white-sharks");
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
