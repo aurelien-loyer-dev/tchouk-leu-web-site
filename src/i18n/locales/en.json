@@ -171,11 +171,16 @@
     "captain": "Captain",
     "originClub": "Home club:",
     "bornIn": "Born in",
+    "palmaresLegacy": {
+      "championOpenIndianOceanBeach": "Champion of the Indian Ocean International Beach Open",
+      "whiteSharks2ThirdPlace": "White Sharks 2 finished 3rd!"
+    },
     "positions": {
       "attaquant": "Forward",
       "defenseur": "Defender",
       "pivot": "Pivot",
       "ailier": "Wing",
+      "ailierCentreCadre": "Wing / Center frame",
       "arriere": "Backfield",
       "libero": "Libero"
     }

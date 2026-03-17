@@ -6,7 +6,49 @@ import { loadWhiteSharksData, type WhiteSharksPalmaresEntry, type WhiteSharksPla
 import { useTranslation } from "react-i18next";
 
 export function WhitesSharkPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  const legacyPalmaresTextKeyByNormalizedValue: Record<string, string> = {
+    "champion de l open international de beach de l ocean indien": "championOpenIndianOceanBeach",
+    "white sharks 2 etant arriver 3eme": "whiteSharks2ThirdPlace",
+    "white sharks 2 etant arrive 3eme": "whiteSharks2ThirdPlace",
+  };
+
+  const normalizeLegacyText = (value: string) => {
+    return value
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+  };
+
+  const getTranslatedLegacyPalmaresText = (value: string) => {
+    const normalized = normalizeLegacyText(value);
+    const legacyKey = legacyPalmaresTextKeyByNormalizedValue[normalized];
+
+    if (!legacyKey) {
+      return value;
+    }
+
+    const translationKey = `whiteSharks.palmaresLegacy.${legacyKey}`;
+    return i18n.exists(translationKey) ? t(translationKey) : value;
+  };
+
+  const getTranslatedPosition = (position: string) => {
+    const normalized = position.trim().toLowerCase();
+    const normalizedKey =
+      normalized === "ailier / centre cadre" || normalized === "ailier/centre cadre"
+        ? "ailierCentreCadre"
+        : normalized;
+    const translationKey = `whiteSharks.positions.${normalizedKey}`;
+
+    if (i18n.exists(translationKey)) {
+      return t(translationKey);
+    }
+
+    return position;
+  };
 
   const whiteSharksMemberTypeSections: Array<{
     key: string;
@@ -84,12 +126,12 @@ export function WhitesSharkPage() {
                 >
                   <Card className="h-full border-violet-200 dark:border-violet-900/40">
                     <CardHeader className="pb-4">
-                      <CardTitle className="text-xl">{entry.title}</CardTitle>
+                      <CardTitle className="text-xl">{getTranslatedLegacyPalmaresText(entry.title)}</CardTitle>
                       <p className="text-sm text-muted-foreground mt-1">{entry.year}</p>
                     </CardHeader>
                     {entry.description ? (
                       <CardContent className="pb-6">
-                        <p className="text-muted-foreground">{entry.description}</p>
+                        <p className="text-muted-foreground">{getTranslatedLegacyPalmaresText(entry.description)}</p>
                       </CardContent>
                     ) : null}
                   </Card>
@@ -149,7 +191,7 @@ export function WhitesSharkPage() {
                               {player.position ? (
                                 <p className="text-sm inline-flex items-center gap-2 text-violet-700 dark:text-violet-300">
                                   <Shield className="h-4 w-4" />
-                                  {t(`whiteSharks.positions.${player.position}`, { defaultValue: player.position })}
+                                  {getTranslatedPosition(player.position)}
                                 </p>
                               ) : null}
                               <p className="text-sm text-muted-foreground">{t("whiteSharks.originClub")} {player.club}</p>

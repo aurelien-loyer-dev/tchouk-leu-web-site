@@ -171,11 +171,16 @@
     "captain": "队长",
     "originClub": "来源俱乐部：",
     "bornIn": "出生年份",
+    "palmaresLegacy": {
+      "championOpenIndianOceanBeach": "印度洋国际沙滩公开赛冠军",
+      "whiteSharks2ThirdPlace": "White Sharks 2 获得第 3 名！"
+    },
     "positions": {
       "attaquant": "前锋",
       "defenseur": "后卫",
       "pivot": "中锋",
       "ailier": "边锋",
+      "ailierCentreCadre": "边锋 / 中框",
       "arriere": "后场",
       "libero": "自由人"
     }
