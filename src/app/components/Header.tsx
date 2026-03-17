@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 import { Link, useLocation } from "react-router";
-import { Globe, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from "./ui/sheet";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { useTranslation } from "react-i18next";
-import i18n from "../../i18n/i18n";
 
 const LANGUAGES = [
   { code: "fr", label: "Français", flag: "🇫🇷" },
@@ -17,33 +15,26 @@ const LANGUAGES = [
 function LanguageSwitcher({ isWhitesSharkPage }: { isWhitesSharkPage: boolean }) {
   const { i18n: i18nInstance } = useTranslation();
   const currentLang = (i18nInstance.language ?? "fr").split("-")[0];
-  const currentEntry = LANGUAGES.find((l) => l.code === currentLang) ?? LANGUAGES[0];
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
+    <div className="flex items-center gap-0.5">
+      {LANGUAGES.map((lang) => (
+        <button
+          key={lang.code}
           type="button"
-          variant="ghost"
-          size="sm"
-          className={`gap-1.5 px-2 font-medium text-sm ${isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200" : "hover:text-[#4C93C3]"}`}
+          onClick={() => void i18nInstance.changeLanguage(lang.code)}
+          className={`px-1.5 py-0.5 text-xs font-semibold rounded transition-colors ${
+            currentLang === lang.code
+              ? isWhitesSharkPage
+                ? "text-violet-600 dark:text-violet-300"
+                : "text-[#4C93C3]"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
         >
-          <Globe className="h-4 w-4" />
-          <span>{currentEntry.flag} {currentEntry.code === "zh" ? "中文" : currentEntry.code.toUpperCase()}</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {LANGUAGES.map((lang) => (
-          <DropdownMenuItem
-            key={lang.code}
-            onClick={() => void i18nInstance.changeLanguage(lang.code)}
-            className={currentLang === lang.code ? "font-semibold text-[#4C93C3]" : ""}
-          >
-            {lang.flag} {lang.label}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+          {lang.code === "zh" ? "中文" : lang.code.toUpperCase()}
+        </button>
+      ))}
+    </div>
   );
 }
 
