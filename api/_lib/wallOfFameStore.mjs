@@ -40,12 +40,29 @@ function toMemberSinceTimestamp(memberSince) {
   return Number.POSITIVE_INFINITY;
 }
 
+const FUNCTION_PRIORITY = ["president", "coach", "joueur", "benevole"];
+
+function getMemberFunctionPriority(member) {
+  const priorities = member.functions
+    .map((functionValue) => FUNCTION_PRIORITY.indexOf(functionValue))
+    .filter((index) => index !== -1);
+
+  return priorities.length > 0 ? Math.min(...priorities) : FUNCTION_PRIORITY.length;
+}
+
 function compareMembersBySeniority(left, right) {
   const leftSince = toMemberSinceTimestamp(left.memberSince);
   const rightSince = toMemberSinceTimestamp(right.memberSince);
 
   if (leftSince !== rightSince) {
     return leftSince - rightSince;
+  }
+
+  const leftPriority = getMemberFunctionPriority(left);
+  const rightPriority = getMemberFunctionPriority(right);
+
+  if (leftPriority !== rightPriority) {
+    return leftPriority - rightPriority;
   }
 
   return right.createdAt.localeCompare(left.createdAt);

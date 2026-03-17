@@ -192,7 +192,7 @@ export function ClubPage() {
           </motion.div>
 
           {wallOfFameMembers.length > 0 ? (
-            <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-10 max-w-6xl mx-auto">
               {wallOfFameMembers.map((member, index) => (
                 <motion.div
                   key={member.id}
@@ -205,7 +205,7 @@ export function ClubPage() {
                     const palmaresEntries = getPalmaresEntries(member);
 
                     return (
-                  <Card className="h-full overflow-hidden border-2 border-[#4C93C3]/20 md:grid md:grid-cols-[220px_1fr] md:items-stretch">
+                  <Card className="h-full overflow-hidden border-2 border-[#4C93C3]/20 md:grid md:grid-cols-[240px_1fr] md:items-stretch">
                     <div className="relative min-h-72 overflow-hidden md:h-full md:min-h-full">
                         <ImageWithFallback
                           src={member.photoSrc}
@@ -213,30 +213,30 @@ export function ClubPage() {
                           className="absolute inset-0 h-full w-full object-cover"
                         />
                     </div>
-                    <CardContent className="p-8">
-                        <CardTitle className="text-2xl mb-6">{member.firstName} {member.lastName}</CardTitle>
-                        <div className="space-y-6 text-muted-foreground">
+                    <CardContent className="p-10">
+                        <CardTitle className="text-2xl mb-7">{member.firstName} {member.lastName}</CardTitle>
+                        <div className="space-y-7 text-muted-foreground">
                           <div>
-                            <p className="text-sm uppercase tracking-wide mb-1">Fonctions</p>
-                            <p className="text-base text-foreground">
+                            <p className="text-sm uppercase tracking-wide mb-1.5">Fonctions</p>
+                            <p className="text-base text-foreground leading-relaxed">
                               {member.functions.map((value) => wallFunctionLabelByValue[value] ?? value).join(" • ")}
                             </p>
                           </div>
                           {palmaresEntries.length > 0 ? (
                             <div>
-                              <p className="text-sm uppercase tracking-wide mb-2">Palmarès</p>
-                              <div className="space-y-3">
+                              <p className="text-sm uppercase tracking-wide mb-3">Palmarès</p>
+                              <div className="space-y-5">
                                 {palmaresEntries.map((entry) => (
                                   <div key={`${member.id}-${entry.functionLabel}`}>
-                                    <p className="text-xs uppercase tracking-wide text-muted-foreground mb-0.5">{entry.functionLabel}</p>
-                                    <p className="text-base whitespace-pre-line text-foreground leading-relaxed">{entry.value}</p>
+                                    <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">{entry.functionLabel}</p>
+                                    <p className="text-base whitespace-pre-line text-foreground leading-loose">{entry.value}</p>
                                   </div>
                                 ))}
                               </div>
                             </div>
                           ) : null}
                           <div>
-                            <p className="text-sm uppercase tracking-wide mb-1">Adhérent depuis</p>
+                            <p className="text-sm uppercase tracking-wide mb-1.5">Adhérent depuis</p>
                             <p className="text-base text-foreground">{member.memberSince}</p>
                           </div>
                         </div>
