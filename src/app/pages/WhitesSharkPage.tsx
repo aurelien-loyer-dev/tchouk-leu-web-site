@@ -4,11 +4,15 @@ import { Award, Shield, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { loadWhiteSharksData, type WhiteSharksPalmaresEntry, type WhiteSharksPlayer } from "../data/whiteSharks";
 
-const whiteSharksMemberTypeSections = [
-  { key: "coach", title: "Coachs" },
-  { key: "benevole", title: "Bénévoles" },
-  { key: "joueur", title: "Joueurs" },
-] as const;
+const whiteSharksMemberTypeSections: Array<{
+  key: string;
+  title: string;
+  memberTypes: WhiteSharksPlayer["memberType"][];
+}> = [
+  { key: "coach", title: "Coachs", memberTypes: ["coach"] },
+  { key: "benevole", title: "Bénévoles", memberTypes: ["benevole"] },
+  { key: "joueur", title: "Joueurs", memberTypes: ["capitaine", "joueur"] },
+];
 
 export function WhitesSharkPage() {
   const [palmares, setPalmares] = useState<WhiteSharksPalmaresEntry[]>([]);
@@ -114,7 +118,7 @@ export function WhitesSharkPage() {
           {players.length > 0 ? (
             <div className="space-y-10">
               {whiteSharksMemberTypeSections.map((section) => {
-                const sectionPlayers = players.filter((player) => player.memberType === section.key);
+                const sectionPlayers = players.filter((player) => section.memberTypes.includes(player.memberType));
 
                 if (sectionPlayers.length === 0) {
                   return null;

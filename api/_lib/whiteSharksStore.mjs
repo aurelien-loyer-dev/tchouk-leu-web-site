@@ -3,8 +3,8 @@ import { list, put } from "@vercel/blob";
 
 const STORE_PATH = "club/white-sharks.json";
 const BLOB_CONFIG_ERROR = "Le stockage Vercel Blob n'est pas configure. Ajoutez BLOB_READ_WRITE_TOKEN dans le projet Vercel.";
-const ALLOWED_MEMBER_TYPES = new Set(["joueur", "coach", "benevole"]);
-const MEMBER_TYPE_ORDER = ["coach", "benevole", "joueur"];
+const ALLOWED_MEMBER_TYPES = new Set(["joueur", "capitaine", "coach", "benevole"]);
+const MEMBER_TYPE_ORDER = ["coach", "benevole", "capitaine", "joueur"];
 
 function isBlobConfigured() {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);

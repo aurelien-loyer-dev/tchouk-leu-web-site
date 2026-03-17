@@ -44,12 +44,14 @@ import {
 
 const whiteSharksMemberTypeOptions: Array<{ value: WhiteSharksMemberType; label: string }> = [
   { value: "joueur", label: "Joueur" },
+  { value: "capitaine", label: "Capitaine" },
   { value: "coach", label: "Coach" },
   { value: "benevole", label: "Bénévole" },
 ];
 
 const whiteSharksMemberTypeLabelByValue: Record<WhiteSharksMemberType, string> = {
   joueur: "Joueur",
+  capitaine: "Capitaine",
   coach: "Coach",
   benevole: "Bénévole",
 };

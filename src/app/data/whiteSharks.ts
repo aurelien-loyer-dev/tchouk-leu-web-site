@@ -6,7 +6,7 @@ export type WhiteSharksPalmaresEntry = {
   createdAt: string;
 };
 
-export type WhiteSharksMemberType = "joueur" | "coach" | "benevole";
+export type WhiteSharksMemberType = "joueur" | "capitaine" | "coach" | "benevole";
 
 export type WhiteSharksPlayer = {
   id: string;
