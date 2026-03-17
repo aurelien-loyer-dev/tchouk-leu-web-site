@@ -180,6 +180,10 @@
       "defenseur": "后卫",
       "pivot": "中锋",
       "ailier": "边锋",
+      "ailierDroit": "右边锋",
+      "ailierGauche": "左边锋",
+      "centreCadre": "中框",
+      "milieu": "中场",
       "ailierCentreCadre": "边锋 / 中框",
       "arriere": "后场",
       "libero": "自由人"

@@ -180,6 +180,10 @@
       "defenseur": "Defender",
       "pivot": "Pivot",
       "ailier": "Wing",
+      "ailierDroit": "Right wing",
+      "ailierGauche": "Left wing",
+      "centreCadre": "Center frame",
+      "milieu": "Midfield",
       "ailierCentreCadre": "Wing / Center frame",
       "arriere": "Backfield",
       "libero": "Libero"

@@ -180,6 +180,10 @@
       "defenseur": "Défenseur",
       "pivot": "Pivot",
       "ailier": "Ailier",
+      "ailierDroit": "Ailier droit",
+      "ailierGauche": "Ailier gauche",
+      "centreCadre": "Centre cadre",
+      "milieu": "Milieu",
       "ailierCentreCadre": "Ailier / Centre cadre",
       "arriere": "Arrière",
       "libero": "Libéro"

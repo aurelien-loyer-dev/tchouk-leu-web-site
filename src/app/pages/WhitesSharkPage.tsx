@@ -12,9 +12,13 @@ export function WhitesSharkPage() {
   const getTranslatedPosition = (position: string) => {
     const normalized = position.trim().toLowerCase();
     const normalizedKey =
-      normalized === "ailier / centre cadre" || normalized === "ailier/centre cadre"
-        ? "ailierCentreCadre"
-        : normalized;
+      normalized === "ailier / centre cadre" || normalized === "ailier/centre cadre" || normalized === "centre cadre"
+        ? "centreCadre"
+        : normalized === "ailier droit" || normalized === "ailier-droit"
+          ? "ailierDroit"
+          : normalized === "ailier gauche" || normalized === "ailier-gauche"
+            ? "ailierGauche"
+            : normalized;
     const translationKey = `whiteSharks.positions.${normalizedKey}`;
 
     if (i18n.exists(translationKey)) {

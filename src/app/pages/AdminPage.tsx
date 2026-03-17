@@ -1704,12 +1704,10 @@ export function AdminPage() {
                     <label className="mb-2 block font-medium">Postes / rôles (optionnel, plusieurs possibles)</label>
                     <div className="grid grid-cols-2 gap-2 rounded-md border border-input bg-background p-3 text-sm">
                       {[
-                        { value: "attaquant", label: "Attaquant" },
-                        { value: "defenseur", label: "Défenseur" },
-                        { value: "pivot", label: "Pivot" },
-                        { value: "ailier", label: "Ailier" },
-                        { value: "arriere", label: "Arrière" },
-                        { value: "libero", label: "Libéro" },
+                        { value: "ailierDroit", label: "Ailier droit" },
+                        { value: "ailierGauche", label: "Ailier gauche" },
+                        { value: "centreCadre", label: "Centre cadre" },
+                        { value: "milieu", label: "Milieu" },
                       ].map((option) => (
                         <label key={option.value} className="flex items-center gap-2">
                           <input
