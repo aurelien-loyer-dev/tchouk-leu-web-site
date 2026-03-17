@@ -140,7 +140,7 @@ export function WhitesSharkPage() {
                             <CardContent className="p-6 space-y-3">
                               {player.memberType === "capitaine" ? (
                                 <p className="inline-flex rounded-full bg-violet-600 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
-                                  Capitaine de la sélection
+                                  Capitaine
                                 </p>
                               ) : null}
                               <p className="text-xl font-semibold">{player.firstName} {player.lastName}</p>
