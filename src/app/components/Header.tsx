@@ -15,7 +15,8 @@ const LANGUAGES = [
 ] as const;
 
 function LanguageSwitcher({ isWhitesSharkPage }: { isWhitesSharkPage: boolean }) {
-  const currentLang = (i18n.language ?? "fr").split("-")[0];
+  const { i18n: i18nInstance } = useTranslation();
+  const currentLang = (i18nInstance.language ?? "fr").split("-")[0];
   const currentEntry = LANGUAGES.find((l) => l.code === currentLang) ?? LANGUAGES[0];
 
   return (
@@ -35,7 +36,7 @@ function LanguageSwitcher({ isWhitesSharkPage }: { isWhitesSharkPage: boolean })
         {LANGUAGES.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
-            onClick={() => void i18n.changeLanguage(lang.code)}
+            onClick={() => void i18nInstance.changeLanguage(lang.code)}
             className={currentLang === lang.code ? "font-semibold text-[#4C93C3]" : ""}
           >
             {lang.flag} {lang.label}
