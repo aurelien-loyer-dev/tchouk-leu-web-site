@@ -809,7 +809,7 @@ export function AdminPage() {
                     id="audience"
                     value={draft.audience}
                     onChange={(event) => setDraft((current) => ({ ...current, audience: event.target.value }))}
-                    placeholder="Ex: U12 / U15"
+                    placeholder="Ex: M12 / M15"
                   />
                 </div>
                 <div>

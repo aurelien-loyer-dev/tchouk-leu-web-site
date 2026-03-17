@@ -34,13 +34,13 @@ export const defaultActivities: Activity[] = [
   },
   {
     id: "training-sat-u12-u15",
-    title: "Entrainement U12 / U15",
+    title: "Entrainement M12 / M15",
     category: "entrainement",
     date: "2026-03-21",
     startTime: "15:30",
     endTime: "17:00",
     location: "Terrain de Beach de Saint-Leu",
-    audience: "U12 / U15",
+    audience: "M12 / M15",
     description: "Travail technique, jeu collectif et preparation physique adaptee.",
   },
   {
