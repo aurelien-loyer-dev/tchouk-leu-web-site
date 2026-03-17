@@ -12,6 +12,40 @@ const wallFunctionLabelByValue = {
   president: "Président",
 } as const;
 
+function getPalmaresEntries(member: WallOfFameMember) {
+  const palmaresByFunction = member.palmaresByFunction ?? {};
+
+  const entries = member.functions
+    .map((functionValue) => {
+      const value = palmaresByFunction[functionValue]?.trim() ?? "";
+
+      if (!value) {
+        return null;
+      }
+
+      return {
+        functionLabel: wallFunctionLabelByValue[functionValue] ?? functionValue,
+        value,
+      };
+    })
+    .filter((entry): entry is { functionLabel: string; value: string } => Boolean(entry));
+
+  if (entries.length > 0) {
+    return entries;
+  }
+
+  if (member.palmares?.trim()) {
+    return [
+      {
+        functionLabel: "Général",
+        value: member.palmares.trim(),
+      },
+    ];
+  }
+
+  return [];
+}
+
 export function ClubPage() {
   const [wallOfFameMembers, setWallOfFameMembers] = useState<WallOfFameMember[]>([]);
 
@@ -167,6 +201,10 @@ export function ClubPage() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                 >
+                  {(() => {
+                    const palmaresEntries = getPalmaresEntries(member);
+
+                    return (
                   <Card className="h-full overflow-hidden border-2 border-[#4C93C3]/20 md:grid md:grid-cols-[220px_1fr] md:items-stretch">
                     <div className="relative min-h-72 overflow-hidden md:h-full md:min-h-full">
                         <ImageWithFallback
@@ -184,10 +222,19 @@ export function ClubPage() {
                               {member.functions.map((value) => wallFunctionLabelByValue[value] ?? value).join(" • ")}
                             </p>
                           </div>
-                          <div>
-                            <p className="text-sm uppercase tracking-wide">Palmarès</p>
-                            <p className="text-base whitespace-pre-line text-foreground">{member.palmares}</p>
-                          </div>
+                          {palmaresEntries.length > 0 ? (
+                            <div>
+                              <p className="text-sm uppercase tracking-wide">Palmarès</p>
+                              <div className="space-y-2">
+                                {palmaresEntries.map((entry) => (
+                                  <div key={`${member.id}-${entry.functionLabel}`}>
+                                    <p className="text-xs uppercase tracking-wide text-muted-foreground">{entry.functionLabel}</p>
+                                    <p className="text-base whitespace-pre-line text-foreground">{entry.value}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : null}
                           <div>
                             <p className="text-sm uppercase tracking-wide">Adhérent depuis</p>
                             <p className="text-base text-foreground">{member.memberSince}</p>
@@ -195,6 +242,8 @@ export function ClubPage() {
                         </div>
                     </CardContent>
                   </Card>
+                    );
+                  })()}
                 </motion.div>
               ))}
             </div>

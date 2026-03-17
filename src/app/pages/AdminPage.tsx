@@ -27,6 +27,7 @@ import {
   updateWallOfFameMember,
   type WallOfFameFunction,
   type WallOfFameMember,
+  type WallOfFamePalmaresByFunction,
 } from "../data/wallOfFame";
 
 const wallFunctionOptions: Array<{ value: WallOfFameFunction; label: string }> = [
@@ -35,6 +36,64 @@ const wallFunctionOptions: Array<{ value: WallOfFameFunction; label: string }> =
   { value: "benevole", label: "Bénévole" },
   { value: "president", label: "Président" },
 ];
+
+const wallFunctionLabelByValue = wallFunctionOptions.reduce<Record<WallOfFameFunction, string>>((accumulator, option) => {
+  accumulator[option.value] = option.label;
+  return accumulator;
+}, {
+  coach: "Coach",
+  joueur: "Joueur",
+  benevole: "Bénévole",
+  president: "Président",
+});
+
+function sanitizeWallPalmaresByFunction(
+  functions: WallOfFameFunction[],
+  palmaresByFunction: Partial<Record<WallOfFameFunction, string>>,
+): WallOfFamePalmaresByFunction {
+  return functions.reduce<WallOfFamePalmaresByFunction>((accumulator, functionValue) => {
+    const value = palmaresByFunction[functionValue]?.trim() ?? "";
+
+    if (value) {
+      accumulator[functionValue] = value;
+    }
+
+    return accumulator;
+  }, {});
+}
+
+function getWallPalmaresByFunctionFromMember(member: WallOfFameMember): WallOfFamePalmaresByFunction {
+  const normalizedPalmares = sanitizeWallPalmaresByFunction(member.functions, member.palmaresByFunction ?? {});
+
+  if (Object.keys(normalizedPalmares).length > 0) {
+    return normalizedPalmares;
+  }
+
+  if (member.palmares?.trim()) {
+    return member.functions.reduce<WallOfFamePalmaresByFunction>((accumulator, functionValue) => {
+      accumulator[functionValue] = member.palmares?.trim() ?? "";
+      return accumulator;
+    }, {});
+  }
+
+  return {};
+}
+
+function getWallPalmaresSummary(member: WallOfFameMember) {
+  const palmaresByFunction = getWallPalmaresByFunctionFromMember(member);
+
+  return member.functions
+    .map((functionValue) => {
+      const palmares = palmaresByFunction[functionValue]?.trim() ?? "";
+
+      if (!palmares) {
+        return null;
+      }
+
+      return `${wallFunctionLabelByValue[functionValue]}: ${palmares}`;
+    })
+    .filter((value): value is string => Boolean(value));
+}
 
 const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   day: "numeric",
@@ -93,7 +152,7 @@ export function AdminPage() {
   const [wallOfFameMembers, setWallOfFameMembers] = useState<WallOfFameMember[]>([]);
   const [wallFirstName, setWallFirstName] = useState("");
   const [wallLastName, setWallLastName] = useState("");
-  const [wallPalmares, setWallPalmares] = useState("");
+  const [wallPalmaresByFunction, setWallPalmaresByFunction] = useState<Partial<Record<WallOfFameFunction, string>>>({});
   const [wallMemberSince, setWallMemberSince] = useState("");
   const [wallFunctions, setWallFunctions] = useState<WallOfFameFunction[]>([]);
   const [wallPhotoFile, setWallPhotoFile] = useState<File | null>(null);
@@ -437,7 +496,7 @@ export function AdminPage() {
   const resetWallForm = () => {
     setWallFirstName("");
     setWallLastName("");
-    setWallPalmares("");
+    setWallPalmaresByFunction({});
     setWallMemberSince("");
     setWallFunctions([]);
     setWallPhotoFile(null);
@@ -448,7 +507,7 @@ export function AdminPage() {
     setEditingWallMemberId(member.id);
     setWallFirstName(member.firstName);
     setWallLastName(member.lastName);
-    setWallPalmares(member.palmares);
+    setWallPalmaresByFunction(getWallPalmaresByFunctionFromMember(member));
     setWallMemberSince(member.memberSince);
     setWallFunctions(member.functions);
     setWallPhotoFile(null);
@@ -458,6 +517,11 @@ export function AdminPage() {
   const toggleWallFunction = (functionValue: WallOfFameFunction) => {
     setWallFunctions((current) => {
       if (current.includes(functionValue)) {
+        setWallPalmaresByFunction((palmaresByFunction) => {
+          const nextPalmaresByFunction = { ...palmaresByFunction };
+          delete nextPalmaresByFunction[functionValue];
+          return nextPalmaresByFunction;
+        });
         return current.filter((entry) => entry !== functionValue);
       }
 
@@ -465,14 +529,16 @@ export function AdminPage() {
     });
   };
 
+  const updateWallPalmares = (functionValue: WallOfFameFunction, value: string) => {
+    setWallPalmaresByFunction((current) => ({
+      ...current,
+      [functionValue]: value,
+    }));
+  };
+
   const handleSubmitWallOfFameMember = async () => {
     if (!wallFirstName.trim() || !wallLastName.trim()) {
       setWallFeedbackMessage("Le prénom et le nom sont obligatoires.");
-      return;
-    }
-
-    if (!wallPalmares.trim()) {
-      setWallFeedbackMessage("Le palmarès est obligatoire.");
       return;
     }
 
@@ -500,12 +566,14 @@ export function AdminPage() {
         throw new Error("Impossible de convertir la photo.");
       }
 
+      const normalizedPalmaresByFunction = sanitizeWallPalmaresByFunction(wallFunctions, wallPalmaresByFunction);
+
       const nextMembers = editingWallMemberId
         ? await updateWallOfFameMember({
             id: editingWallMemberId,
             firstName: wallFirstName.trim(),
             lastName: wallLastName.trim(),
-            palmares: wallPalmares.trim(),
+            palmaresByFunction: normalizedPalmaresByFunction,
             memberSince: wallMemberSince.trim(),
             functions: wallFunctions,
             ...(photoSrc ? { photoSrc } : {}),
@@ -513,7 +581,7 @@ export function AdminPage() {
         : await createWallOfFameMember({
             firstName: wallFirstName.trim(),
             lastName: wallLastName.trim(),
-            palmares: wallPalmares.trim(),
+            palmaresByFunction: normalizedPalmaresByFunction,
             memberSince: wallMemberSince.trim(),
             functions: wallFunctions,
             photoSrc,
@@ -1120,15 +1188,28 @@ export function AdminPage() {
                     </div>
                   </div>
 
-                  <div>
-                    <label htmlFor="wall-palmares" className="mb-2 block font-medium">Palmarès</label>
-                    <Textarea
-                      id="wall-palmares"
-                      value={wallPalmares}
-                      onChange={(event) => setWallPalmares(event.target.value)}
-                      placeholder="Ex: MVP régional 2025"
-                      className="min-h-24"
-                    />
+                  <div className="space-y-2">
+                    <p className="font-medium">Palmarès par fonction (optionnel)</p>
+                    {wallFunctions.length > 0 ? (
+                      <div className="space-y-3">
+                        {wallFunctions.map((functionValue) => (
+                          <div key={functionValue}>
+                            <label htmlFor={`wall-palmares-${functionValue}`} className="mb-2 block text-sm text-muted-foreground">
+                              {wallFunctionLabelByValue[functionValue]}
+                            </label>
+                            <Textarea
+                              id={`wall-palmares-${functionValue}`}
+                              value={wallPalmaresByFunction[functionValue] ?? ""}
+                              onChange={(event) => updateWallPalmares(functionValue, event.target.value)}
+                              placeholder="Laissez vide pour masquer ce palmarès"
+                              className="min-h-20"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Sélectionnez au moins une fonction pour saisir un palmarès.</p>
+                    )}
                   </div>
 
                   <div className="flex gap-2">
@@ -1166,7 +1247,9 @@ export function AdminPage() {
                             <p className="text-sm font-semibold">{member.firstName} {member.lastName}</p>
                             <p className="text-xs text-muted-foreground">Adhérent depuis: {member.memberSince}</p>
                             <p className="text-xs text-muted-foreground">Fonctions: {member.functions.join(" • ")}</p>
-                            <p className="text-xs text-muted-foreground line-clamp-2">{member.palmares}</p>
+                            {getWallPalmaresSummary(member).length > 0 ? (
+                              <p className="text-xs text-muted-foreground line-clamp-3">{getWallPalmaresSummary(member).join(" | ")}</p>
+                            ) : null}
                             <div className="grid grid-cols-2 gap-2">
                               <Button
                                 type="button"

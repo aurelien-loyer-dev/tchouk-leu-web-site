@@ -51,6 +51,34 @@ function compareMembersBySeniority(left, right) {
   return right.createdAt.localeCompare(left.createdAt);
 }
 
+function normalizePalmaresByFunction(functions, inputPalmaresByFunction, fallbackPalmares = "") {
+  const normalizedPalmaresByFunction = {};
+
+  if (isObject(inputPalmaresByFunction)) {
+    for (const functionValue of functions) {
+      const rawValue = inputPalmaresByFunction[functionValue];
+      const normalizedValue = typeof rawValue === "string" ? rawValue.trim() : "";
+
+      if (normalizedValue) {
+        normalizedPalmaresByFunction[functionValue] = normalizedValue;
+      }
+    }
+  }
+
+  if (Object.keys(normalizedPalmaresByFunction).length === 0 && fallbackPalmares) {
+    for (const functionValue of functions) {
+      normalizedPalmaresByFunction[functionValue] = fallbackPalmares;
+    }
+  }
+
+  return normalizedPalmaresByFunction;
+}
+
+function buildLegacyPalmares(palmaresByFunction) {
+  const firstPalmares = Object.values(palmaresByFunction).find((value) => typeof value === "string" && value.trim());
+  return typeof firstPalmares === "string" ? firstPalmares : "";
+}
+
 function normalizeMember(member) {
   if (!isObject(member)) {
     return null;
@@ -59,15 +87,16 @@ function normalizeMember(member) {
   const id = typeof member.id === "string" ? member.id : "";
   const firstName = typeof member.firstName === "string" ? member.firstName.trim() : "";
   const lastName = typeof member.lastName === "string" ? member.lastName.trim() : "";
-  const palmares = typeof member.palmares === "string" ? member.palmares.trim() : "";
+  const legacyPalmares = typeof member.palmares === "string" ? member.palmares.trim() : "";
   const memberSince = typeof member.memberSince === "string" ? member.memberSince.trim() : "";
   const photoSrc = typeof member.photoSrc === "string" ? member.photoSrc : "";
   const functions = Array.isArray(member.functions)
     ? member.functions.filter((entry) => typeof entry === "string" && ALLOWED_FUNCTIONS.has(entry))
     : [];
+  const palmaresByFunction = normalizePalmaresByFunction(functions, member.palmaresByFunction, legacyPalmares);
   const createdAt = typeof member.createdAt === "string" ? member.createdAt : new Date().toISOString();
 
-  if (!id || !firstName || !lastName || !palmares || !memberSince || !photoSrc || functions.length === 0) {
+  if (!id || !firstName || !lastName || !memberSince || !photoSrc || functions.length === 0) {
     return null;
   }
 
@@ -75,7 +104,8 @@ function normalizeMember(member) {
     id,
     firstName,
     lastName,
-    palmares,
+    palmares: buildLegacyPalmares(palmaresByFunction),
+    palmaresByFunction,
     memberSince,
     photoSrc,
     functions,
@@ -153,19 +183,16 @@ function validateNewMember(memberInput) {
 
   const firstName = typeof memberInput.firstName === "string" ? memberInput.firstName.trim() : "";
   const lastName = typeof memberInput.lastName === "string" ? memberInput.lastName.trim() : "";
-  const palmares = typeof memberInput.palmares === "string" ? memberInput.palmares.trim() : "";
+  const legacyPalmares = typeof memberInput.palmares === "string" ? memberInput.palmares.trim() : "";
   const memberSince = typeof memberInput.memberSince === "string" ? memberInput.memberSince.trim() : "";
   const photoSrc = typeof memberInput.photoSrc === "string" ? memberInput.photoSrc : "";
   const functions = Array.isArray(memberInput.functions)
     ? [...new Set(memberInput.functions.filter((entry) => typeof entry === "string" && ALLOWED_FUNCTIONS.has(entry)))]
     : [];
+  const palmaresByFunction = normalizePalmaresByFunction(functions, memberInput.palmaresByFunction, legacyPalmares);
 
   if (!firstName || !lastName) {
     throw new Error("Le prénom et le nom sont obligatoires.");
-  }
-
-  if (!palmares) {
-    throw new Error("Le palmarès est obligatoire.");
   }
 
   if (!memberSince) {
@@ -188,7 +215,8 @@ function validateNewMember(memberInput) {
     id: crypto.randomUUID(),
     firstName,
     lastName,
-    palmares,
+    palmares: buildLegacyPalmares(palmaresByFunction),
+    palmaresByFunction,
     memberSince,
     photoSrc,
     functions,
@@ -203,18 +231,15 @@ function validateMemberFields(memberInput) {
 
   const firstName = typeof memberInput.firstName === "string" ? memberInput.firstName.trim() : "";
   const lastName = typeof memberInput.lastName === "string" ? memberInput.lastName.trim() : "";
-  const palmares = typeof memberInput.palmares === "string" ? memberInput.palmares.trim() : "";
+  const legacyPalmares = typeof memberInput.palmares === "string" ? memberInput.palmares.trim() : "";
   const memberSince = typeof memberInput.memberSince === "string" ? memberInput.memberSince.trim() : "";
   const functions = Array.isArray(memberInput.functions)
     ? [...new Set(memberInput.functions.filter((entry) => typeof entry === "string" && ALLOWED_FUNCTIONS.has(entry)))]
     : [];
+  const palmaresByFunction = normalizePalmaresByFunction(functions, memberInput.palmaresByFunction, legacyPalmares);
 
   if (!firstName || !lastName) {
     throw new Error("Le prénom et le nom sont obligatoires.");
-  }
-
-  if (!palmares) {
-    throw new Error("Le palmarès est obligatoire.");
   }
 
   if (!memberSince) {
@@ -228,7 +253,8 @@ function validateMemberFields(memberInput) {
   return {
     firstName,
     lastName,
-    palmares,
+    palmares: buildLegacyPalmares(palmaresByFunction),
+    palmaresByFunction,
     memberSince,
     functions,
   };

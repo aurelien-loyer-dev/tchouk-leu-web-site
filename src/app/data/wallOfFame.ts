@@ -1,10 +1,13 @@
 export type WallOfFameFunction = "coach" | "joueur" | "benevole" | "president";
 
+export type WallOfFamePalmaresByFunction = Partial<Record<WallOfFameFunction, string>>;
+
 export type WallOfFameMember = {
   id: string;
   firstName: string;
   lastName: string;
-  palmares: string;
+  palmares?: string;
+  palmaresByFunction?: WallOfFamePalmaresByFunction;
   memberSince: string;
   functions: WallOfFameFunction[];
   photoSrc: string;
@@ -18,7 +21,8 @@ type WallOfFameApiResponse = {
 export type CreateWallOfFameMemberInput = {
   firstName: string;
   lastName: string;
-  palmares: string;
+  palmares?: string;
+  palmaresByFunction?: WallOfFamePalmaresByFunction;
   memberSince: string;
   functions: WallOfFameFunction[];
   photoSrc: string;
@@ -28,7 +32,8 @@ export type UpdateWallOfFameMemberInput = {
   id: string;
   firstName: string;
   lastName: string;
-  palmares: string;
+  palmares?: string;
+  palmaresByFunction?: WallOfFamePalmaresByFunction;
   memberSince: string;
   functions: WallOfFameFunction[];
   photoSrc?: string;
