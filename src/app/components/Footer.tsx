@@ -40,7 +40,7 @@ export function Footer() {
               </div>
             </div>
             <p className={isWhitesSharkPage ? "text-muted-foreground" : "text-muted-foreground"}>
-              Sélection des jeunes joueurs de l'île de la Réunion
+              Zenèss La Réunion
             </p>
           </div>
 
@@ -105,14 +105,26 @@ export function Footer() {
             <ul className="space-y-3">
               <li className={isWhitesSharkPage ? "flex items-center gap-3 text-muted-foreground" : "flex items-center gap-3 text-muted-foreground"}>
                 <Instagram className={isWhitesSharkPage ? "h-5 w-5 text-violet-500 dark:text-violet-300" : "h-5 w-5 text-[#4C93C3]"} />
-                <a
-                  href="https://www.instagram.com/tchouk_leu/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className={isWhitesSharkPage ? "hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}
-                >
-                  @tchouk_leu
-                </a>
+                {isWhitesSharkPage && (
+                  <a
+                    href="https://www.instagram.com/wst_tchoukball/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover:text-violet-800 dark:hover:text-violet-200 transition-colors"
+                  >
+                    @wst_tchoukball
+                  </a>
+                )}
+                {!isWhitesSharkPage && (
+                  <a
+                    href="https://www.instagram.com/tchouk_leu/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover:text-[#4C93C3] transition-colors"
+                  >
+                    @tchouk_leu
+                  </a>
+                )}
               </li>
               <li className={isWhitesSharkPage ? "flex items-center gap-3 text-muted-foreground" : "flex items-center gap-3 text-muted-foreground"}>
                 <Mail className={isWhitesSharkPage ? "h-5 w-5 text-violet-500 dark:text-violet-300" : "h-5 w-5 text-[#4C93C3]"} />
