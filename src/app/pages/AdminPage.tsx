@@ -29,6 +29,30 @@ import {
   type WallOfFameMember,
   type WallOfFamePalmaresByFunction,
 } from "../data/wallOfFame";
+import {
+  createWhiteSharksPalmares,
+  createWhiteSharksPlayer,
+  deleteWhiteSharksPalmares,
+  deleteWhiteSharksPlayer,
+  loadWhiteSharksData,
+  updateWhiteSharksPalmares,
+  updateWhiteSharksPlayer,
+  type WhiteSharksMemberType,
+  type WhiteSharksPalmaresEntry,
+  type WhiteSharksPlayer,
+} from "../data/whiteSharks";
+
+const whiteSharksMemberTypeOptions: Array<{ value: WhiteSharksMemberType; label: string }> = [
+  { value: "joueur", label: "Joueur" },
+  { value: "coach", label: "Coach" },
+  { value: "benevole", label: "Bénévole" },
+];
+
+const whiteSharksMemberTypeLabelByValue: Record<WhiteSharksMemberType, string> = {
+  joueur: "Joueur",
+  coach: "Coach",
+  benevole: "Bénévole",
+};
 
 const wallFunctionOptions: Array<{ value: WallOfFameFunction; label: string }> = [
   { value: "coach", label: "Coach" },
@@ -159,6 +183,20 @@ export function AdminPage() {
   const [editingWallMemberId, setEditingWallMemberId] = useState<string | null>(null);
   const [wallFeedbackMessage, setWallFeedbackMessage] = useState("");
   const [isWallSaving, setIsWallSaving] = useState(false);
+  const [whiteSharksPalmares, setWhiteSharksPalmares] = useState<WhiteSharksPalmaresEntry[]>([]);
+  const [whiteSharksPlayers, setWhiteSharksPlayers] = useState<WhiteSharksPlayer[]>([]);
+  const [whiteSharksPalmaresTitle, setWhiteSharksPalmaresTitle] = useState("");
+  const [whiteSharksPalmaresYear, setWhiteSharksPalmaresYear] = useState("");
+  const [whiteSharksPalmaresDescription, setWhiteSharksPalmaresDescription] = useState("");
+  const [editingWhiteSharksPalmaresId, setEditingWhiteSharksPalmaresId] = useState<string | null>(null);
+  const [whiteSharksPlayerFirstName, setWhiteSharksPlayerFirstName] = useState("");
+  const [whiteSharksPlayerLastName, setWhiteSharksPlayerLastName] = useState("");
+  const [whiteSharksPlayerClub, setWhiteSharksPlayerClub] = useState("");
+  const [whiteSharksPlayerPosition, setWhiteSharksPlayerPosition] = useState("");
+  const [whiteSharksPlayerMemberType, setWhiteSharksPlayerMemberType] = useState<WhiteSharksMemberType>("joueur");
+  const [editingWhiteSharksPlayerId, setEditingWhiteSharksPlayerId] = useState<string | null>(null);
+  const [whiteSharksFeedbackMessage, setWhiteSharksFeedbackMessage] = useState("");
+  const [isWhiteSharksSaving, setIsWhiteSharksSaving] = useState(false);
   const [expandedTemplates, setExpandedTemplates] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -174,9 +212,12 @@ export function AdminPage() {
         const loadedActivities = await loadActivities();
         const loadedGalleryPhotos = await loadGalleryPhotos();
         const loadedWallOfFameMembers = await loadWallOfFameMembers();
+        const loadedWhiteSharksData = await loadWhiteSharksData();
         setActivities(loadedActivities);
         setGalleryPhotos(loadedGalleryPhotos);
         setWallOfFameMembers(loadedWallOfFameMembers);
+        setWhiteSharksPalmares(loadedWhiteSharksData.palmares);
+        setWhiteSharksPlayers(loadedWhiteSharksData.players);
         setSelectedId(loadedActivities[0]?.id ?? null);
         setDraft(loadedActivities[0] ?? createEmptyActivity());
         await refreshAttendanceSummary();
@@ -616,6 +657,168 @@ export function AdminPage() {
       }
     } finally {
       setIsWallSaving(false);
+    }
+  };
+
+  const resetWhiteSharksPalmaresForm = () => {
+    setWhiteSharksPalmaresTitle("");
+    setWhiteSharksPalmaresYear("");
+    setWhiteSharksPalmaresDescription("");
+    setEditingWhiteSharksPalmaresId(null);
+  };
+
+  const resetWhiteSharksPlayerForm = () => {
+    setWhiteSharksPlayerFirstName("");
+    setWhiteSharksPlayerLastName("");
+    setWhiteSharksPlayerClub("");
+    setWhiteSharksPlayerPosition("");
+    setWhiteSharksPlayerMemberType("joueur");
+    setEditingWhiteSharksPlayerId(null);
+  };
+
+  const handleEditWhiteSharksPalmares = (entry: WhiteSharksPalmaresEntry) => {
+    setEditingWhiteSharksPalmaresId(entry.id);
+    setWhiteSharksPalmaresTitle(entry.title);
+    setWhiteSharksPalmaresYear(entry.year);
+    setWhiteSharksPalmaresDescription(entry.description);
+    setWhiteSharksFeedbackMessage("Mode modification du palmarès activé.");
+  };
+
+  const handleEditWhiteSharksPlayer = (player: WhiteSharksPlayer) => {
+    setEditingWhiteSharksPlayerId(player.id);
+    setWhiteSharksPlayerFirstName(player.firstName);
+    setWhiteSharksPlayerLastName(player.lastName);
+    setWhiteSharksPlayerClub(player.club);
+    setWhiteSharksPlayerPosition(player.position);
+    setWhiteSharksPlayerMemberType(player.memberType);
+    setWhiteSharksFeedbackMessage("Mode modification joueur activé.");
+  };
+
+  const handleSubmitWhiteSharksPalmares = async () => {
+    if (!whiteSharksPalmaresTitle.trim()) {
+      setWhiteSharksFeedbackMessage("Le titre du palmarès est obligatoire.");
+      return;
+    }
+
+    if (!whiteSharksPalmaresYear.trim()) {
+      setWhiteSharksFeedbackMessage("L'année du palmarès est obligatoire.");
+      return;
+    }
+
+    try {
+      setIsWhiteSharksSaving(true);
+      setWhiteSharksFeedbackMessage("");
+
+      const nextData = editingWhiteSharksPalmaresId
+        ? await updateWhiteSharksPalmares({
+            id: editingWhiteSharksPalmaresId,
+            title: whiteSharksPalmaresTitle.trim(),
+            year: whiteSharksPalmaresYear.trim(),
+            description: whiteSharksPalmaresDescription.trim(),
+          })
+        : await createWhiteSharksPalmares({
+            title: whiteSharksPalmaresTitle.trim(),
+            year: whiteSharksPalmaresYear.trim(),
+            description: whiteSharksPalmaresDescription.trim(),
+          });
+
+      setWhiteSharksPalmares(nextData.palmares ?? []);
+      setWhiteSharksPlayers(nextData.players ?? []);
+      resetWhiteSharksPalmaresForm();
+      setWhiteSharksFeedbackMessage(editingWhiteSharksPalmaresId ? "Palmarès White Sharks modifié." : "Palmarès White Sharks ajouté.");
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setWhiteSharksFeedbackMessage(error.message);
+      } else {
+        setWhiteSharksFeedbackMessage("Impossible d'enregistrer le palmarès White Sharks.");
+      }
+    } finally {
+      setIsWhiteSharksSaving(false);
+    }
+  };
+
+  const handleDeleteWhiteSharksPalmares = async (entryId: string) => {
+    try {
+      setIsWhiteSharksSaving(true);
+      setWhiteSharksFeedbackMessage("");
+      const nextData = await deleteWhiteSharksPalmares(entryId);
+      setWhiteSharksPalmares(nextData.palmares ?? []);
+      setWhiteSharksPlayers(nextData.players ?? []);
+      setWhiteSharksFeedbackMessage("Palmarès White Sharks supprimé.");
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setWhiteSharksFeedbackMessage(error.message);
+      } else {
+        setWhiteSharksFeedbackMessage("Impossible de supprimer le palmarès White Sharks.");
+      }
+    } finally {
+      setIsWhiteSharksSaving(false);
+    }
+  };
+
+  const handleSubmitWhiteSharksPlayer = async () => {
+    if (!whiteSharksPlayerFirstName.trim() || !whiteSharksPlayerLastName.trim()) {
+      setWhiteSharksFeedbackMessage("Le prénom et le nom du joueur sont obligatoires.");
+      return;
+    }
+
+    if (!whiteSharksPlayerClub.trim()) {
+      setWhiteSharksFeedbackMessage("Le club d'origine du joueur est obligatoire.");
+      return;
+    }
+
+    try {
+      setIsWhiteSharksSaving(true);
+      setWhiteSharksFeedbackMessage("");
+
+      const nextData = editingWhiteSharksPlayerId
+        ? await updateWhiteSharksPlayer({
+            id: editingWhiteSharksPlayerId,
+            firstName: whiteSharksPlayerFirstName.trim(),
+            lastName: whiteSharksPlayerLastName.trim(),
+            club: whiteSharksPlayerClub.trim(),
+            position: whiteSharksPlayerPosition.trim(),
+            memberType: whiteSharksPlayerMemberType,
+          })
+        : await createWhiteSharksPlayer({
+            firstName: whiteSharksPlayerFirstName.trim(),
+            lastName: whiteSharksPlayerLastName.trim(),
+            club: whiteSharksPlayerClub.trim(),
+            position: whiteSharksPlayerPosition.trim(),
+            memberType: whiteSharksPlayerMemberType,
+          });
+
+      setWhiteSharksPalmares(nextData.palmares ?? []);
+      setWhiteSharksPlayers(nextData.players ?? []);
+      resetWhiteSharksPlayerForm();
+      setWhiteSharksFeedbackMessage(editingWhiteSharksPlayerId ? "Joueur White Sharks modifié." : "Joueur White Sharks ajouté.");
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setWhiteSharksFeedbackMessage(error.message);
+      } else {
+        setWhiteSharksFeedbackMessage("Impossible d'enregistrer le joueur White Sharks.");
+      }
+    } finally {
+      setIsWhiteSharksSaving(false);
+    }
+  };
+
+  const handleDeleteWhiteSharksPlayer = async (playerId: string) => {
+    try {
+      setIsWhiteSharksSaving(true);
+      setWhiteSharksFeedbackMessage("");
+      const nextData = await deleteWhiteSharksPlayer(playerId);
+      setWhiteSharksPalmares(nextData.palmares ?? []);
+      setWhiteSharksPlayers(nextData.players ?? []);
+      setWhiteSharksFeedbackMessage("Joueur White Sharks supprimé.");
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setWhiteSharksFeedbackMessage(error.message);
+      } else {
+        setWhiteSharksFeedbackMessage("Impossible de supprimer le joueur White Sharks.");
+      }
+    } finally {
+      setIsWhiteSharksSaving(false);
     }
   };
 
@@ -1281,6 +1484,210 @@ export function AdminPage() {
                   )}
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      <section className="pb-20 px-6 bg-background">
+        <div className="max-w-7xl mx-auto">
+          <Card className="border-2 border-violet-300/30 dark:border-violet-500/30">
+            <CardHeader>
+              <CardTitle className="text-2xl">White Sharks</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              <div className="grid xl:grid-cols-2 gap-8">
+                <div className="space-y-4 rounded-xl border border-border/60 p-4">
+                  <h3 className="text-lg font-semibold">Palmarès</h3>
+                  <div>
+                    <label htmlFor="ws-palmares-title" className="mb-2 block font-medium">Titre</label>
+                    <Input
+                      id="ws-palmares-title"
+                      value={whiteSharksPalmaresTitle}
+                      onChange={(event) => setWhiteSharksPalmaresTitle(event.target.value)}
+                      placeholder="Ex: Championnat régional"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="ws-palmares-year" className="mb-2 block font-medium">Année</label>
+                    <Input
+                      id="ws-palmares-year"
+                      value={whiteSharksPalmaresYear}
+                      onChange={(event) => setWhiteSharksPalmaresYear(event.target.value)}
+                      placeholder="Ex: 2026"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="ws-palmares-description" className="mb-2 block font-medium">Description (optionnel)</label>
+                    <Textarea
+                      id="ws-palmares-description"
+                      value={whiteSharksPalmaresDescription}
+                      onChange={(event) => setWhiteSharksPalmaresDescription(event.target.value)}
+                      className="min-h-20"
+                      placeholder="Ex: Finale remportée face à ..."
+                    />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      className="flex-1 bg-violet-600 text-white hover:bg-violet-700"
+                      onClick={() => void handleSubmitWhiteSharksPalmares()}
+                      disabled={isWhiteSharksSaving}
+                    >
+                      {isWhiteSharksSaving ? "Enregistrement..." : editingWhiteSharksPalmaresId ? "Modifier" : "Ajouter"}
+                    </Button>
+                    {editingWhiteSharksPalmaresId ? (
+                      <Button type="button" variant="outline" onClick={resetWhiteSharksPalmaresForm} disabled={isWhiteSharksSaving}>
+                        Annuler
+                      </Button>
+                    ) : null}
+                  </div>
+
+                  {whiteSharksPalmares.length > 0 ? (
+                    <div className="space-y-2 pt-2">
+                      {whiteSharksPalmares.map((entry) => (
+                        <div key={entry.id} className="rounded-md border border-border/60 bg-muted/20 px-3 py-2">
+                          <p className="text-sm font-medium">{entry.title} ({entry.year})</p>
+                          {entry.description ? <p className="text-xs text-muted-foreground mt-1">{entry.description}</p> : null}
+                          <div className="grid grid-cols-2 gap-2 mt-2">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditWhiteSharksPalmares(entry)}
+                              disabled={isWhiteSharksSaving}
+                            >
+                              Modifier
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => void handleDeleteWhiteSharksPalmares(entry.id)}
+                              disabled={isWhiteSharksSaving}
+                            >
+                              Supprimer
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Aucun palmarès White Sharks pour le moment.</p>
+                  )}
+                </div>
+
+                <div className="space-y-4 rounded-xl border border-border/60 p-4">
+                  <h3 className="text-lg font-semibold">Joueurs</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label htmlFor="ws-player-first-name" className="mb-2 block font-medium">Prénom</label>
+                      <Input
+                        id="ws-player-first-name"
+                        value={whiteSharksPlayerFirstName}
+                        onChange={(event) => setWhiteSharksPlayerFirstName(event.target.value)}
+                        placeholder="Ex: Noah"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="ws-player-last-name" className="mb-2 block font-medium">Nom</label>
+                      <Input
+                        id="ws-player-last-name"
+                        value={whiteSharksPlayerLastName}
+                        onChange={(event) => setWhiteSharksPlayerLastName(event.target.value)}
+                        placeholder="Ex: Payet"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="ws-player-club" className="mb-2 block font-medium">Club d'origine</label>
+                    <Input
+                      id="ws-player-club"
+                      value={whiteSharksPlayerClub}
+                      onChange={(event) => setWhiteSharksPlayerClub(event.target.value)}
+                      placeholder="Ex: Tchouk'Leu"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="ws-player-member-type" className="mb-2 block font-medium">Type de membre</label>
+                    <select
+                      id="ws-player-member-type"
+                      value={whiteSharksPlayerMemberType}
+                      onChange={(event) => setWhiteSharksPlayerMemberType(event.target.value as WhiteSharksMemberType)}
+                      className="dark:bg-input/30 border-input focus-visible:border-ring focus-visible:ring-ring/50 h-10 w-full rounded-md border bg-input-background px-3 outline-none focus-visible:ring-[3px]"
+                    >
+                      {whiteSharksMemberTypeOptions.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="ws-player-position" className="mb-2 block font-medium">Poste / rôle (optionnel)</label>
+                    <Input
+                      id="ws-player-position"
+                      value={whiteSharksPlayerPosition}
+                      onChange={(event) => setWhiteSharksPlayerPosition(event.target.value)}
+                      placeholder="Ex: Ailier droit"
+                    />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      className="flex-1 bg-violet-600 text-white hover:bg-violet-700"
+                      onClick={() => void handleSubmitWhiteSharksPlayer()}
+                      disabled={isWhiteSharksSaving}
+                    >
+                      {isWhiteSharksSaving ? "Enregistrement..." : editingWhiteSharksPlayerId ? "Modifier" : "Ajouter"}
+                    </Button>
+                    {editingWhiteSharksPlayerId ? (
+                      <Button type="button" variant="outline" onClick={resetWhiteSharksPlayerForm} disabled={isWhiteSharksSaving}>
+                        Annuler
+                      </Button>
+                    ) : null}
+                  </div>
+
+                  {whiteSharksPlayers.length > 0 ? (
+                    <div className="space-y-2 pt-2">
+                      {whiteSharksPlayers.map((player) => (
+                        <div key={player.id} className="rounded-md border border-border/60 bg-muted/20 px-3 py-2">
+                          <p className="text-sm font-medium">{player.firstName} {player.lastName}</p>
+                          <p className="text-xs text-muted-foreground">Type: {whiteSharksMemberTypeLabelByValue[player.memberType]}</p>
+                          <p className="text-xs text-muted-foreground">Club: {player.club}</p>
+                          {player.position ? <p className="text-xs text-muted-foreground">Rôle: {player.position}</p> : null}
+                          <div className="grid grid-cols-2 gap-2 mt-2">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditWhiteSharksPlayer(player)}
+                              disabled={isWhiteSharksSaving}
+                            >
+                              Modifier
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => void handleDeleteWhiteSharksPlayer(player.id)}
+                              disabled={isWhiteSharksSaving}
+                            >
+                              Supprimer
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Aucun joueur White Sharks pour le moment.</p>
+                  )}
+                </div>
+              </div>
+
+              {whiteSharksFeedbackMessage ? (
+                <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">{whiteSharksFeedbackMessage}</p>
+              ) : null}
             </CardContent>
           </Card>
         </div>

@@ -5,6 +5,7 @@ import { Link, useLocation } from "react-router";
 export function Footer() {
   const location = useLocation();
   const isWhitesSharkPage = location.pathname.startsWith("/whites-shark");
+  const currentYear = new Date().getFullYear();
 
   return (
     <footer
@@ -132,14 +133,14 @@ export function Footer() {
               </li>
               <li className={isWhitesSharkPage ? "flex items-center gap-3 text-muted-foreground" : "flex items-center gap-3 text-muted-foreground"}>
                 <MapPin className={isWhitesSharkPage ? "h-5 w-5 text-violet-500 dark:text-violet-300" : "h-5 w-5 text-[#4C93C3]"} />
-                <span>Saint-Leu, Réunion</span>
+                <span>{isWhitesSharkPage ? "Profondeurs de l'Océan Indien" : "Saint-Leu, Réunion"}</span>
               </li>
             </ul>
           </div>
         </div>
 
         <div className={isWhitesSharkPage ? "mt-12 pt-8 border-t border-violet-300/40 dark:border-violet-400/30 text-center text-muted-foreground" : "mt-12 pt-8 border-t border-border text-center text-muted-foreground"}>
-          <p>&copy; 2026 Tchouk'Leu. Tous droits réservés.</p>
+          <p>&copy; {currentYear} Tchouk'Leu. Tous droits réservés.</p>
         </div>
       </div>
     </footer>
