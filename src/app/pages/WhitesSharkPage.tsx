@@ -202,7 +202,7 @@ export function WhitesSharkPage() {
                               ) : null}
                               <p className="text-sm text-muted-foreground">{t("whiteSharks.originClub")} {player.club}</p>
                               {player.birthYear ? (
-                                <p className="text-sm font-medium text-muted-foreground">{t("whiteSharks.bornIn")} {player.birthYear}</p>
+                                <p className="text-sm font-medium text-muted-foreground">{player.birthYear}</p>
                               ) : null}
                             </CardContent>
                           </Card>

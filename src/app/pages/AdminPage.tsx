@@ -1767,7 +1767,7 @@ export function AdminPage() {
                               Rôle: {(player.positions?.length ? player.positions : player.position ? [player.position] : []).join(", ")}
                             </p>
                           ) : null}
-                          {player.birthYear ? <p className="text-xs text-muted-foreground">Né en {player.birthYear}</p> : null}
+                          {player.birthYear ? <p className="text-xs text-muted-foreground">{player.birthYear}</p> : null}
                           <div className="grid grid-cols-2 gap-2 mt-2">
                             <Button
                               type="button"
