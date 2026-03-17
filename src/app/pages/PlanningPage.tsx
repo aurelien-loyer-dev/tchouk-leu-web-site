@@ -78,6 +78,7 @@ export function PlanningPage() {
   }), [currentLocale]);
   const weekdayLabels = t("planning.weekdays", { returnObjects: true }) as string[];
 
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [activeFilter, setActiveFilter] = useState<ActivityCategory | "all">("all");
   const [loadingError, setLoadingError] = useState("");
   const [voteMessage, setVoteMessage] = useState("");
