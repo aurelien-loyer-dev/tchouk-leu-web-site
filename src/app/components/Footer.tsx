@@ -1,4 +1,4 @@
-import { Instagram, Mail, MapPin } from "lucide-react";
+import { Instagram, Mail, MapPin, Phone } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Link, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -140,15 +140,17 @@ export function Footer() {
                   </div>
                 )}
               </li>
-              {!isWhitesSharkPage ? (
-                <li className="flex items-center gap-3 text-muted-foreground">
-                  <MapPin className="h-5 w-5 text-[#4C93C3]" />
+              <li className={isWhitesSharkPage ? "flex items-center gap-3 text-muted-foreground" : "flex items-center gap-3 text-muted-foreground"}>
+                <Phone className={isWhitesSharkPage ? "h-5 w-5 text-violet-500 dark:text-violet-300" : "h-5 w-5 text-[#4C93C3]"} />
+                {isWhitesSharkPage ? (
+                  <a href="tel:+33656714037" className="hover:text-violet-800 dark:hover:text-violet-200 transition-colors">+33 6 56 71 40 37</a>
+                ) : (
                   <div className="flex flex-col">
                     <a href="tel:+33656714037" className="hover:text-[#4C93C3] transition-colors">+33 6 56 71 40 37</a>
                     <a href="tel:+262692812102" className="hover:text-[#4C93C3] transition-colors">+262 692 812102</a>
                   </div>
-                </li>
-              ) : null}
+                )}
+              </li>
               <li className={isWhitesSharkPage ? "flex items-center gap-3 text-muted-foreground" : "flex items-center gap-3 text-muted-foreground"}>
                 <MapPin className={isWhitesSharkPage ? "h-5 w-5 text-violet-500 dark:text-violet-300" : "h-5 w-5 text-[#4C93C3]"} />
                 <span>{isWhitesSharkPage ? t("footer.indianOcean") : "Saint-Leu, Réunion"}</span>
