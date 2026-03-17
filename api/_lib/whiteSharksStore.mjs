@@ -14,6 +14,24 @@ function isObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
+function normalizeLocalizedText(input) {
+  if (!isObject(input)) {
+    return null;
+  }
+
+  const en = typeof input.en === "string" ? input.en.trim() : "";
+  const zh = typeof input.zh === "string" ? input.zh.trim() : "";
+
+  if (!en && !zh) {
+    return null;
+  }
+
+  return {
+    ...(en ? { en } : {}),
+    ...(zh ? { zh } : {}),
+  };
+}
+
 function normalizePalmaresEntry(entry) {
   if (!isObject(entry)) {
     return null;
@@ -21,8 +39,10 @@ function normalizePalmaresEntry(entry) {
 
   const id = typeof entry.id === "string" ? entry.id : "";
   const title = typeof entry.title === "string" ? entry.title.trim() : "";
+  const titleTranslations = normalizeLocalizedText(entry.titleTranslations);
   const year = typeof entry.year === "string" ? entry.year.trim() : "";
   const description = typeof entry.description === "string" ? entry.description.trim() : "";
+  const descriptionTranslations = normalizeLocalizedText(entry.descriptionTranslations);
   const createdAt = typeof entry.createdAt === "string" ? entry.createdAt : new Date().toISOString();
 
   if (!id || !title || !year) {
@@ -32,8 +52,10 @@ function normalizePalmaresEntry(entry) {
   return {
     id,
     title,
+    ...(titleTranslations ? { titleTranslations } : {}),
     year,
     description,
+    ...(descriptionTranslations ? { descriptionTranslations } : {}),
     createdAt,
   };
 }
@@ -208,8 +230,10 @@ function validatePalmaresInput(input) {
   }
 
   const title = typeof input.title === "string" ? input.title.trim() : "";
+  const titleTranslations = normalizeLocalizedText(input.titleTranslations);
   const year = typeof input.year === "string" ? input.year.trim() : "";
   const description = typeof input.description === "string" ? input.description.trim() : "";
+  const descriptionTranslations = normalizeLocalizedText(input.descriptionTranslations);
 
   if (!title) {
     throw new Error("Le titre du palmarès est obligatoire.");
@@ -221,8 +245,10 @@ function validatePalmaresInput(input) {
 
   return {
     title,
+    ...(titleTranslations ? { titleTranslations } : {}),
     year,
     description,
+    ...(descriptionTranslations ? { descriptionTranslations } : {}),
   };
 }
 

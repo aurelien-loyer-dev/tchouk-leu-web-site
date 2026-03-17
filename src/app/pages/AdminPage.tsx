@@ -188,8 +188,12 @@ export function AdminPage() {
   const [whiteSharksPalmares, setWhiteSharksPalmares] = useState<WhiteSharksPalmaresEntry[]>([]);
   const [whiteSharksPlayers, setWhiteSharksPlayers] = useState<WhiteSharksPlayer[]>([]);
   const [whiteSharksPalmaresTitle, setWhiteSharksPalmaresTitle] = useState("");
+  const [whiteSharksPalmaresTitleEn, setWhiteSharksPalmaresTitleEn] = useState("");
+  const [whiteSharksPalmaresTitleZh, setWhiteSharksPalmaresTitleZh] = useState("");
   const [whiteSharksPalmaresYear, setWhiteSharksPalmaresYear] = useState("");
   const [whiteSharksPalmaresDescription, setWhiteSharksPalmaresDescription] = useState("");
+  const [whiteSharksPalmaresDescriptionEn, setWhiteSharksPalmaresDescriptionEn] = useState("");
+  const [whiteSharksPalmaresDescriptionZh, setWhiteSharksPalmaresDescriptionZh] = useState("");
   const [editingWhiteSharksPalmaresId, setEditingWhiteSharksPalmaresId] = useState<string | null>(null);
   const [whiteSharksPlayerFirstName, setWhiteSharksPlayerFirstName] = useState("");
   const [whiteSharksPlayerLastName, setWhiteSharksPlayerLastName] = useState("");
@@ -665,8 +669,12 @@ export function AdminPage() {
 
   const resetWhiteSharksPalmaresForm = () => {
     setWhiteSharksPalmaresTitle("");
+    setWhiteSharksPalmaresTitleEn("");
+    setWhiteSharksPalmaresTitleZh("");
     setWhiteSharksPalmaresYear("");
     setWhiteSharksPalmaresDescription("");
+    setWhiteSharksPalmaresDescriptionEn("");
+    setWhiteSharksPalmaresDescriptionZh("");
     setEditingWhiteSharksPalmaresId(null);
   };
 
@@ -683,8 +691,12 @@ export function AdminPage() {
   const handleEditWhiteSharksPalmares = (entry: WhiteSharksPalmaresEntry) => {
     setEditingWhiteSharksPalmaresId(entry.id);
     setWhiteSharksPalmaresTitle(entry.title);
+    setWhiteSharksPalmaresTitleEn(entry.titleTranslations?.en ?? "");
+    setWhiteSharksPalmaresTitleZh(entry.titleTranslations?.zh ?? "");
     setWhiteSharksPalmaresYear(entry.year);
     setWhiteSharksPalmaresDescription(entry.description);
+    setWhiteSharksPalmaresDescriptionEn(entry.descriptionTranslations?.en ?? "");
+    setWhiteSharksPalmaresDescriptionZh(entry.descriptionTranslations?.zh ?? "");
     setWhiteSharksFeedbackMessage("Mode modification du palmarès activé.");
   };
 
@@ -714,17 +726,31 @@ export function AdminPage() {
       setIsWhiteSharksSaving(true);
       setWhiteSharksFeedbackMessage("");
 
+      const titleTranslationsPayload = {
+        ...(whiteSharksPalmaresTitleEn.trim() ? { en: whiteSharksPalmaresTitleEn.trim() } : {}),
+        ...(whiteSharksPalmaresTitleZh.trim() ? { zh: whiteSharksPalmaresTitleZh.trim() } : {}),
+      };
+
+      const descriptionTranslationsPayload = {
+        ...(whiteSharksPalmaresDescriptionEn.trim() ? { en: whiteSharksPalmaresDescriptionEn.trim() } : {}),
+        ...(whiteSharksPalmaresDescriptionZh.trim() ? { zh: whiteSharksPalmaresDescriptionZh.trim() } : {}),
+      };
+
       const nextData = editingWhiteSharksPalmaresId
         ? await updateWhiteSharksPalmares({
             id: editingWhiteSharksPalmaresId,
             title: whiteSharksPalmaresTitle.trim(),
+            ...(Object.keys(titleTranslationsPayload).length > 0 ? { titleTranslations: titleTranslationsPayload } : {}),
             year: whiteSharksPalmaresYear.trim(),
             description: whiteSharksPalmaresDescription.trim(),
+            ...(Object.keys(descriptionTranslationsPayload).length > 0 ? { descriptionTranslations: descriptionTranslationsPayload } : {}),
           })
         : await createWhiteSharksPalmares({
             title: whiteSharksPalmaresTitle.trim(),
+            ...(Object.keys(titleTranslationsPayload).length > 0 ? { titleTranslations: titleTranslationsPayload } : {}),
             year: whiteSharksPalmaresYear.trim(),
             description: whiteSharksPalmaresDescription.trim(),
+            ...(Object.keys(descriptionTranslationsPayload).length > 0 ? { descriptionTranslations: descriptionTranslationsPayload } : {}),
           });
 
       setWhiteSharksPalmares(nextData.palmares ?? []);
@@ -1518,6 +1544,26 @@ export function AdminPage() {
                       placeholder="Ex: Championnat régional"
                     />
                   </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label htmlFor="ws-palmares-title-en" className="mb-2 block font-medium">Titre EN (optionnel)</label>
+                      <Input
+                        id="ws-palmares-title-en"
+                        value={whiteSharksPalmaresTitleEn}
+                        onChange={(event) => setWhiteSharksPalmaresTitleEn(event.target.value)}
+                        placeholder="Ex: Regional championship"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="ws-palmares-title-zh" className="mb-2 block font-medium">Titre 中文 (optionnel)</label>
+                      <Input
+                        id="ws-palmares-title-zh"
+                        value={whiteSharksPalmaresTitleZh}
+                        onChange={(event) => setWhiteSharksPalmaresTitleZh(event.target.value)}
+                        placeholder="例：地区锦标赛"
+                      />
+                    </div>
+                  </div>
                   <div>
                     <label htmlFor="ws-palmares-year" className="mb-2 block font-medium">Année</label>
                     <Input
@@ -1536,6 +1582,28 @@ export function AdminPage() {
                       className="min-h-20"
                       placeholder="Ex: Finale remportée face à ..."
                     />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label htmlFor="ws-palmares-description-en" className="mb-2 block font-medium">Description EN (optionnel)</label>
+                      <Textarea
+                        id="ws-palmares-description-en"
+                        value={whiteSharksPalmaresDescriptionEn}
+                        onChange={(event) => setWhiteSharksPalmaresDescriptionEn(event.target.value)}
+                        className="min-h-20"
+                        placeholder="Ex: Final won against ..."
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="ws-palmares-description-zh" className="mb-2 block font-medium">Description 中文 (optionnel)</label>
+                      <Textarea
+                        id="ws-palmares-description-zh"
+                        value={whiteSharksPalmaresDescriptionZh}
+                        onChange={(event) => setWhiteSharksPalmaresDescriptionZh(event.target.value)}
+                        className="min-h-20"
+                        placeholder="例如：决赛战胜..."
+                      />
+                    </div>
                   </div>
 
                   <div className="flex gap-2">

@@ -1,8 +1,10 @@
 export type WhiteSharksPalmaresEntry = {
   id: string;
   title: string;
+  titleTranslations?: Partial<Record<"en" | "zh", string>>;
   year: string;
   description: string;
+  descriptionTranslations?: Partial<Record<"en" | "zh", string>>;
   createdAt: string;
 };
 
@@ -26,8 +28,10 @@ export type WhiteSharksData = {
 
 type CreatePalmaresInput = {
   title: string;
+  titleTranslations?: Partial<Record<"en" | "zh", string>>;
   year: string;
   description: string;
+  descriptionTranslations?: Partial<Record<"en" | "zh", string>>;
 };
 
 type UpdatePalmaresInput = CreatePalmaresInput & {

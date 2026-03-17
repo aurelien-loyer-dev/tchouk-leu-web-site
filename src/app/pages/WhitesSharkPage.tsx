@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 
 export function WhitesSharkPage() {
   const { t, i18n } = useTranslation();
+  const currentLang = (i18n.language ?? "fr").split("-")[0] as "fr" | "en" | "zh";
 
   const getTranslatedPosition = (position: string) => {
     const normalized = position.trim().toLowerCase();
@@ -21,6 +22,18 @@ export function WhitesSharkPage() {
     }
 
     return position;
+  };
+
+  const getLocalizedPalmaresText = (baseText: string, translations?: Partial<Record<"en" | "zh", string>>) => {
+    if (currentLang === "en" && translations?.en?.trim()) {
+      return translations.en;
+    }
+
+    if (currentLang === "zh" && translations?.zh?.trim()) {
+      return translations.zh;
+    }
+
+    return baseText;
   };
 
   const whiteSharksMemberTypeSections: Array<{
@@ -99,12 +112,12 @@ export function WhitesSharkPage() {
                 >
                   <Card className="h-full border-violet-200 dark:border-violet-900/40">
                     <CardHeader className="pb-4">
-                      <CardTitle className="text-xl">{entry.title}</CardTitle>
+                      <CardTitle className="text-xl">{getLocalizedPalmaresText(entry.title, entry.titleTranslations)}</CardTitle>
                       <p className="text-sm text-muted-foreground mt-1">{entry.year}</p>
                     </CardHeader>
                     {entry.description ? (
                       <CardContent className="pb-6">
-                        <p className="text-muted-foreground">{entry.description}</p>
+                        <p className="text-muted-foreground">{getLocalizedPalmaresText(entry.description, entry.descriptionTranslations)}</p>
                       </CardContent>
                     ) : null}
                   </Card>
