@@ -29,17 +29,18 @@ export function Footer() {
               <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-12 w-10" />
               {isWhitesSharkPage && (
                 <>
-                  <span className="font-semibold text-violet-500 dark:text-violet-300">X</span>
                   <img src="/images/WhiteSharksLogo.png" alt="Logo White Sharks" className="h-12 w-auto object-contain rounded-sm" />
                 </>
               )}
               <div>
-                <h3 className="text-2xl font-bold">{isWhitesSharkPage ? "Tchouk'Leu X White Sharks" : "Tchouk'Leu"}</h3>
-                <p className={isWhitesSharkPage ? "text-sm text-muted-foreground" : "text-sm text-muted-foreground"}>Depuis 2014</p>
+                <h3 className="text-2xl font-bold">{isWhitesSharkPage ? "White Sharks" : "Tchouk'Leu"}</h3>
+                {!isWhitesSharkPage && (
+                  <p className="text-sm text-muted-foreground">Depuis 2014</p>
+                )}
               </div>
             </div>
             <p className={isWhitesSharkPage ? "text-muted-foreground" : "text-muted-foreground"}>
-              Club de tchoukball de Saint-Leu, île de la Réunion
+              Sélection des jeunes joueurs de l'île de la Réunion
             </p>
           </div>
 
