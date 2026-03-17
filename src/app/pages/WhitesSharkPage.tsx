@@ -136,8 +136,13 @@ export function WhitesSharkPage() {
                           viewport={{ once: true }}
                           transition={{ duration: 0.5, delay: index * 0.05 }}
                         >
-                          <Card className="h-full">
+                          <Card className={`h-full ${player.memberType === "capitaine" ? "border-2 border-violet-500 bg-violet-50/70 dark:bg-violet-950/20" : ""}`}>
                             <CardContent className="p-6 space-y-3">
+                              {player.memberType === "capitaine" ? (
+                                <p className="inline-flex rounded-full bg-violet-600 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+                                  Capitaine de la sélection
+                                </p>
+                              ) : null}
                               <p className="text-xl font-semibold">{player.firstName} {player.lastName}</p>
                               {player.position ? (
                                 <p className="text-sm inline-flex items-center gap-2 text-violet-700 dark:text-violet-300">
