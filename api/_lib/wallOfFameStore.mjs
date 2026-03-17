@@ -14,6 +14,43 @@ function isObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
+function toMemberSinceTimestamp(memberSince) {
+  const normalizedValue = typeof memberSince === "string" ? memberSince.trim() : "";
+
+  if (!normalizedValue) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  if (/^\d{4}$/.test(normalizedValue)) {
+    return Date.UTC(Number(normalizedValue), 0, 1);
+  }
+
+  const parsedTimestamp = Date.parse(normalizedValue);
+
+  if (!Number.isNaN(parsedTimestamp)) {
+    return parsedTimestamp;
+  }
+
+  const yearMatch = normalizedValue.match(/\b(19|20)\d{2}\b/);
+
+  if (yearMatch) {
+    return Date.UTC(Number(yearMatch[0]), 0, 1);
+  }
+
+  return Number.POSITIVE_INFINITY;
+}
+
+function compareMembersBySeniority(left, right) {
+  const leftSince = toMemberSinceTimestamp(left.memberSince);
+  const rightSince = toMemberSinceTimestamp(right.memberSince);
+
+  if (leftSince !== rightSince) {
+    return leftSince - rightSince;
+  }
+
+  return right.createdAt.localeCompare(left.createdAt);
+}
+
 function normalizeMember(member) {
   if (!isObject(member)) {
     return null;
@@ -54,7 +91,7 @@ function normalizePayload(rawPayload) {
   return rawPayload.members
     .map(normalizeMember)
     .filter(Boolean)
-    .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+    .sort(compareMembersBySeniority);
 }
 
 function buildPayload(members) {
@@ -215,7 +252,7 @@ async function writeMembers(members) {
 export async function addWallOfFameMember(memberInput) {
   const nextMember = validateNewMember(memberInput);
   const existingMembers = await readWallOfFameMembers();
-  const nextMembers = [nextMember, ...existingMembers].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  const nextMembers = [nextMember, ...existingMembers].sort(compareMembersBySeniority);
   return writeMembers(nextMembers);
 }
 
@@ -260,7 +297,7 @@ export async function updateWallOfFameMember(memberInput) {
         photoSrc: nextPhotoSrc || member.photoSrc,
       };
     })
-    .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+    .sort(compareMembersBySeniority);
 
   return writeMembers(updatedMembers);
 }
