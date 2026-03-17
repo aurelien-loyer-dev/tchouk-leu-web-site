@@ -131,8 +131,24 @@ export function Footer() {
               </li>
               <li className={isWhitesSharkPage ? "flex items-center gap-3 text-muted-foreground" : "flex items-center gap-3 text-muted-foreground"}>
                 <Mail className={isWhitesSharkPage ? "h-5 w-5 text-violet-500 dark:text-violet-300" : "h-5 w-5 text-[#4C93C3]"} />
-                <span>bgaillard.pro@gmail.com</span>
+                {isWhitesSharkPage ? (
+                  <span>bgaillard.pro@gmail.com</span>
+                ) : (
+                  <div className="flex flex-col">
+                    <a href="mailto:bgaillard.pro@gmail.com" className="hover:text-[#4C93C3] transition-colors">bgaillard.pro@gmail.com</a>
+                    <a href="mailto:nicolasg97424@gmail.com" className="hover:text-[#4C93C3] transition-colors">nicolasg97424@gmail.com</a>
+                  </div>
+                )}
               </li>
+              {!isWhitesSharkPage ? (
+                <li className="flex items-center gap-3 text-muted-foreground">
+                  <MapPin className="h-5 w-5 text-[#4C93C3]" />
+                  <div className="flex flex-col">
+                    <a href="tel:+33656714037" className="hover:text-[#4C93C3] transition-colors">+33 6 56 71 40 37</a>
+                    <a href="tel:+262692812102" className="hover:text-[#4C93C3] transition-colors">+262 692 812102</a>
+                  </div>
+                </li>
+              ) : null}
               <li className={isWhitesSharkPage ? "flex items-center gap-3 text-muted-foreground" : "flex items-center gap-3 text-muted-foreground"}>
                 <MapPin className={isWhitesSharkPage ? "h-5 w-5 text-violet-500 dark:text-violet-300" : "h-5 w-5 text-[#4C93C3]"} />
                 <span>{isWhitesSharkPage ? t("footer.indianOcean") : "Saint-Leu, Réunion"}</span>

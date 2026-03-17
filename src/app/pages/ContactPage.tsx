@@ -84,10 +84,22 @@ export function ContactPage() {
       link: "mailto:bgaillard.pro@gmail.com",
     },
     {
+      icon: Mail,
+      title: "Email",
+      content: "nicolasg97424@gmail.com",
+      link: "mailto:nicolasg97424@gmail.com",
+    },
+    {
       icon: Phone,
       title: t("contact.phone_label"),
       content: "+33 6 56 71 40 37",
       link: "tel:+33656714037",
+    },
+    {
+      icon: Phone,
+      title: t("contact.phone_label"),
+      content: "+262 692 812102",
+      link: "tel:+262692812102",
     },
     {
       icon: Instagram,

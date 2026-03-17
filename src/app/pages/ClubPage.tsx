@@ -201,15 +201,15 @@ export function ClubPage() {
                     const palmaresEntries = getPalmaresEntries(member);
 
                     return (
-                  <Card className="overflow-hidden border-2 border-[#4C93C3]/20 grid grid-cols-[280px_1fr] items-stretch">
-                    <div className="relative overflow-hidden min-h-64">
+                  <Card className="overflow-hidden border-2 border-[#4C93C3]/20 grid grid-cols-1 md:grid-cols-[280px_1fr] items-stretch">
+                    <div className="relative overflow-hidden h-56 md:h-auto md:min-h-64">
                         <ImageWithFallback
                           src={member.photoSrc}
                           alt={`Photo de ${member.firstName} ${member.lastName}`}
                           className="absolute inset-0 h-full w-full object-cover"
                         />
                     </div>
-                    <CardContent className="px-8 py-6">
+                    <CardContent className="px-5 py-5 md:px-8 md:py-6">
                         <CardTitle className="text-2xl mb-4">{member.firstName} {member.lastName}</CardTitle>
                         <div className="space-y-4 text-muted-foreground">
                           <div>
