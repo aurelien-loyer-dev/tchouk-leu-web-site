@@ -1,13 +1,16 @@
 import { Heart, Shield, Users, Zap } from "lucide-react";
 import { motion } from "motion/react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { useTranslation } from "react-i18next";
 
 export function SpiritSection() {
+  const { t } = useTranslation();
+
   const values = [
-    { icon: Heart, label: "Fair-play", color: "#4C93C3" },
-    { icon: Users, label: "Esprit d'équipe", color: "#4C93C3" },
-    { icon: Shield, label: "Respect", color: "#4C93C3" },
-    { icon: Zap, label: "Énergie", color: "#4C93C3" },
+    { icon: Heart, label: t("spirit.fairPlay"), color: "#4C93C3" },
+    { icon: Users, label: t("spirit.teamSpirit"), color: "#4C93C3" },
+    { icon: Shield, label: t("spirit.respect"), color: "#4C93C3" },
+    { icon: Zap, label: t("spirit.energy"), color: "#4C93C3" },
   ];
 
   return (
@@ -21,11 +24,9 @@ export function SpiritSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-5xl font-bold mb-6">L'esprit de Tchouk'Leu</h2>
+            <h2 className="text-5xl font-bold mb-6">{t("spirit.title")}</h2>
             <p className="text-xl mb-8 text-muted-foreground leading-relaxed">
-              Tchouk'Leu est un club de tchoukball basé à Saint-Leu sur l'île de la Réunion.
-              Inspiré par l'énergie de l'océan et l'esprit de fair-play, le club rassemble des joueurs
-              passionnés par le travail d'équipe et le sport.
+              {t("spirit.description")}
             </p>
 
             {/* Values Grid */}

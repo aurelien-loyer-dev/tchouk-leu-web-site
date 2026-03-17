@@ -3,8 +3,10 @@ import { Button } from "./ui/button";
 import { motion } from "motion/react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 
 export function Hero() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const scrollToContent = () => {
@@ -50,7 +52,7 @@ export function Hero() {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="mb-3 text-2xl md:text-3xl font-semibold text-[#0F172A] dark:text-white"
         >
-          Tchoukball Club – Saint-Leu, Réunion
+          {t("hero.subtitle")}
         </motion.p>
 
         {/* Buttons */}
@@ -65,7 +67,7 @@ export function Hero() {
             className="bg-[#0F172A] hover:bg-[#1e293b] text-white px-8 py-6 text-lg"
             onClick={scrollToContent}
           >
-            Découvrir le club
+            {t("hero.discover")}
           </Button>
           <Button
             size="lg"
@@ -73,7 +75,7 @@ export function Hero() {
             className="border-2 border-[#0F172A] bg-[#F6FBFF]/80 text-[#0F172A] backdrop-blur-sm hover:bg-[#DDF4FF] px-8 py-6 text-lg dark:border-white/70 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
             onClick={() => navigate("/contact")}
           >
-            Nous contacter
+            {t("hero.contactUs")}
           </Button>
         </motion.div>
       </motion.div>

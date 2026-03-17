@@ -1,27 +1,26 @@
 import { Calendar, MapPin, Users } from "lucide-react";
 import { motion } from "motion/react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { useTranslation } from "react-i18next";
 
 export function TrainingSection() {
+  const { t } = useTranslation();
+
   const trainingCards = [
     {
       icon: Calendar,
-      title: "Séances d'entraînement",
-      content: [
-        "Lundi – 18h00 à 20h00",
-        "Mercredi – 18h00 à 20h00",
-        "Samedi – 10h00 à 12h00",
-      ],
+      title: t("training.sessions"),
+      content: t("training.sessionLines", { returnObjects: true }) as string[],
     },
     {
       icon: MapPin,
-      title: "Lieu",
-      content: ["Gymnase de Saint-Leu"],
+      title: t("training.location"),
+      content: t("training.locationLines", { returnObjects: true }) as string[],
     },
     {
       icon: Users,
-      title: "Public",
-      content: ["Débutants bienvenus", "Tous niveaux acceptés"],
+      title: t("training.audience"),
+      content: t("training.audienceLines", { returnObjects: true }) as string[],
     },
   ];
 
@@ -35,9 +34,9 @@ export function TrainingSection() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-5xl font-bold mb-4">Entraînements</h2>
+          <h2 className="text-5xl font-bold mb-4">{t("training.title")}</h2>
           <p className="text-xl text-muted-foreground">
-            Rejoignez-nous pour des sessions dynamiques et conviviales
+            {t("training.subtitle")}
           </p>
         </motion.div>
 

@@ -6,8 +6,10 @@ import { Textarea } from "../components/ui/textarea";
 import { Button } from "../components/ui/button";
 import { useState } from "react";
 import { Link } from "react-router";
+import { useTranslation } from "react-i18next";
 
 export function ContactPage() {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -59,7 +61,7 @@ export function ContactPage() {
       }
 
       setSubmitStatus("success");
-      setSubmitMessage("Merci pour votre message ! Nous vous répondrons dans les plus brefs délais.");
+      setSubmitMessage(t("contact.successMessage"));
       setFormData({ name: "", email: "", phone: "", message: "", website: "" });
       setFormStartedAt(Date.now());
     } catch (error) {
@@ -67,7 +69,7 @@ export function ContactPage() {
       if (error instanceof Error && error.message) {
         setSubmitMessage(error.message);
       } else {
-        setSubmitMessage("Impossible d'envoyer le message pour le moment.");
+        setSubmitMessage(t("contact.errorMessage"));
       }
     } finally {
       setIsSubmitting(false);
@@ -83,7 +85,7 @@ export function ContactPage() {
     },
     {
       icon: Phone,
-      title: "Téléphone",
+      title: t("contact.phone_label"),
       content: "+33 6 56 71 40 37",
       link: "tel:+33656714037",
     },
@@ -106,9 +108,9 @@ export function ContactPage() {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            <h1 className="text-6xl font-bold mb-6">Contactez-nous</h1>
+            <h1 className="text-6xl font-bold mb-6">{t("contact.title")}</h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Une question ? Envie de rejoindre le club ? N'hésitez pas à nous contacter !
+              {t("contact.subtitle")}
             </p>
           </motion.div>
         </div>
@@ -126,7 +128,7 @@ export function ContactPage() {
             >
               <Card className="border-2 border-[#4C93C3]">
                 <CardHeader>
-                  <CardTitle className="text-3xl">Envoyez-nous un message</CardTitle>
+                  <CardTitle className="text-3xl">{t("contact.sendMessage")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-6">
@@ -145,7 +147,7 @@ export function ContactPage() {
 
                     <div>
                       <label htmlFor="name" className="block mb-2">
-                        Nom complet *
+                        {t("contact.fullName")}
                       </label>
                       <Input
                         id="name"
@@ -153,14 +155,14 @@ export function ContactPage() {
                         required
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="Votre nom"
+                        placeholder={t("contact.yourName")}
                         className="w-full"
                       />
                     </div>
 
                     <div>
                       <label htmlFor="email" className="block mb-2">
-                        Email *
+                        {t("contact.email")}
                       </label>
                       <Input
                         id="email"
@@ -168,35 +170,35 @@ export function ContactPage() {
                         required
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        placeholder="votre.email@exemple.com"
+                        placeholder={t("contact.yourEmail")}
                         className="w-full"
                       />
                     </div>
 
                     <div>
                       <label htmlFor="phone" className="block mb-2">
-                        Téléphone
+                        {t("contact.phone")}
                       </label>
                       <Input
                         id="phone"
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        placeholder="+262 692 XX XX XX"
+                        placeholder={t("contact.yourPhone")}
                         className="w-full"
                       />
                     </div>
 
                     <div>
                       <label htmlFor="message" className="block mb-2">
-                        Message *
+                        {t("contact.message")}
                       </label>
                       <Textarea
                         id="message"
                         required
                         value={formData.message}
                         onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                        placeholder="Parlez-nous de votre projet, vos questions..."
+                        placeholder={t("contact.yourMessage")}
                         rows={6}
                         className="w-full"
                       />
@@ -209,7 +211,7 @@ export function ContactPage() {
                       disabled={isSubmitting}
                     >
                       <Send className="mr-2 h-5 w-5" />
-                      {isSubmitting ? "Envoi en cours..." : "Envoyer le message"}
+                      {isSubmitting ? t("contact.sending") : t("contact.send")}
                     </Button>
 
                     {submitMessage ? (
@@ -230,10 +232,9 @@ export function ContactPage() {
               className="space-y-6"
             >
               <div>
-                <h2 className="text-3xl font-bold mb-6">Nos coordonnées</h2>
+                <h2 className="text-3xl font-bold mb-6">{t("contact.ourCoords")}</h2>
                 <p className="text-lg text-muted-foreground mb-8">
-                  Vous pouvez nous joindre par les moyens suivants. 
-                  Nous faisons notre possible pour répondre rapidement à toutes les demandes.
+                  {t("contact.reachUs")}
                 </p>
               </div>
 
@@ -273,13 +274,14 @@ export function ContactPage() {
 
               <Card className="bg-[#DDF4FF] dark:bg-[#4C93C3]/10 border-[#4C93C3]">
                 <CardContent className="p-6">
-                  <h3 className="font-bold text-xl mb-3">Horaires de contact</h3>
+                  <h3 className="font-bold text-xl mb-3">{t("contact.contactHours")}</h3>
                   <p className="text-muted-foreground mb-2">
-                    Nous sommes disponibles aux horaires d'entraînement :
+                    {t("contact.availability")}
                   </p>
                   <ul className="space-y-1 text-muted-foreground">
-                    <li>• Mercredi : 14h00 - 17h00</li>
-                    <li>• Samedi : 15h30 - 19h00</li>
+                    {(t("contact.hours", { returnObjects: true }) as string[]).map((hour) => (
+                      <li key={hour}>• {hour}</li>
+                    ))}
                   </ul>
                 </CardContent>
               </Card>
@@ -298,21 +300,21 @@ export function ContactPage() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h2 className="text-4xl font-bold mb-4">Venez nous rendre visite</h2>
+            <h2 className="text-4xl font-bold mb-4">{t("contact.visitUs")}</h2>
             <p className="text-xl text-muted-foreground mb-8">
-              Retrouvez les prochains créneaux directement dans le planning.
+              {t("contact.visitDesc")}
             </p>
             <div className="mx-auto max-w-2xl rounded-3xl border border-[#4C93C3]/20 bg-background/90 p-8 shadow-lg shadow-[#4C93C3]/10">
               <div className="flex flex-col items-center text-center">
                 <div className="mb-5 rounded-full bg-[#BFE6FF] p-4 dark:bg-[#4C93C3]/20">
                   <MapPin className="h-8 w-8 text-[#4C93C3]" />
                 </div>
-                <p className="text-lg font-semibold">Gymnase de Stella / Terrain de beach</p>
+                <p className="text-lg font-semibold">{t("contact.venueTitle")}</p>
                 <p className="mt-2 mb-6 max-w-xl text-muted-foreground">
-                  Consultez les horaires à jour avant de passer, pour voir les entraînements, stages et événements du club.
+                  {t("contact.venueDesc")}
                 </p>
                 <Button asChild size="lg" className="bg-[#4C93C3] text-white hover:bg-[#3a7ba8]">
-                  <Link to="/planning">Voir le planning</Link>
+                  <Link to="/planning">{t("contact.seePlanning")}</Link>
                 </Button>
               </div>
             </div>

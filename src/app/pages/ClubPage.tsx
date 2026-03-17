@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { useEffect, useState } from "react";
 import { loadWallOfFameMembers, type WallOfFameMember } from "../data/wallOfFame";
+import { useTranslation } from "react-i18next";
 
 const wallFunctionLabelByValue = {
   coach: "Coach",
@@ -47,6 +48,7 @@ function getPalmaresEntries(member: WallOfFameMember) {
 }
 
 export function ClubPage() {
+  const { t } = useTranslation();
   const [wallOfFameMembers, setWallOfFameMembers] = useState<WallOfFameMember[]>([]);
 
   useEffect(() => {
@@ -65,18 +67,18 @@ export function ClubPage() {
   const values = [
     {
       icon: Heart,
-      title: "Fair-play",
-      description: "Le respect des règles et des adversaires au cœur de notre pratique",
+      title: t("club.fairPlay"),
+      description: t("club.fairPlayDesc"),
     },
     {
       icon: Users,
-      title: "Esprit d'équipe",
-      description: "La cohésion et l'entraide sont nos forces principales",
+      title: t("club.teamSpirit"),
+      description: t("club.teamSpiritDesc"),
     },
     {
       icon: Target,
-      title: "Performance",
-      description: "Progresser ensemble tout en gardant le plaisir du jeu",
+      title: t("club.performance"),
+      description: t("club.performanceDesc"),
     },
   ];
 
@@ -91,10 +93,9 @@ export function ClubPage() {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            <h1 className="text-6xl font-bold mb-6">Le Tchouk'Leu</h1>
+            <h1 className="text-6xl font-bold mb-6">{t("club.heroTitle")}</h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Depuis 2014, Tchouk'Leu est le club de tchoukball de référence à la Réunion, 
-              alliant passion sportive et esprit insulaire.
+              {t("club.heroSubtitle")}
             </p>
           </motion.div>
         </div>
@@ -109,21 +110,16 @@ export function ClubPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-5xl font-bold mb-12 text-center">Notre histoire</h2>
+            <h2 className="text-5xl font-bold mb-12 text-center">{t("club.historyTitle")}</h2>
             <div className="max-w-4xl mx-auto">
               <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-                Tchouk'Leu est né en 2014 de la volonté d'un groupe de passionnés de tchoukball, 
-                un sport encore peu connu à la Réunion. Inspirés par les valeurs de fair-play et 
-                de respect qui caractérisent ce sport, ils ont décidé de créer un club à Saint-Leu.
+                {t("club.historyP1")}
               </p>
               <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-                Au fil des années, le club a su grandir et se développer, attirant des joueurs de 
-                tous niveaux et de tous âges. Aujourd'hui, Tchouk'Leu compte plusieurs dizaines de 
-                licenciés et participe activement aux compétitions régionales et interrégionales.
+                {t("club.historyP2")}
               </p>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Notre club se distingue par son ambiance conviviale, son engagement envers la 
-                formation des jeunes et son attachement aux valeurs sportives et humaines.
+                {t("club.historyP3")}
               </p>
             </div>
           </motion.div>
@@ -140,9 +136,9 @@ export function ClubPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <h2 className="text-5xl font-bold mb-4">Nos valeurs</h2>
+            <h2 className="text-5xl font-bold mb-4">{t("club.valuesTitle")}</h2>
             <p className="text-xl text-muted-foreground">
-              Les principes qui guident notre club au quotidien
+              {t("club.valuesSubtitle")}
             </p>
           </motion.div>
 
@@ -185,9 +181,9 @@ export function ClubPage() {
             className="text-center mb-16"
           >
             <Trophy className="h-16 w-16 mx-auto mb-6 text-[#4C93C3]" />
-            <h2 className="text-5xl font-bold mb-4">Wall of Fame</h2>
+            <h2 className="text-5xl font-bold mb-4">{t("club.wofTitle")}</h2>
             <p className="text-xl text-muted-foreground">
-              Les personnes mises à l'honneur par le club
+              {t("club.wofSubtitle")}
             </p>
           </motion.div>
 
@@ -217,14 +213,14 @@ export function ClubPage() {
                         <CardTitle className="text-2xl mb-4">{member.firstName} {member.lastName}</CardTitle>
                         <div className="space-y-4 text-muted-foreground">
                           <div>
-                            <p className="text-sm uppercase tracking-wide mb-1">Fonctions</p>
+                            <p className="text-sm uppercase tracking-wide mb-1">{t("club.wofFunctions")}</p>
                             <p className="text-base text-foreground">
                               {member.functions.map((value) => wallFunctionLabelByValue[value] ?? value).join(" • ")}
                             </p>
                           </div>
                           {palmaresEntries.length > 0 ? (
                             <div>
-                              <p className="text-sm uppercase tracking-wide mb-2">Palmarès</p>
+                              <p className="text-sm uppercase tracking-wide mb-2">{t("club.wofPalmares")}</p>
                               <div className="space-y-3">
                                 {palmaresEntries.map((entry) => entry && (
                                   <div key={`${member.id}-${entry.functionLabel}`}>
@@ -236,7 +232,7 @@ export function ClubPage() {
                             </div>
                           ) : null}
                           <div>
-                            <p className="text-sm uppercase tracking-wide mb-1">Adhérent depuis</p>
+                            <p className="text-sm uppercase tracking-wide mb-1">{t("club.wofMemberSince")}</p>
                             <p className="text-base text-foreground">{member.memberSince}</p>
                           </div>
                         </div>
@@ -249,7 +245,7 @@ export function ClubPage() {
             </div>
           ) : (
             <div className="max-w-3xl mx-auto rounded-xl border border-border/70 bg-muted/20 px-6 py-8 text-center text-muted-foreground">
-              Aucun profil Wall of Fame pour le moment.
+              {t("club.wofEmpty")}
             </div>
           )}
         </div>

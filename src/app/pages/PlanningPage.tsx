@@ -4,16 +4,12 @@ import { CalendarDays, ChevronLeft, ChevronRight, Clock3, ExternalLink, Filter, 
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
-import { ActivityCategory, getCategoryLabel, loadActivities, type Activity } from "../data/activities";
+import { ActivityCategory, loadActivities, type Activity } from "../data/activities";
 import { getSavedAttendanceIdentity, submitAttendanceVote, type AttendanceVote } from "../data/attendanceVotes";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n/i18n";
 
-const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
-
-const weekdayLabels = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+const LOCALE_MAP: Record<string, string> = { fr: "fr-FR", en: "en-GB", zh: "zh-CN" };
 
 function toIsoDate(date: Date) {
   const year = date.getFullYear();
@@ -73,7 +69,15 @@ function toGoogleMapsUrl(location: string) {
 }
 
 export function PlanningPage() {
-  const [activities, setActivities] = useState<Activity[]>([]);
+  const { t } = useTranslation();
+  const currentLocale = LOCALE_MAP[(i18n.language ?? "fr").split("-")[0]] ?? "fr-FR";
+  const dateFormatter = useMemo(() => new Intl.DateTimeFormat(currentLocale, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }), [currentLocale]);
+  const weekdayLabels = t("planning.weekdays", { returnObjects: true }) as string[];
+
   const [activeFilter, setActiveFilter] = useState<ActivityCategory | "all">("all");
   const [loadingError, setLoadingError] = useState("");
   const [voteMessage, setVoteMessage] = useState("");
@@ -99,7 +103,7 @@ export function PlanningPage() {
         setActivities(nextActivities);
         setLoadingError("");
       } catch {
-        setLoadingError("Impossible de charger le planning pour le moment.");
+        setLoadingError(t("planning.loadingError"));
       }
     };
 
@@ -173,10 +177,10 @@ export function PlanningPage() {
     }, {});
   }, [filteredActivities]);
 
-  const monthLabel = new Intl.DateTimeFormat("fr-FR", {
+  const monthLabel = useMemo(() => new Intl.DateTimeFormat(currentLocale, {
     month: "long",
     year: "numeric",
-  }).format(currentMonth);
+  }).format(currentMonth), [currentMonth, currentLocale]);
 
   const calendarCells = useMemo(() => {
     const year = currentMonth.getFullYear();
@@ -243,7 +247,7 @@ export function PlanningPage() {
     const safeLastName = voterLastName.trim();
 
     if (!safeFirstName || !safeLastName) {
-      setVoteMessage("Renseignez votre nom et prenom avant de voter.");
+      setVoteMessage(t("planning.fillName"));
       return;
     }
 
@@ -253,12 +257,12 @@ export function PlanningPage() {
     try {
       await submitAttendanceVote(activityId, vote, safeFirstName, safeLastName);
       setVoteByActivity((current) => ({ ...current, [activityId]: vote }));
-      setVoteMessage("Merci, votre presence a ete prise en compte.");
+      setVoteMessage(t("planning.thankYouVote"));
     } catch (error) {
       if (error instanceof Error && error.message) {
         setVoteMessage(error.message);
       } else {
-        setVoteMessage("Impossible d'enregistrer votre presence.");
+        setVoteMessage(t("planning.voteError"));
       }
     } finally {
       setVotingActivityId(null);
@@ -275,9 +279,9 @@ export function PlanningPage() {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            <h1 className="text-6xl font-bold mb-6">Planning</h1>
+            <h1 className="text-6xl font-bold mb-6">{t("planning.title")}</h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Retrouvez les prochains entrainements, tournois et rendez-vous du club sur une seule page.
+              {t("planning.subtitle")}
             </p>
           </motion.div>
 
@@ -286,7 +290,7 @@ export function PlanningPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-2xl">
                   <CalendarDays className="h-6 w-6 text-[#4C93C3]" />
-                  Prochain rendez-vous
+                  {t("planning.nextEvent")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -297,7 +301,7 @@ export function PlanningPage() {
                     <p className="text-muted-foreground">{nextActivity.startTime} - {nextActivity.endTime}</p>
                   </div>
                 ) : (
-                  <p className="text-muted-foreground">Aucune activité planifiée pour le moment.</p>
+                  <p className="text-muted-foreground">{t("planning.noActivity")}</p>
                 )}
               </CardContent>
             </Card>
@@ -306,12 +310,12 @@ export function PlanningPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-2xl">
                   <Clock3 className="h-6 w-6 text-[#4C93C3]" />
-                  Entrainements planifiés
+                  {t("planning.trainingsPlanned")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold text-[#4C93C3]">{trainingCount}</p>
-                <p className="text-muted-foreground mt-2">Séances visibles dans le planning actuel.</p>
+                <p className="text-muted-foreground mt-2">{t("planning.trainingsVisible")}</p>
               </CardContent>
             </Card>
 
@@ -319,12 +323,12 @@ export function PlanningPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-2xl">
                   <Trophy className="h-6 w-6 text-[#4C93C3]" />
-                  Tournois annoncés
+                  {t("planning.tournamentsAnnounced")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold text-[#4C93C3]">{tournamentCount}</p>
-                <p className="text-muted-foreground mt-2">Dates compétitives déjà ajoutées par le club.</p>
+                <p className="text-muted-foreground mt-2">{t("planning.tournamentsAdded")}</p>
               </CardContent>
             </Card>
           </div>
@@ -335,7 +339,7 @@ export function PlanningPage() {
         <div className="max-w-7xl mx-auto flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Filter className="h-4 w-4" />
-            <span>Filtrer les activités</span>
+            <span>{t("planning.filterActivities")}</span>
           </div>
           <div className="flex flex-wrap gap-3">
             {(["all", "entrainement", "tournoi", "evenement"] as const).map((filter) => (
@@ -346,7 +350,7 @@ export function PlanningPage() {
                 className={activeFilter === filter ? "bg-[#4C93C3] text-white hover:bg-[#3a7ba8]" : ""}
                 onClick={() => setActiveFilter(filter)}
               >
-                {filter === "all" ? "Tout afficher" : getCategoryLabel(filter)}
+                {filter === "all" ? t("planning.showAll") : t(`planning.categories.${filter}`)}
               </Button>
             ))}
           </div>
@@ -359,28 +363,28 @@ export function PlanningPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-2xl">
                 <Clock3 className="h-6 w-6 text-[#4C93C3]" />
-                Vote de présence rapide
+                {t("planning.quickVote")}
               </CardTitle>
-              <p className="text-muted-foreground">Votez ici directement pour les prochaines activités, sans descendre plus bas.</p>
+              <p className="text-muted-foreground">{t("planning.quickVoteDesc")}</p>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-2 gap-3 mb-4">
                 <div>
-                  <label htmlFor="vote-first-name" className="mb-1 block text-sm font-medium">Prenom</label>
+                  <label htmlFor="vote-first-name" className="mb-1 block text-sm font-medium">{t("planning.firstName")}</label>
                   <Input
                     id="vote-first-name"
                     value={voterFirstName}
                     onChange={(event) => setVoterFirstName(event.target.value)}
-                    placeholder="Votre prenom"
+                    placeholder={t("planning.firstNamePlaceholder")}
                   />
                 </div>
                 <div>
-                  <label htmlFor="vote-last-name" className="mb-1 block text-sm font-medium">Nom</label>
+                  <label htmlFor="vote-last-name" className="mb-1 block text-sm font-medium">{t("planning.lastName")}</label>
                   <Input
                     id="vote-last-name"
                     value={voterLastName}
                     onChange={(event) => setVoterLastName(event.target.value)}
-                    placeholder="Votre nom"
+                    placeholder={t("planning.lastNamePlaceholder")}
                   />
                 </div>
               </div>
@@ -399,8 +403,8 @@ export function PlanningPage() {
 
                       <div className="flex flex-wrap gap-2">
                         {([
-                          { value: "present", label: "Present" },
-                          { value: "absent", label: "Absent" },
+                          { value: "present", label: t("planning.present") },
+                          { value: "absent", label: t("planning.absent") },
                         ] as const).map((option) => (
                           <Button
                             key={`quick-${activity.id}-${option.value}`}
@@ -419,7 +423,7 @@ export function PlanningPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">Aucune activite future a voter pour le moment.</p>
+                <p className="text-sm text-muted-foreground">{t("planning.noFutureVote")}</p>
               )}
             </CardContent>
           </Card>
@@ -433,7 +437,7 @@ export function PlanningPage() {
               <div className="flex items-center justify-between gap-4">
                 <CardTitle className="flex items-center gap-3 text-2xl">
                   <CalendarDays className="h-6 w-6 text-[#4C93C3]" />
-                  Calendrier des activites
+                  {t("planning.activityCalendar")}
                 </CardTitle>
                 <div className="flex items-center gap-2">
                   <Button type="button" variant="outline" size="icon" onClick={() => changeMonth(-1)}>
@@ -484,7 +488,7 @@ export function PlanningPage() {
                           {dayActivities.length > 3 ? <span className="text-[10px] text-[#4C93C3]">+{dayActivities.length - 3}</span> : null}
                         </div>
                       ) : (
-                        <p className="mt-2 text-[11px] text-muted-foreground">Aucune activite</p>
+                        <p className="mt-2 text-[11px] text-muted-foreground">{t("planning.noActivityDay")}</p>
                       )}
                     </button>
                   );
@@ -494,8 +498,8 @@ export function PlanningPage() {
               <div className="mt-6 rounded-lg border border-border/70 bg-muted/20 p-4">
                 <p className="font-semibold mb-2">
                   {selectedDate
-                    ? `Activites du ${dateFormatter.format(new Date(`${selectedDate}T00:00:00`))}`
-                    : "Selectionne une date pour voir le detail"}
+                    ? `${t("planning.activitiesOf")} ${dateFormatter.format(new Date(`${selectedDate}T00:00:00`))}`
+                    : t("planning.selectDate")}
                 </p>
                 {selectedDate ? (
                   displayedDayActivities.length > 0 ? (
@@ -513,10 +517,10 @@ export function PlanningPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">Aucune activite planifiee ce jour-la.</p>
+                    <p className="text-sm text-muted-foreground">{t("planning.noActivityThisDay")}</p>
                   )
                 ) : (
-                  <p className="text-sm text-muted-foreground">Le calendrier met en avant les jours avec activites.</p>
+                  <p className="text-sm text-muted-foreground">{t("planning.calendarHint")}</p>
                 )}
               </div>
             </CardContent>
@@ -526,17 +530,17 @@ export function PlanningPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-2xl">
                 <MapPin className="h-6 w-6 text-[#4C93C3]" />
-                Carte interactive des lieux
+                {t("planning.interactiveMap")}
               </CardTitle>
               <p className="text-muted-foreground">
-                Clique sur une activite pour afficher automatiquement son lieu et ouvrir l'itineraire.
+                {t("planning.interactiveMapDesc")}
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="overflow-hidden rounded-xl border border-border/80 bg-muted/10">
                 <iframe
                   key={selectedLocation}
-                  title="Carte des activites"
+                  title={t("planning.mapLabel")}
                   src={toMapEmbedUrl(selectedLocation)}
                   className="w-full h-[360px]"
                   loading="lazy"
@@ -550,7 +554,7 @@ export function PlanningPage() {
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 text-[#4C93C3] hover:underline"
               >
-                Ouvrir dans Google Maps
+                {t("planning.openOnMaps")}
                 <ExternalLink className="h-4 w-4" />
               </a>
             </CardContent>
@@ -595,7 +599,7 @@ export function PlanningPage() {
                     <div className="flex items-center justify-between gap-4">
                       <CardTitle className="text-2xl">{activity.title}</CardTitle>
                       <span className="rounded-full bg-[#4C93C3]/10 px-3 py-1 text-sm font-medium text-[#4C93C3]">
-                        {getCategoryLabel(activity.category)}
+                        {t(`planning.categories.${activity.category}`)}
                       </span>
                     </div>
                   </CardHeader>
@@ -603,34 +607,34 @@ export function PlanningPage() {
                     <div className="flex items-start gap-3 text-muted-foreground">
                       <CalendarDays className="h-5 w-5 text-[#4C93C3] mt-1 flex-shrink-0" />
                       <div>
-                        <p className="font-semibold text-foreground">Date</p>
+                        <p className="font-semibold text-foreground">{t("planning.date")}</p>
                         <p>{dateFormatter.format(new Date(`${activity.date}T00:00:00`))}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 text-muted-foreground">
                       <Clock3 className="h-5 w-5 text-[#4C93C3] mt-1 flex-shrink-0" />
                       <div>
-                        <p className="font-semibold text-foreground">Horaire</p>
+                        <p className="font-semibold text-foreground">{t("planning.time")}</p>
                         <p>{activity.startTime} - {activity.endTime}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 text-muted-foreground">
                       <MapPin className="h-5 w-5 text-[#4C93C3] mt-1 flex-shrink-0" />
                       <div>
-                        <p className="font-semibold text-foreground">Lieu</p>
+                        <p className="font-semibold text-foreground">{t("planning.location")}</p>
                         <p>{activity.location}</p>
                       </div>
                     </div>
                     <div>
-                      <p className="font-semibold mb-1">Public</p>
+                      <p className="font-semibold mb-1">{t("planning.audience")}</p>
                       <p className="text-muted-foreground">{activity.audience}</p>
                     </div>
                     <div>
-                      <p className="font-semibold mb-1">Details</p>
+                      <p className="font-semibold mb-1">{t("planning.details")}</p>
                       <p className="text-muted-foreground">{activity.description}</p>
                     </div>
                     {recurringTemplateId ? (
-                      <p className="text-sm text-muted-foreground">Type recurrent • {recurringOccurrencesCount} seances planifiees</p>
+                      <p className="text-sm text-muted-foreground">{t("planning.recurring")} • {recurringOccurrencesCount} {t("planning.sessions")}</p>
                     ) : null}
                   </CardContent>
                 </Card>
@@ -642,7 +646,7 @@ export function PlanningPage() {
           {listedActivities.length === 0 ? (
             <Card className="mt-8 border-dashed">
               <CardContent className="py-10 text-center text-muted-foreground">
-                Aucune activite ne correspond au filtre selectionne.
+                {t("planning.noMatchFilter")}
               </CardContent>
             </Card>
           ) : null}

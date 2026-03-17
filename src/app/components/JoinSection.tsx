@@ -2,8 +2,10 @@ import { motion } from "motion/react";
 import { Button } from "./ui/button";
 import { Mail } from "lucide-react";
 import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 
 export function JoinSection() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   return (
@@ -16,10 +18,10 @@ export function JoinSection() {
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-5xl font-bold mb-6 text-[#1F2A37] dark:text-white">
-            Envie d'essayer le tchoukball ?
+            {t("join.title")}
           </h2>
           <p className="text-xl mb-10 text-[#1F2A37]/80 dark:text-white/80">
-            Contactez notre équipe et découvrez un sport dynamique, convivial et respectueux.
+            {t("join.description")}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -29,7 +31,7 @@ export function JoinSection() {
               onClick={() => navigate("/contact")}
             >
               <Mail className="mr-2 h-5 w-5" />
-              Nous contacter
+              {t("join.contactUs")}
             </Button>
           </div>
         </motion.div>

@@ -3,18 +3,21 @@ import { useEffect, useState } from "react";
 import { Award, Shield, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { loadWhiteSharksData, type WhiteSharksPalmaresEntry, type WhiteSharksPlayer } from "../data/whiteSharks";
-
-const whiteSharksMemberTypeSections: Array<{
-  key: string;
-  title: string;
-  memberTypes: WhiteSharksPlayer["memberType"][];
-}> = [
-  { key: "coach", title: "Coachs", memberTypes: ["coach"] },
-  { key: "benevole", title: "Bénévoles", memberTypes: ["benevole"] },
-  { key: "joueur", title: "Joueurs", memberTypes: ["capitaine", "joueur"] },
-];
+import { useTranslation } from "react-i18next";
 
 export function WhitesSharkPage() {
+  const { t } = useTranslation();
+
+  const whiteSharksMemberTypeSections: Array<{
+    key: string;
+    title: string;
+    memberTypes: WhiteSharksPlayer["memberType"][];
+  }> = [
+    { key: "coach", title: t("whiteSharks.coaches"), memberTypes: ["coach"] },
+    { key: "benevole", title: t("whiteSharks.volunteers"), memberTypes: ["benevole"] },
+    { key: "joueur", title: t("whiteSharks.players"), memberTypes: ["capitaine", "joueur"] },
+  ];
+
   const [palmares, setPalmares] = useState<WhiteSharksPalmaresEntry[]>([]);
   const [players, setPlayers] = useState<WhiteSharksPlayer[]>([]);
 
@@ -50,8 +53,7 @@ export function WhitesSharkPage() {
             />
             <h1 className="text-4xl md:text-5xl font-bold mb-4">White Sharks</h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-              Équipe de sélection des meilleurs jeunes de la Réunion, les White Sharks rassemblent des talents
-              provenant de plusieurs clubs de l'île pour représenter le territoire sur les échéances sportives majeures.
+              {t("whiteSharks.description")}
             </p>
           </motion.div>
         </div>
@@ -67,7 +69,7 @@ export function WhitesSharkPage() {
             className="mb-8 text-center"
           >
             <Award className="h-12 w-12 mx-auto mb-4 text-violet-600" />
-            <h2 className="text-4xl font-bold mb-2">Palmarès</h2>
+            <h2 className="text-4xl font-bold mb-2">{t("whiteSharks.palmares")}</h2>
           </motion.div>
 
           {palmares.length > 0 ? (
@@ -96,7 +98,7 @@ export function WhitesSharkPage() {
             </div>
           ) : (
             <div className="rounded-xl border border-border/60 bg-muted/20 px-6 py-8 text-center text-muted-foreground">
-              Le palmarès des White Sharks sera ajouté prochainement.
+              {t("whiteSharks.palmaresEmpty")}
             </div>
           )}
         </div>
@@ -112,7 +114,7 @@ export function WhitesSharkPage() {
             className="mb-8 text-center"
           >
             <Users className="h-12 w-12 mx-auto mb-4 text-violet-600" />
-            <h2 className="text-4xl font-bold mb-2">Effectif</h2>
+            <h2 className="text-4xl font-bold mb-2">{t("whiteSharks.roster")}</h2>
           </motion.div>
 
           {players.length > 0 ? (
@@ -140,7 +142,7 @@ export function WhitesSharkPage() {
                             <CardContent className="p-6 space-y-3">
                               {player.memberType === "capitaine" ? (
                                 <p className="inline-flex rounded-full bg-violet-600 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
-                                  Capitaine
+                                  {t("whiteSharks.captain")}
                                 </p>
                               ) : null}
                               <p className="text-xl font-semibold">{player.firstName} {player.lastName}</p>
@@ -150,9 +152,9 @@ export function WhitesSharkPage() {
                                   {player.position}
                                 </p>
                               ) : null}
-                              <p className="text-sm text-muted-foreground">Club d'origine : {player.club}</p>
+                              <p className="text-sm text-muted-foreground">{t("whiteSharks.originClub")} {player.club}</p>
                               {player.birthYear ? (
-                                <p className="text-sm text-muted-foreground">Né en {player.birthYear}</p>
+                                <p className="text-sm text-muted-foreground">{t("whiteSharks.bornIn")} {player.birthYear}</p>
                               ) : null}
                             </CardContent>
                           </Card>
@@ -165,7 +167,7 @@ export function WhitesSharkPage() {
             </div>
           ) : (
             <div className="rounded-xl border border-border/60 bg-muted/20 px-6 py-8 text-center text-muted-foreground">
-              La liste de l'effectif White Sharks sera ajoutée prochainement.
+              {t("whiteSharks.rosterEmpty")}
             </div>
           )}
         </div>

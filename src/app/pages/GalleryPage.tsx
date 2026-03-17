@@ -5,6 +5,7 @@ import { loadGalleryPhotos, type GalleryPhoto } from "../data/gallery";
 import { Dialog, DialogContent, DialogTitle } from "../components/ui/dialog";
 import { Button } from "../components/ui/button";
 import { Download } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 function toDownloadFileName(image: GalleryPhoto) {
   const normalizedBaseName = (image.alt || "photo")
@@ -16,6 +17,7 @@ function toDownloadFileName(image: GalleryPhoto) {
 }
 
 export function GalleryPage() {
+  const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [galleryImages, setGalleryImages] = useState<GalleryPhoto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,10 +25,10 @@ export function GalleryPage() {
   const [selectedImage, setSelectedImage] = useState<GalleryPhoto | null>(null);
 
   const categories = [
-    { id: "all", label: "Tout" },
-    { id: "matches", label: "Matchs" },
-    { id: "training", label: "Entraînements" },
-    { id: "events", label: "Événements" },
+    { id: "all", label: t("gallery.all") },
+    { id: "matches", label: t("gallery.matches") },
+    { id: "training", label: t("gallery.trainings") },
+    { id: "events", label: t("gallery.events") },
   ];
 
   useEffect(() => {
@@ -66,9 +68,9 @@ export function GalleryPage() {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            <h1 className="text-6xl font-bold mb-6">Galerie</h1>
+            <h1 className="text-6xl font-bold mb-6">{t("gallery.title")}</h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Revivez les moments forts de notre club à travers nos photos
+              {t("gallery.subtitle")}
             </p>
           </motion.div>
         </div>
@@ -121,11 +123,11 @@ export function GalleryPage() {
           {filteredImages.length === 0 && (
             <div className="text-center py-20">
               {isLoading ? (
-                <p className="text-xl text-muted-foreground">Chargement des photos...</p>
+                <p className="text-xl text-muted-foreground">{t("gallery.loading")}</p>
               ) : errorMessage ? (
                 <p className="text-xl text-red-600">{errorMessage}</p>
               ) : (
-                <p className="text-xl text-muted-foreground">Aucune photo dans cette catégorie pour le moment.</p>
+                <p className="text-xl text-muted-foreground">{t("gallery.empty")}</p>
               )}
             </div>
           )}
@@ -134,7 +136,7 @@ export function GalleryPage() {
 
       <Dialog open={Boolean(selectedImage)} onOpenChange={(isOpen) => (!isOpen ? setSelectedImage(null) : null)}>
         <DialogContent className="max-w-5xl p-3 sm:p-4">
-          <DialogTitle className="sr-only">Aperçu de la photo</DialogTitle>
+          <DialogTitle className="sr-only">{t("gallery.photoPreview")}</DialogTitle>
           {selectedImage ? (
             <div className="space-y-3">
               <div className="max-h-[75vh] overflow-hidden rounded-md bg-black/5 flex items-center justify-center">
@@ -148,6 +150,7 @@ export function GalleryPage() {
                 <Button asChild className="bg-[#4C93C3] text-white hover:bg-[#3a7ba8]">
                   <a href={selectedImage.src} download={toDownloadFileName(selectedImage)}>
                     <Download className="h-4 w-4" />
+                    {t("gallery.download")}
                     Télécharger
                   </a>
                 </Button>

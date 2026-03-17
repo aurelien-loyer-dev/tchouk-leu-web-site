@@ -1,7 +1,10 @@
 import { motion } from "motion/react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { useTranslation } from "react-i18next";
 
 export function IslandSection() {
+  const { t } = useTranslation();
+
   return (
     <section className="py-24 px-6 bg-[#DDF4FF] dark:bg-[#1a3a4a] relative overflow-hidden">
       {/* Bird Silhouette Decoration */}
@@ -21,10 +24,9 @@ export function IslandSection() {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <h2 className="text-5xl font-bold mb-6 text-[#1F2A37] dark:text-white">Notre île</h2>
+          <h2 className="text-5xl font-bold mb-6 text-[#1F2A37] dark:text-white">{t("island.title")}</h2>
           <p className="text-xl max-w-3xl mx-auto text-[#1F2A37]/80 dark:text-white/80 leading-relaxed">
-            "Enraciné à Saint-Leu, Tchouk'Leu reflète l'énergie de l'île de la Réunion — 
-            l'océan, le vent et la liberté de mouvement."
+            {t("island.quote")}
           </p>
         </motion.div>
 
