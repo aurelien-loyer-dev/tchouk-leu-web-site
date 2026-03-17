@@ -10,15 +10,23 @@ export function WhitesSharkPage() {
   const currentLang = (i18n.language ?? "fr").split("-")[0] as "fr" | "en" | "zh";
 
   const getTranslatedPosition = (position: string) => {
+    const directKey = position.trim();
+    const directTranslationKey = `whiteSharks.positions.${directKey}`;
+
+    if (i18n.exists(directTranslationKey)) {
+      return t(directTranslationKey);
+    }
+
     const normalized = position.trim().toLowerCase();
-    const normalizedKey =
-      normalized === "ailier / centre cadre" || normalized === "ailier/centre cadre" || normalized === "centre cadre"
-        ? "centreCadre"
-        : normalized === "ailier droit" || normalized === "ailier-droit"
-          ? "ailierDroit"
-          : normalized === "ailier gauche" || normalized === "ailier-gauche"
-            ? "ailierGauche"
-            : normalized;
+    const compact = normalized.replace(/[\s/-]+/g, "");
+    const aliasesByCompactValue: Record<string, string> = {
+      ailierdroit: "ailierDroit",
+      ailiergauche: "ailierGauche",
+      centrecadre: "centreCadre",
+      ailiercentrecadre: "centreCadre",
+      milieu: "milieu",
+    };
+    const normalizedKey = aliasesByCompactValue[compact] ?? normalized;
     const translationKey = `whiteSharks.positions.${normalizedKey}`;
 
     if (i18n.exists(translationKey)) {

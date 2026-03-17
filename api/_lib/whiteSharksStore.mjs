@@ -272,6 +272,9 @@ function validatePlayerInput(input) {
     : legacyPosition
       ? [legacyPosition]
       : [];
+  const birthYear = typeof input.birthYear === "number" && Number.isInteger(input.birthYear) && input.birthYear >= 1900 && input.birthYear <= 2100
+    ? input.birthYear
+    : null;
   const memberType = typeof input.memberType === "string" && ALLOWED_MEMBER_TYPES.has(input.memberType)
     ? input.memberType
     : "joueur";
@@ -291,6 +294,7 @@ function validatePlayerInput(input) {
     positions,
     ...(positions[0] ? { position: positions[0] } : {}),
     memberType,
+    ...(birthYear !== null ? { birthYear } : {}),
   };
 }
 
