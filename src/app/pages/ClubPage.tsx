@@ -213,30 +213,30 @@ export function ClubPage() {
                           className="absolute inset-0 h-full w-full object-cover"
                         />
                     </div>
-                    <CardContent className="p-6">
-                        <CardTitle className="text-2xl mb-4">{member.firstName} {member.lastName}</CardTitle>
-                        <div className="space-y-4 text-muted-foreground">
+                    <CardContent className="p-8">
+                        <CardTitle className="text-2xl mb-6">{member.firstName} {member.lastName}</CardTitle>
+                        <div className="space-y-6 text-muted-foreground">
                           <div>
-                            <p className="text-sm uppercase tracking-wide">Fonctions</p>
+                            <p className="text-sm uppercase tracking-wide mb-1">Fonctions</p>
                             <p className="text-base text-foreground">
                               {member.functions.map((value) => wallFunctionLabelByValue[value] ?? value).join(" • ")}
                             </p>
                           </div>
                           {palmaresEntries.length > 0 ? (
                             <div>
-                              <p className="text-sm uppercase tracking-wide">Palmarès</p>
-                              <div className="space-y-2">
+                              <p className="text-sm uppercase tracking-wide mb-2">Palmarès</p>
+                              <div className="space-y-3">
                                 {palmaresEntries.map((entry) => (
                                   <div key={`${member.id}-${entry.functionLabel}`}>
-                                    <p className="text-xs uppercase tracking-wide text-muted-foreground">{entry.functionLabel}</p>
-                                    <p className="text-base whitespace-pre-line text-foreground">{entry.value}</p>
+                                    <p className="text-xs uppercase tracking-wide text-muted-foreground mb-0.5">{entry.functionLabel}</p>
+                                    <p className="text-base whitespace-pre-line text-foreground leading-relaxed">{entry.value}</p>
                                   </div>
                                 ))}
                               </div>
                             </div>
                           ) : null}
                           <div>
-                            <p className="text-sm uppercase tracking-wide">Adhérent depuis</p>
+                            <p className="text-sm uppercase tracking-wide mb-1">Adhérent depuis</p>
                             <p className="text-base text-foreground">{member.memberSince}</p>
                           </div>
                         </div>
