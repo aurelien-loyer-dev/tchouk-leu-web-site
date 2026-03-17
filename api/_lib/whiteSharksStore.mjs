@@ -51,6 +51,9 @@ function normalizePlayer(entry) {
   const memberType = typeof entry.memberType === "string" && ALLOWED_MEMBER_TYPES.has(entry.memberType)
     ? entry.memberType
     : "joueur";
+  const birthYear = typeof entry.birthYear === "number" && Number.isInteger(entry.birthYear) && entry.birthYear >= 1900 && entry.birthYear <= 2100
+    ? entry.birthYear
+    : null;
   const createdAt = typeof entry.createdAt === "string" ? entry.createdAt : new Date().toISOString();
 
   if (!id || !firstName || !lastName || !club) {
@@ -64,6 +67,7 @@ function normalizePlayer(entry) {
     club,
     position,
     memberType,
+    ...(birthYear !== null ? { birthYear } : {}),
     createdAt,
   };
 }

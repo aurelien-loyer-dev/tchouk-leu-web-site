@@ -15,6 +15,7 @@ export type WhiteSharksPlayer = {
   club: string;
   position: string;
   memberType: WhiteSharksMemberType;
+  birthYear?: number;
   createdAt: string;
 };
 
@@ -39,6 +40,7 @@ type CreatePlayerInput = {
   club: string;
   position: string;
   memberType: WhiteSharksMemberType;
+  birthYear?: number;
 };
 
 type UpdatePlayerInput = CreatePlayerInput & {

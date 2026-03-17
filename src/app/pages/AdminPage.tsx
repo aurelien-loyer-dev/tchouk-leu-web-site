@@ -195,6 +195,7 @@ export function AdminPage() {
   const [whiteSharksPlayerLastName, setWhiteSharksPlayerLastName] = useState("");
   const [whiteSharksPlayerClub, setWhiteSharksPlayerClub] = useState("");
   const [whiteSharksPlayerPosition, setWhiteSharksPlayerPosition] = useState("");
+  const [whiteSharksPlayerBirthYear, setWhiteSharksPlayerBirthYear] = useState("");
   const [whiteSharksPlayerMemberType, setWhiteSharksPlayerMemberType] = useState<WhiteSharksMemberType>("joueur");
   const [editingWhiteSharksPlayerId, setEditingWhiteSharksPlayerId] = useState<string | null>(null);
   const [whiteSharksFeedbackMessage, setWhiteSharksFeedbackMessage] = useState("");
@@ -674,6 +675,7 @@ export function AdminPage() {
     setWhiteSharksPlayerLastName("");
     setWhiteSharksPlayerClub("");
     setWhiteSharksPlayerPosition("");
+    setWhiteSharksPlayerBirthYear("");
     setWhiteSharksPlayerMemberType("joueur");
     setEditingWhiteSharksPlayerId(null);
   };
@@ -692,6 +694,7 @@ export function AdminPage() {
     setWhiteSharksPlayerLastName(player.lastName);
     setWhiteSharksPlayerClub(player.club);
     setWhiteSharksPlayerPosition(player.position);
+    setWhiteSharksPlayerBirthYear(player.birthYear !== undefined ? String(player.birthYear) : "");
     setWhiteSharksPlayerMemberType(player.memberType);
     setWhiteSharksFeedbackMessage("Mode modification joueur activé.");
   };
@@ -773,6 +776,9 @@ export function AdminPage() {
       setIsWhiteSharksSaving(true);
       setWhiteSharksFeedbackMessage("");
 
+      const parsedBirthYear = whiteSharksPlayerBirthYear.trim() ? Number(whiteSharksPlayerBirthYear.trim()) : undefined;
+      const birthYearPayload = parsedBirthYear && Number.isInteger(parsedBirthYear) ? { birthYear: parsedBirthYear } : {};
+
       const nextData = editingWhiteSharksPlayerId
         ? await updateWhiteSharksPlayer({
             id: editingWhiteSharksPlayerId,
@@ -781,6 +787,7 @@ export function AdminPage() {
             club: whiteSharksPlayerClub.trim(),
             position: whiteSharksPlayerPosition.trim(),
             memberType: whiteSharksPlayerMemberType,
+            ...birthYearPayload,
           })
         : await createWhiteSharksPlayer({
             firstName: whiteSharksPlayerFirstName.trim(),
@@ -788,6 +795,7 @@ export function AdminPage() {
             club: whiteSharksPlayerClub.trim(),
             position: whiteSharksPlayerPosition.trim(),
             memberType: whiteSharksPlayerMemberType,
+            ...birthYearPayload,
           });
 
       setWhiteSharksPalmares(nextData.palmares ?? []);
@@ -1633,6 +1641,18 @@ export function AdminPage() {
                       placeholder="Ex: Ailier droit"
                     />
                   </div>
+                  <div>
+                    <label htmlFor="ws-player-birth-year" className="mb-2 block font-medium">Année de naissance (optionnel)</label>
+                    <Input
+                      id="ws-player-birth-year"
+                      type="number"
+                      min={1900}
+                      max={2100}
+                      value={whiteSharksPlayerBirthYear}
+                      onChange={(event) => setWhiteSharksPlayerBirthYear(event.target.value)}
+                      placeholder="Ex: 1998"
+                    />
+                  </div>
 
                   <div className="flex gap-2">
                     <Button
@@ -1658,6 +1678,7 @@ export function AdminPage() {
                           <p className="text-xs text-muted-foreground">Type: {whiteSharksMemberTypeLabelByValue[player.memberType]}</p>
                           <p className="text-xs text-muted-foreground">Club: {player.club}</p>
                           {player.position ? <p className="text-xs text-muted-foreground">Rôle: {player.position}</p> : null}
+                          {player.birthYear ? <p className="text-xs text-muted-foreground">Né en {player.birthYear}</p> : null}
                           <div className="grid grid-cols-2 gap-2 mt-2">
                             <Button
                               type="button"

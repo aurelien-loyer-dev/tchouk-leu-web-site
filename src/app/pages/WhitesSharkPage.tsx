@@ -151,6 +151,9 @@ export function WhitesSharkPage() {
                                 </p>
                               ) : null}
                               <p className="text-sm text-muted-foreground">Club d'origine : {player.club}</p>
+                              {player.birthYear ? (
+                                <p className="text-sm text-muted-foreground">Né en {player.birthYear}</p>
+                              ) : null}
                             </CardContent>
                           </Card>
                         </motion.div>
