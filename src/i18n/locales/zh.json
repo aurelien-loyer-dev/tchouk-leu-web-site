@@ -170,6 +170,14 @@
     "players": "球员",
     "captain": "队长",
     "originClub": "来源俱乐部：",
-    "bornIn": "出生年份"
+    "bornIn": "出生年份",
+    "positions": {
+      "attaquant": "前锋",
+      "defenseur": "后卫",
+      "pivot": "中锋",
+      "ailier": "边锋",
+      "arriere": "后场",
+      "libero": "自由人"
+    }
   }
 }

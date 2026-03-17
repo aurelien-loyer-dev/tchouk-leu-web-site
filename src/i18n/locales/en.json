@@ -170,6 +170,14 @@
     "players": "Players",
     "captain": "Captain",
     "originClub": "Home club:",
-    "bornIn": "Born in"
+    "bornIn": "Born in",
+    "positions": {
+      "attaquant": "Forward",
+      "defenseur": "Defender",
+      "pivot": "Pivot",
+      "ailier": "Wing",
+      "arriere": "Backfield",
+      "libero": "Libero"
+    }
   }
 }

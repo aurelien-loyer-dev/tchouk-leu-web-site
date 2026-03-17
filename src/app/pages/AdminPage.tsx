@@ -1634,12 +1634,20 @@ export function AdminPage() {
                   </div>
                   <div>
                     <label htmlFor="ws-player-position" className="mb-2 block font-medium">Poste / rôle (optionnel)</label>
-                    <Input
+                    <select
                       id="ws-player-position"
                       value={whiteSharksPlayerPosition}
                       onChange={(event) => setWhiteSharksPlayerPosition(event.target.value)}
-                      placeholder="Ex: Ailier droit"
-                    />
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    >
+                      <option value="">— Aucun poste —</option>
+                      <option value="attaquant">Attaquant</option>
+                      <option value="defenseur">Défenseur</option>
+                      <option value="pivot">Pivot</option>
+                      <option value="ailier">Ailier</option>
+                      <option value="arriere">Arrière</option>
+                      <option value="libero">Libéro</option>
+                    </select>
                   </div>
                   <div>
                     <label htmlFor="ws-player-birth-year" className="mb-2 block font-medium">Année de naissance (optionnel)</label>

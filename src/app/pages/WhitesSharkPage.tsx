@@ -149,7 +149,7 @@ export function WhitesSharkPage() {
                               {player.position ? (
                                 <p className="text-sm inline-flex items-center gap-2 text-violet-700 dark:text-violet-300">
                                   <Shield className="h-4 w-4" />
-                                  {player.position}
+                                  {t(`whiteSharks.positions.${player.position}`, { defaultValue: player.position })}
                                 </p>
                               ) : null}
                               <p className="text-sm text-muted-foreground">{t("whiteSharks.originClub")} {player.club}</p>
