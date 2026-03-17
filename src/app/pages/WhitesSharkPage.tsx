@@ -81,12 +81,12 @@ export function WhitesSharkPage() {
                   transition={{ duration: 0.5, delay: index * 0.05 }}
                 >
                   <Card className="h-full border-violet-200 dark:border-violet-900/40">
-                    <CardHeader>
+                    <CardHeader className="pb-4">
                       <CardTitle className="text-xl">{entry.title}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{entry.year}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{entry.year}</p>
                     </CardHeader>
                     {entry.description ? (
-                      <CardContent>
+                      <CardContent className="pb-6">
                         <p className="text-muted-foreground">{entry.description}</p>
                       </CardContent>
                     ) : null}
