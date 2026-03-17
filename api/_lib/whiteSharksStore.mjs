@@ -69,7 +69,12 @@ function normalizePlayer(entry) {
   const firstName = typeof entry.firstName === "string" ? entry.firstName.trim() : "";
   const lastName = typeof entry.lastName === "string" ? entry.lastName.trim() : "";
   const club = typeof entry.club === "string" ? entry.club.trim() : "";
-  const position = typeof entry.position === "string" ? entry.position.trim() : "";
+  const legacyPosition = typeof entry.position === "string" ? entry.position.trim() : "";
+  const positions = Array.isArray(entry.positions)
+    ? Array.from(new Set(entry.positions.map((value) => (typeof value === "string" ? value.trim() : "")).filter(Boolean)))
+    : legacyPosition
+      ? [legacyPosition]
+      : [];
   const memberType = typeof entry.memberType === "string" && ALLOWED_MEMBER_TYPES.has(entry.memberType)
     ? entry.memberType
     : "joueur";
@@ -87,7 +92,8 @@ function normalizePlayer(entry) {
     firstName,
     lastName,
     club,
-    position,
+    positions,
+    ...(positions[0] ? { position: positions[0] } : {}),
     memberType,
     ...(birthYear !== null ? { birthYear } : {}),
     createdAt,
@@ -260,7 +266,12 @@ function validatePlayerInput(input) {
   const firstName = typeof input.firstName === "string" ? input.firstName.trim() : "";
   const lastName = typeof input.lastName === "string" ? input.lastName.trim() : "";
   const club = typeof input.club === "string" ? input.club.trim() : "";
-  const position = typeof input.position === "string" ? input.position.trim() : "";
+  const legacyPosition = typeof input.position === "string" ? input.position.trim() : "";
+  const positions = Array.isArray(input.positions)
+    ? Array.from(new Set(input.positions.map((value) => (typeof value === "string" ? value.trim() : "")).filter(Boolean)))
+    : legacyPosition
+      ? [legacyPosition]
+      : [];
   const memberType = typeof input.memberType === "string" && ALLOWED_MEMBER_TYPES.has(input.memberType)
     ? input.memberType
     : "joueur";
@@ -277,7 +288,8 @@ function validatePlayerInput(input) {
     firstName,
     lastName,
     club,
-    position,
+    positions,
+    ...(positions[0] ? { position: positions[0] } : {}),
     memberType,
   };
 }

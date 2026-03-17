@@ -15,7 +15,8 @@ export type WhiteSharksPlayer = {
   firstName: string;
   lastName: string;
   club: string;
-  position: string;
+  positions: string[];
+  position?: string;
   memberType: WhiteSharksMemberType;
   birthYear?: number;
   createdAt: string;
@@ -42,7 +43,7 @@ type CreatePlayerInput = {
   firstName: string;
   lastName: string;
   club: string;
-  position: string;
+  positions: string[];
   memberType: WhiteSharksMemberType;
   birthYear?: number;
 };

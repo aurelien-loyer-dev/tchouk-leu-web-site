@@ -24,6 +24,14 @@ export function WhitesSharkPage() {
     return position;
   };
 
+  const getPlayerPositions = (player: WhiteSharksPlayer) => {
+    if (Array.isArray(player.positions) && player.positions.length > 0) {
+      return player.positions;
+    }
+
+    return player.position ? [player.position] : [];
+  };
+
   const getLocalizedPalmaresText = (baseText: string, translations?: Partial<Record<"en" | "zh", string>>) => {
     if (currentLang === "en" && translations?.en?.trim()) {
       return translations.en;
@@ -174,15 +182,15 @@ export function WhitesSharkPage() {
                                 </p>
                               ) : null}
                               <p className="text-xl font-semibold">{player.firstName} {player.lastName}</p>
-                              {player.position ? (
+                              {getPlayerPositions(player).length > 0 ? (
                                 <p className="text-sm inline-flex items-center gap-2 text-violet-700 dark:text-violet-300">
                                   <Shield className="h-4 w-4" />
-                                  {getTranslatedPosition(player.position)}
+                                  {getPlayerPositions(player).map((position) => getTranslatedPosition(position)).join(" • ")}
                                 </p>
                               ) : null}
                               <p className="text-sm text-muted-foreground">{t("whiteSharks.originClub")} {player.club}</p>
                               {player.birthYear ? (
-                                <p className="text-sm text-muted-foreground">{t("whiteSharks.bornIn")} {player.birthYear}</p>
+                                <p className="text-sm font-medium text-muted-foreground">{t("whiteSharks.bornIn")} {player.birthYear}</p>
                               ) : null}
                             </CardContent>
                           </Card>

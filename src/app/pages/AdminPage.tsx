@@ -198,7 +198,7 @@ export function AdminPage() {
   const [whiteSharksPlayerFirstName, setWhiteSharksPlayerFirstName] = useState("");
   const [whiteSharksPlayerLastName, setWhiteSharksPlayerLastName] = useState("");
   const [whiteSharksPlayerClub, setWhiteSharksPlayerClub] = useState("");
-  const [whiteSharksPlayerPosition, setWhiteSharksPlayerPosition] = useState("");
+  const [whiteSharksPlayerPositions, setWhiteSharksPlayerPositions] = useState<string[]>([]);
   const [whiteSharksPlayerBirthYear, setWhiteSharksPlayerBirthYear] = useState("");
   const [whiteSharksPlayerMemberType, setWhiteSharksPlayerMemberType] = useState<WhiteSharksMemberType>("joueur");
   const [editingWhiteSharksPlayerId, setEditingWhiteSharksPlayerId] = useState<string | null>(null);
@@ -682,7 +682,7 @@ export function AdminPage() {
     setWhiteSharksPlayerFirstName("");
     setWhiteSharksPlayerLastName("");
     setWhiteSharksPlayerClub("");
-    setWhiteSharksPlayerPosition("");
+    setWhiteSharksPlayerPositions([]);
     setWhiteSharksPlayerBirthYear("");
     setWhiteSharksPlayerMemberType("joueur");
     setEditingWhiteSharksPlayerId(null);
@@ -705,7 +705,7 @@ export function AdminPage() {
     setWhiteSharksPlayerFirstName(player.firstName);
     setWhiteSharksPlayerLastName(player.lastName);
     setWhiteSharksPlayerClub(player.club);
-    setWhiteSharksPlayerPosition(player.position);
+    setWhiteSharksPlayerPositions(player.positions?.length ? player.positions : player.position ? [player.position] : []);
     setWhiteSharksPlayerBirthYear(player.birthYear !== undefined ? String(player.birthYear) : "");
     setWhiteSharksPlayerMemberType(player.memberType);
     setWhiteSharksFeedbackMessage("Mode modification joueur activé.");
@@ -811,7 +811,7 @@ export function AdminPage() {
             firstName: whiteSharksPlayerFirstName.trim(),
             lastName: whiteSharksPlayerLastName.trim(),
             club: whiteSharksPlayerClub.trim(),
-            position: whiteSharksPlayerPosition.trim(),
+            positions: whiteSharksPlayerPositions,
             memberType: whiteSharksPlayerMemberType,
             ...birthYearPayload,
           })
@@ -819,7 +819,7 @@ export function AdminPage() {
             firstName: whiteSharksPlayerFirstName.trim(),
             lastName: whiteSharksPlayerLastName.trim(),
             club: whiteSharksPlayerClub.trim(),
-            position: whiteSharksPlayerPosition.trim(),
+            positions: whiteSharksPlayerPositions,
             memberType: whiteSharksPlayerMemberType,
             ...birthYearPayload,
           });
@@ -1701,21 +1701,32 @@ export function AdminPage() {
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="ws-player-position" className="mb-2 block font-medium">Poste / rôle (optionnel)</label>
-                    <select
-                      id="ws-player-position"
-                      value={whiteSharksPlayerPosition}
-                      onChange={(event) => setWhiteSharksPlayerPosition(event.target.value)}
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    >
-                      <option value="">— Aucun poste —</option>
-                      <option value="attaquant">Attaquant</option>
-                      <option value="defenseur">Défenseur</option>
-                      <option value="pivot">Pivot</option>
-                      <option value="ailier">Ailier</option>
-                      <option value="arriere">Arrière</option>
-                      <option value="libero">Libéro</option>
-                    </select>
+                    <label className="mb-2 block font-medium">Postes / rôles (optionnel, plusieurs possibles)</label>
+                    <div className="grid grid-cols-2 gap-2 rounded-md border border-input bg-background p-3 text-sm">
+                      {[
+                        { value: "attaquant", label: "Attaquant" },
+                        { value: "defenseur", label: "Défenseur" },
+                        { value: "pivot", label: "Pivot" },
+                        { value: "ailier", label: "Ailier" },
+                        { value: "arriere", label: "Arrière" },
+                        { value: "libero", label: "Libéro" },
+                      ].map((option) => (
+                        <label key={option.value} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={whiteSharksPlayerPositions.includes(option.value)}
+                            onChange={(event) => {
+                              setWhiteSharksPlayerPositions((current) =>
+                                event.target.checked
+                                  ? [...current, option.value]
+                                  : current.filter((value) => value !== option.value),
+                              );
+                            }}
+                          />
+                          <span>{option.label}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                   <div>
                     <label htmlFor="ws-player-birth-year" className="mb-2 block font-medium">Année de naissance (optionnel)</label>
@@ -1753,7 +1764,11 @@ export function AdminPage() {
                           <p className="text-sm font-medium">{player.firstName} {player.lastName}</p>
                           <p className="text-xs text-muted-foreground">Type: {whiteSharksMemberTypeLabelByValue[player.memberType]}</p>
                           <p className="text-xs text-muted-foreground">Club: {player.club}</p>
-                          {player.position ? <p className="text-xs text-muted-foreground">Rôle: {player.position}</p> : null}
+                          {(player.positions?.length ? player.positions : player.position ? [player.position] : []).length > 0 ? (
+                            <p className="text-xs text-muted-foreground">
+                              Rôle: {(player.positions?.length ? player.positions : player.position ? [player.position] : []).join(", ")}
+                            </p>
+                          ) : null}
                           {player.birthYear ? <p className="text-xs text-muted-foreground">Né en {player.birthYear}</p> : null}
                           <div className="grid grid-cols-2 gap-2 mt-2">
                             <Button
