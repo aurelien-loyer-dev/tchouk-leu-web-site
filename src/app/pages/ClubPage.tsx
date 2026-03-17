@@ -28,7 +28,7 @@ function getPalmaresEntries(member: WallOfFameMember) {
         value,
       };
     })
-    .filter((entry): entry is { functionLabel: string; value: string } => Boolean(entry));
+    .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
 
   if (entries.length > 0) {
     return entries;
@@ -226,7 +226,7 @@ export function ClubPage() {
                             <div>
                               <p className="text-sm uppercase tracking-wide mb-2">Palmarès</p>
                               <div className="space-y-3">
-                                {palmaresEntries.map((entry) => (
+                                {palmaresEntries.map((entry) => entry && (
                                   <div key={`${member.id}-${entry.functionLabel}`}>
                                     <p className="text-xs uppercase tracking-wide text-muted-foreground mb-0.5">{entry.functionLabel}</p>
                                     <p className="text-base whitespace-pre-line text-foreground leading-relaxed">{entry.value}</p>
