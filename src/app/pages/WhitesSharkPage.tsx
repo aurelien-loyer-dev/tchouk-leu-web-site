@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Award, Shield, Users } from "lucide-react";
+import { Badge } from "../components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { loadWhiteSharksData, type WhiteSharksPalmaresEntry, type WhiteSharksPlayer } from "../data/whiteSharks";
 import { useTranslation } from "react-i18next";
@@ -186,14 +187,14 @@ export function WhitesSharkPage() {
                           viewport={{ once: true }}
                           transition={{ duration: 0.5, delay: index * 0.05 }}
                         >
-                          <Card className={`h-full ${player.memberType === "capitaine" ? "border-2 border-violet-500 bg-violet-50/70 dark:bg-violet-950/20" : ""}`}>
+                          <Card className="h-full">
                             <CardContent className="p-6 space-y-3">
-                              {player.memberType === "capitaine" ? (
-                                <p className="inline-flex rounded-full bg-violet-600 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
-                                  {t("whiteSharks.captain")}
-                                </p>
-                              ) : null}
-                              <p className="text-xl font-semibold">{player.firstName} {player.lastName}</p>
+                              <p className="text-xl font-semibold inline-flex flex-wrap items-center gap-2">
+                                {player.firstName} {player.lastName}
+                                {player.memberType === "capitaine" ? (
+                                  <Badge variant="secondary">👑 {t("whiteSharks.captain")}</Badge>
+                                ) : null}
+                              </p>
                               {getPlayerPositions(player).length > 0 ? (
                                 <p className="text-sm inline-flex items-center gap-2 text-violet-700 dark:text-violet-300">
                                   <Shield className="h-4 w-4" />
