@@ -189,12 +189,12 @@ export function WhitesSharkPage() {
                         >
                           <Card className="h-full">
                             <CardContent className="p-6 space-y-3">
-                              <p className="text-xl font-semibold inline-flex flex-wrap items-center gap-2">
-                                {player.firstName} {player.lastName}
+                              <div className="flex items-center gap-2">
+                                <p className="text-xl font-semibold">{player.firstName} {player.lastName}</p>
                                 {player.memberType === "capitaine" ? (
-                                  <Badge variant="secondary">👑 {t("whiteSharks.captain")}</Badge>
+                                  <Badge variant="secondary" className="px-2.5">C</Badge>
                                 ) : null}
-                              </p>
+                              </div>
                               {getPlayerPositions(player).length > 0 ? (
                                 <p className="text-sm inline-flex items-center gap-2 text-violet-700 dark:text-violet-300">
                                   <Shield className="h-4 w-4" />
