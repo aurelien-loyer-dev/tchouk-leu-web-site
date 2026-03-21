@@ -151,7 +151,6 @@ export function GalleryPage() {
                   <a href={selectedImage.src} download={toDownloadFileName(selectedImage)}>
                     <Download className="h-4 w-4" />
                     {t("gallery.download")}
-                    Télécharger
                   </a>
                 </Button>
               </div>
