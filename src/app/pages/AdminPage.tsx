@@ -889,9 +889,6 @@ export function AdminPage() {
                 </CardHeader>
                 <CardContent>
                   <form className="space-y-5" onSubmit={handleLogin}>
-                    <p className="text-muted-foreground">
-                      Connectez-vous pour gerer le planning, ajouter des activites et mettre a jour les tournois.
-                    </p>
                     <div>
                       <label className="mb-2 block font-medium" htmlFor="admin-username">
                         Identifiant admin
