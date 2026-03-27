@@ -1,5 +1,4 @@
 import { Instagram, Mail, MapPin, Phone } from "lucide-react";
-import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Link, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 
@@ -15,15 +14,6 @@ export function Footer() {
         isWhitesSharkPage ? "bg-violet-100/75 dark:bg-violet-950/25 text-foreground" : "bg-muted/30 dark:bg-muted/10"
       }`}
     >
-      {/* Bird decoration */}
-      <div className="absolute bottom-0 right-0 opacity-5 dark:opacity-5">
-        <ImageWithFallback
-          src="https://images.unsplash.com/photo-1763688506457-325a5103e3c1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3aGl0ZSUyMHRyb3BpY2FsJTIwYmlyZCUyMGZseWluZ3xlbnwxfHx8fDE3NzM1NTc5NDR8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-          alt="Paille-en-queue"
-          className="w-48 h-48 object-contain"
-        />
-      </div>
-
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="grid md:grid-cols-3 gap-12">
           {/* Logo & Info */}

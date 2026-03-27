@@ -48,6 +48,12 @@
     "indianOcean": "Profondeurs de l'Océan Indien",
     "rights": "Tous droits réservés."
   },
+  "notFound": {
+    "title": "Page introuvable",
+    "description": "Cette route n'existe pas ou n'est plus disponible.",
+    "backToMenu": "Retour au menu",
+    "redirectIn": "Redirection automatique dans {{seconds}} s..."
+  },
   "club": {
     "heroTitle": "Le Tchouk'Leu",
     "heroSubtitle": "Depuis 2014, Tchouk'Leu est le club de tchoukball de référence à la Réunion, alliant passion sportive et esprit insulaire.",

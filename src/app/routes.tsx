@@ -7,6 +7,7 @@ import { ContactPage } from "./pages/ContactPage";
 import { PlanningPage } from "./pages/PlanningPage";
 import { AdminPage } from "./pages/AdminPage";
 import { WhitesSharkPage } from "./pages/WhitesSharkPage";
+import { NotFoundPage } from "./pages/NotFoundPage";
 
 export const router = createBrowserRouter([
   {
@@ -20,6 +21,7 @@ export const router = createBrowserRouter([
       { path: "galerie", Component: GalleryPage },
       { path: "contact", Component: ContactPage },
       { path: "admin", Component: AdminPage },
+      { path: "*", Component: NotFoundPage },
     ],
   },
 ]);

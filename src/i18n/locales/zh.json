@@ -48,6 +48,12 @@
     "indianOcean": "印度洋深处",
     "rights": "版权所有。"
   },
+  "notFound": {
+    "title": "页面未找到",
+    "description": "该路由不存在或已不可用。",
+    "backToMenu": "返回主菜单",
+    "redirectIn": "将在 {{seconds}} 秒后自动跳转..."
+  },
   "club": {
     "heroTitle": "Tchouk'Leu",
     "heroSubtitle": "自 2014 年以来，Tchouk'Leu 一直是留尼旺最具代表性的竹球俱乐部，融合了体育激情与岛屿精神。",

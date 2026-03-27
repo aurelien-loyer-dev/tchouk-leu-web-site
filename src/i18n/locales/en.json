@@ -48,6 +48,12 @@
     "indianOcean": "Depths of the Indian Ocean",
     "rights": "All rights reserved."
   },
+  "notFound": {
+    "title": "Page not found",
+    "description": "This route does not exist or is no longer available.",
+    "backToMenu": "Back to menu",
+    "redirectIn": "Automatic redirect in {{seconds}} s..."
+  },
   "club": {
     "heroTitle": "Tchouk'Leu",
     "heroSubtitle": "Since 2014, Tchouk'Leu has been the leading tchoukball club in Réunion, combining sporting passion and island spirit.",
