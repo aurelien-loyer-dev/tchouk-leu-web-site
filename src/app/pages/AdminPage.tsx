@@ -46,20 +46,20 @@ const whiteSharksMemberTypeOptions: Array<{ value: WhiteSharksMemberType; label:
   { value: "joueur", label: "Joueur" },
   { value: "capitaine", label: "Capitaine" },
   { value: "coach", label: "Coach" },
-  { value: "benevole", label: "Bénévole" },
+  { value: "benevole", label: "Staff" },
 ];
 
 const whiteSharksMemberTypeLabelByValue: Record<WhiteSharksMemberType, string> = {
   joueur: "Joueur",
   capitaine: "Capitaine",
   coach: "Coach",
-  benevole: "Bénévole",
+  benevole: "Staff",
 };
 
 const wallFunctionOptions: Array<{ value: WallOfFameFunction; label: string }> = [
   { value: "coach", label: "Coach" },
   { value: "joueur", label: "Joueur" },
-  { value: "benevole", label: "Bénévole" },
+  { value: "benevole", label: "Staff" },
   { value: "president", label: "Président" },
 ];
 
@@ -69,7 +69,7 @@ const wallFunctionLabelByValue = wallFunctionOptions.reduce<Record<WallOfFameFun
 }, {
   coach: "Coach",
   joueur: "Joueur",
-  benevole: "Bénévole",
+  benevole: "Staff",
   president: "Président",
 });
 

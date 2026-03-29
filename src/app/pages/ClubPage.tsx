@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 const wallFunctionLabelByValue = {
   coach: "Coach",
   joueur: "Joueur",
-  benevole: "Bénévole",
+  benevole: "Staff",
   president: "Président",
 } as const;
 
