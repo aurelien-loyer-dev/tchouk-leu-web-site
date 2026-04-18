@@ -1,6 +1,5 @@
 import { motion } from "motion/react";
 import { Button } from "./ui/button";
-import { Mail } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 
@@ -9,31 +8,27 @@ export function JoinSection() {
   const navigate = useNavigate();
 
   return (
-    <section id="contact" className="py-24 px-6 bg-[#D7E7F1] dark:bg-[#5B7D95]/20">
-      <div className="max-w-4xl mx-auto text-center">
+    <section id="contact" className="py-20 px-6 bg-[#5B7D95] dark:bg-[#3d5a6e]">
+      <div className="max-w-3xl mx-auto text-center">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.5 }}
         >
-          <h2 className="text-5xl font-bold mb-6 text-[#1F2A37] dark:text-white">
+          <h2 className="text-4xl font-bold mb-4 tracking-tight text-white">
             {t("join.title")}
           </h2>
-          <p className="text-xl mb-10 text-[#1F2A37]/80 dark:text-white/80">
+          <p className="text-lg mb-8 text-white/80 leading-relaxed">
             {t("join.description")}
           </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              size="lg"
-              className="bg-[#5B7D95] hover:bg-[#4E6C83] text-white px-8 py-6 text-lg"
-              onClick={() => navigate("/contact")}
-            >
-              <Mail className="mr-2 h-5 w-5" />
-              {t("join.contactUs")}
-            </Button>
-          </div>
+          <Button
+            size="lg"
+            className="bg-white text-[#5B7D95] hover:bg-white/90 px-8 font-semibold"
+            onClick={() => navigate("/contact")}
+          >
+            {t("join.contactUs")}
+          </Button>
         </motion.div>
       </div>
     </section>

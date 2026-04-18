@@ -276,21 +276,21 @@ export function PlanningPage() {
 
   return (
     <div className="min-h-screen">
-      <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-[#EAF2F6] via-[#F7FAFC] to-background dark:from-[#1E2D36] dark:via-[#17242C] dark:to-background">
+      <section className="pt-24 pb-14 px-6 bg-gradient-to-b from-[#EAF2F6] to-background dark:from-[#1E2D36] dark:to-background">
         <div className="max-w-7xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
+            transition={{ duration: 0.6 }}
+            className="mb-10"
           >
-            <h1 className="text-6xl font-bold mb-6">{t("planning.title")}</h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">{t("planning.title")}</h1>
+            <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
               {t("planning.subtitle")}
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6 mt-14">
+          <div className="grid md:grid-cols-3 gap-6">
             <Card className="border-2 border-[#5B7D95]/30">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-2xl">

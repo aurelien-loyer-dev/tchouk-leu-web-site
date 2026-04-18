@@ -61,16 +61,15 @@ export function GalleryPage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-[#EAF2F6] to-background dark:from-[#1E2D36] dark:to-background">
-        <div className="max-w-7xl mx-auto">
+      <section className="pt-24 pb-14 px-6 bg-gradient-to-b from-[#EAF2F6] to-background dark:from-[#1E2D36] dark:to-background">
+        <div className="max-w-5xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
+            transition={{ duration: 0.6 }}
           >
-            <h1 className="text-6xl font-bold mb-6">{t("gallery.title")}</h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">{t("gallery.title")}</h1>
+            <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
               {t("gallery.subtitle")}
             </p>
           </motion.div>
@@ -78,17 +77,17 @@ export function GalleryPage() {
       </section>
 
       {/* Filters */}
-      <section className="py-8 px-6 bg-background sticky top-20 z-40 border-b border-border">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex justify-center gap-4 flex-wrap">
+      <section className="py-4 px-6 bg-background sticky top-16 z-40 border-b border-border/60">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex gap-2 flex-wrap">
             {categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`px-6 py-3 rounded-full font-medium transition-all ${
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                   selectedCategory === category.id
                     ? "bg-[#5B7D95] text-white"
-                    : "bg-muted hover:bg-muted/80 text-foreground"
+                    : "bg-muted/60 hover:bg-muted text-foreground"
                 }`}
               >
                 {category.label}
@@ -99,8 +98,8 @@ export function GalleryPage() {
       </section>
 
       {/* Gallery Grid */}
-      <section className="py-16 px-6 bg-background">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-12 px-6 bg-background">
+        <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {isLoading
               ? Array.from({ length: 9 }).map((_, index) => (

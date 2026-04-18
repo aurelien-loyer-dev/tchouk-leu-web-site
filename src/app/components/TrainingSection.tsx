@@ -1,6 +1,5 @@
 import { Calendar, MapPin, Users } from "lucide-react";
 import { motion } from "motion/react";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { useTranslation } from "react-i18next";
 
 export function TrainingSection() {
@@ -25,50 +24,39 @@ export function TrainingSection() {
   ];
 
   return (
-    <section id="entrainements" className="py-24 px-6 bg-background">
+    <section id="entrainements" className="py-20 px-6 bg-muted/20 dark:bg-muted/5 border-t border-border/40">
       <div className="max-w-7xl mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          transition={{ duration: 0.5 }}
+          className="mb-12"
         >
-          <h2 className="text-5xl font-bold mb-4">{t("training.title")}</h2>
-          <p className="text-xl text-muted-foreground">
-            {t("training.subtitle")}
-          </p>
+          <h2 className="text-4xl font-bold tracking-tight mb-3">{t("training.title")}</h2>
+          <p className="text-lg text-muted-foreground">{t("training.subtitle")}</p>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-8">
           {trainingCards.map((card, index) => (
             <motion.div
               key={card.title}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.2 }}
+              transition={{ duration: 0.5, delay: index * 0.12 }}
             >
-              <Card className="h-full border-2 hover:border-[#5B7D95] transition-all duration-300 hover:shadow-xl bg-card dark:bg-card">
-                <CardHeader>
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="p-3 bg-[#D7E7F1] dark:bg-[#5B7D95]/20 rounded-lg">
-                      <card.icon className="h-8 w-8 text-[#5B7D95]" />
-                    </div>
-                    <CardTitle className="text-2xl">{card.title}</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
-                    {card.content.map((item, i) => (
-                      <li key={i} className="text-lg text-muted-foreground flex items-start gap-2">
-                        <span className="text-[#5B7D95] mt-1.5">•</span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
+              <div className="flex items-center gap-3 mb-4">
+                <card.icon className="h-5 w-5 text-[#5B7D95] flex-shrink-0" />
+                <h3 className="font-semibold text-lg">{card.title}</h3>
+              </div>
+              <ul className="space-y-2 pl-8">
+                {card.content.map((item, i) => (
+                  <li key={i} className="text-muted-foreground text-base leading-relaxed">
+                    {item}
+                  </li>
+                ))}
+              </ul>
             </motion.div>
           ))}
         </div>

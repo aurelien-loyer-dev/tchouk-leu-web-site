@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import { Mail, MapPin, Instagram, Phone, Send } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Card, CardContent } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Button } from "../components/ui/button";
@@ -17,7 +17,7 @@ export function ContactPage() {
     message: "",
     website: "",
   });
-  const [formStartedAt, setFormStartedAt] = useState(() => Date.now());
+  const [formStartedAt] = useState(() => Date.now());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   const [submitMessage, setSubmitMessage] = useState("");
@@ -32,9 +32,7 @@ export function ContactPage() {
 
       const response = await fetch("/api/contact", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
@@ -47,289 +45,249 @@ export function ContactPage() {
 
       if (!response.ok) {
         let errorMessage = "Impossible d'envoyer le message.";
-
         try {
           const payload = (await response.json()) as { error?: string };
-          if (payload.error) {
-            errorMessage = payload.error;
-          }
+          if (payload.error) errorMessage = payload.error;
         } catch {
-          // Ignore JSON parse fallback.
+          // ignore
         }
-
         throw new Error(errorMessage);
       }
 
       setSubmitStatus("success");
       setSubmitMessage(t("contact.successMessage"));
       setFormData({ name: "", email: "", phone: "", message: "", website: "" });
-      setFormStartedAt(Date.now());
     } catch (error) {
       setSubmitStatus("error");
-      if (error instanceof Error && error.message) {
-        setSubmitMessage(error.message);
-      } else {
-        setSubmitMessage(t("contact.errorMessage"));
-      }
+      setSubmitMessage(
+        error instanceof Error && error.message ? error.message : t("contact.errorMessage"),
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const contactInfo = [
+  const contactGroups = [
     {
       icon: Mail,
       title: "Email",
-      content: "bgaillard.pro@gmail.com",
-      link: "mailto:bgaillard.pro@gmail.com",
-    },
-    {
-      icon: Mail,
-      title: "Email",
-      content: "nicolasg97424@gmail.com",
-      link: "mailto:nicolasg97424@gmail.com",
+      items: [
+        { label: "bgaillard.pro@gmail.com", href: "mailto:bgaillard.pro@gmail.com" },
+        { label: "nicolasg97424@gmail.com", href: "mailto:nicolasg97424@gmail.com" },
+      ],
     },
     {
       icon: Phone,
       title: t("contact.phone_label"),
-      content: "+33 6 56 71 40 37",
-      link: "tel:+33656714037",
-    },
-    {
-      icon: Phone,
-      title: t("contact.phone_label"),
-      content: "+262 692 812102",
-      link: "tel:+262692812102",
+      items: [
+        { label: "+33 6 56 71 40 37", href: "tel:+33656714037" },
+        { label: "+262 692 812102", href: "tel:+262692812102" },
+      ],
     },
     {
       icon: Instagram,
       title: "Instagram",
-      content: "@tchoukleu",
-      link: "https://instagram.com/tchoukleu",
+      items: [{ label: "@tchoukleu", href: "https://instagram.com/tchoukleu" }],
     },
   ];
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-[#EAF2F6] to-background dark:from-[#1E2D36] dark:to-background">
-        <div className="max-w-7xl mx-auto">
+      {/* Hero */}
+      <section className="pt-24 pb-14 px-6 bg-gradient-to-b from-[#EAF2F6] to-background dark:from-[#1E2D36] dark:to-background">
+        <div className="max-w-5xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
+            transition={{ duration: 0.6 }}
           >
-            <h1 className="text-6xl font-bold mb-6">{t("contact.title")}</h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">{t("contact.title")}</h1>
+            <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
               {t("contact.subtitle")}
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Contact Form & Info */}
-      <section className="py-20 px-6 bg-background">
-        <div className="max-w-7xl mx-auto">
+      {/* Form + Info */}
+      <section className="py-16 px-6 bg-background border-t border-border/40">
+        <div className="max-w-5xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12">
-            {/* Contact Form */}
+            {/* Form */}
             <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
             >
-              <Card className="border-2 border-[#5B7D95]">
-                <CardHeader>
-                  <CardTitle className="text-3xl">{t("contact.sendMessage")}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
-                      <label htmlFor="website">Site web</label>
-                      <input
-                        id="website"
-                        name="website"
-                        type="text"
-                        tabIndex={-1}
-                        autoComplete="off"
-                        value={formData.website}
-                        onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                      />
-                    </div>
+              <h2 className="text-2xl font-bold mb-6 tracking-tight">{t("contact.sendMessage")}</h2>
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+                  <label htmlFor="website">Site web</label>
+                  <input
+                    id="website"
+                    name="website"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={formData.website}
+                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                  />
+                </div>
 
-                    <div>
-                      <label htmlFor="name" className="block mb-2">
-                        {t("contact.fullName")}
-                      </label>
-                      <Input
-                        id="name"
-                        type="text"
-                        required
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder={t("contact.yourName")}
-                        className="w-full"
-                      />
-                    </div>
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium mb-1.5">
+                    {t("contact.fullName")}
+                  </label>
+                  <Input
+                    id="name"
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder={t("contact.yourName")}
+                  />
+                </div>
 
-                    <div>
-                      <label htmlFor="email" className="block mb-2">
-                        {t("contact.email")}
-                      </label>
-                      <Input
-                        id="email"
-                        type="email"
-                        required
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        placeholder={t("contact.yourEmail")}
-                        className="w-full"
-                      />
-                    </div>
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium mb-1.5">
+                    {t("contact.email")}
+                  </label>
+                  <Input
+                    id="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder={t("contact.yourEmail")}
+                  />
+                </div>
 
-                    <div>
-                      <label htmlFor="phone" className="block mb-2">
-                        {t("contact.phone")}
-                      </label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        placeholder={t("contact.yourPhone")}
-                        className="w-full"
-                      />
-                    </div>
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium mb-1.5">
+                    {t("contact.phone")}
+                  </label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder={t("contact.yourPhone")}
+                  />
+                </div>
 
-                    <div>
-                      <label htmlFor="message" className="block mb-2">
-                        {t("contact.message")}
-                      </label>
-                      <Textarea
-                        id="message"
-                        required
-                        value={formData.message}
-                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                        placeholder={t("contact.yourMessage")}
-                        rows={6}
-                        className="w-full"
-                      />
-                    </div>
+                <div>
+                  <label htmlFor="message" className="block text-sm font-medium mb-1.5">
+                    {t("contact.message")}
+                  </label>
+                  <Textarea
+                    id="message"
+                    required
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    placeholder={t("contact.yourMessage")}
+                    rows={6}
+                  />
+                </div>
 
-                    <Button
-                      type="submit"
-                      size="lg"
-                      className="w-full bg-[#5B7D95] hover:bg-[#4E6C83] text-white"
-                      disabled={isSubmitting}
-                    >
-                      <Send className="mr-2 h-5 w-5" />
-                      {isSubmitting ? t("contact.sending") : t("contact.send")}
-                    </Button>
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full bg-[#5B7D95] hover:bg-[#4E6C83] text-white"
+                  disabled={isSubmitting}
+                >
+                  <Send className="mr-2 h-4 w-4" />
+                  {isSubmitting ? t("contact.sending") : t("contact.send")}
+                </Button>
 
-                    {submitMessage ? (
-                      <p className={`text-sm ${submitStatus === "success" ? "text-emerald-600" : "text-red-600"}`}>
-                        {submitMessage}
-                      </p>
-                    ) : null}
-                  </form>
-                </CardContent>
-              </Card>
+                {submitMessage ? (
+                  <p
+                    className={`text-sm ${
+                      submitStatus === "success" ? "text-emerald-600" : "text-red-600"
+                    }`}
+                  >
+                    {submitMessage}
+                  </p>
+                ) : null}
+              </form>
             </motion.div>
 
-            {/* Contact Info */}
+            {/* Info */}
             <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              className="space-y-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="space-y-8"
             >
               <div>
-                <h2 className="text-3xl font-bold mb-6">{t("contact.ourCoords")}</h2>
-                <p className="text-lg text-muted-foreground mb-8">
-                  {t("contact.reachUs")}
-                </p>
+                <h2 className="text-2xl font-bold mb-2 tracking-tight">{t("contact.ourCoords")}</h2>
+                <p className="text-muted-foreground">{t("contact.reachUs")}</p>
               </div>
 
-              <div className="space-y-4">
-                {contactInfo.map((info, index) => (
-                  <motion.div
-                    key={info.title}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                  >
-                    <Card className="hover:shadow-lg transition-shadow">
-                      <CardContent className="p-6">
-                        <div className="flex items-start gap-4">
-                          <div className="p-3 bg-[#D7E7F1] dark:bg-[#5B7D95]/20 rounded-lg flex-shrink-0">
-                            <info.icon className="h-6 w-6 text-[#5B7D95]" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold mb-1">{info.title}</h3>
-                            {info.link ? (
-                              <a
-                                href={info.link}
-                                className="text-muted-foreground hover:text-[#5B7D95] transition-colors"
-                              >
-                                {info.content}
-                              </a>
-                            ) : (
-                              <p className="text-muted-foreground">{info.content}</p>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
+              <div className="space-y-6">
+                {contactGroups.map((group) => (
+                  <div key={group.title} className="flex gap-4">
+                    <group.icon className="h-5 w-5 text-[#5B7D95] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1.5">
+                        {group.title}
+                      </p>
+                      <div className="space-y-0.5">
+                        {group.items.map((item) => (
+                          <a
+                            key={item.href}
+                            href={item.href}
+                            target={item.href.startsWith("http") ? "_blank" : undefined}
+                            rel={item.href.startsWith("http") ? "noreferrer" : undefined}
+                            className="block text-sm font-medium hover:text-[#5B7D95] transition-colors"
+                          >
+                            {item.label}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
 
-              <Card className="bg-[#EAF2F6] dark:bg-[#5B7D95]/10 border-[#5B7D95]">
-                <CardContent className="p-6">
-                  <h3 className="font-bold text-xl mb-3">{t("contact.contactHours")}</h3>
-                  <p className="text-muted-foreground mb-2">
-                    {t("contact.availability")}
-                  </p>
-                  <ul className="space-y-1 text-muted-foreground">
-                    {(t("contact.hours", { returnObjects: true }) as string[]).map((hour) => (
-                      <li key={hour}>• {hour}</li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
+              <div className="border-t border-border/50 pt-6">
+                <p className="text-sm font-semibold mb-2">{t("contact.contactHours")}</p>
+                <p className="text-sm text-muted-foreground mb-2">{t("contact.availability")}</p>
+                <ul className="space-y-1">
+                  {(t("contact.hours", { returnObjects: true }) as string[]).map((hour) => (
+                    <li key={hour} className="text-sm text-muted-foreground">
+                      {hour}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Visit Section */}
-      <section className="py-20 px-6 bg-muted/30 dark:bg-muted/10">
-        <div className="max-w-7xl mx-auto">
+      {/* Visit */}
+      <section className="py-16 px-6 bg-muted/20 dark:bg-muted/5 border-t border-border/40">
+        <div className="max-w-5xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center"
+            transition={{ duration: 0.5 }}
           >
-            <h2 className="text-4xl font-bold mb-4">{t("contact.visitUs")}</h2>
-            <p className="text-xl text-muted-foreground mb-8">
-              {t("contact.visitDesc")}
-            </p>
-            <div className="mx-auto max-w-2xl rounded-3xl border border-[#5B7D95]/20 bg-background/90 p-8 shadow-lg shadow-[#5B7D95]/10">
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-5 rounded-full bg-[#D7E7F1] p-4 dark:bg-[#5B7D95]/20">
-                  <MapPin className="h-8 w-8 text-[#5B7D95]" />
+            <h2 className="text-2xl font-bold mb-2 tracking-tight">{t("contact.visitUs")}</h2>
+            <p className="text-muted-foreground mb-8">{t("contact.visitDesc")}</p>
+            <Card className="border max-w-xl">
+              <CardContent className="p-6 flex items-start gap-4">
+                <MapPin className="h-5 w-5 text-[#5B7D95] flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold mb-1">{t("contact.venueTitle")}</p>
+                  <p className="text-sm text-muted-foreground mb-4">{t("contact.venueDesc")}</p>
+                  <Button asChild size="sm" className="bg-[#5B7D95] text-white hover:bg-[#4E6C83]">
+                    <Link to="/planning">{t("contact.seePlanning")}</Link>
+                  </Button>
                 </div>
-                <p className="text-lg font-semibold">{t("contact.venueTitle")}</p>
-                <p className="mt-2 mb-6 max-w-xl text-muted-foreground">
-                  {t("contact.venueDesc")}
-                </p>
-                <Button asChild size="lg" className="bg-[#5B7D95] text-white hover:bg-[#4E6C83]">
-                  <Link to="/planning">{t("contact.seePlanning")}</Link>
-                </Button>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </motion.div>
         </div>
       </section>

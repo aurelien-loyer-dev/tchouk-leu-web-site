@@ -7,14 +7,15 @@ import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from "./ui/
 import { useTranslation } from "react-i18next";
 
 const LANGUAGES = [
-  { code: "fr", label: "Français", flag: "🇫🇷" },
-  { code: "en", label: "English", flag: "🇬🇧" },
-  { code: "zh", label: "中文", flag: "🇨🇳" },
+  { code: "fr", label: "Français" },
+  { code: "en", label: "English" },
+  { code: "zh", label: "中文" },
 ] as const;
 
-function LanguageSwitcher({ isWhitesSharkPage }: { isWhitesSharkPage: boolean }) {
+function LanguageSwitcher({ isWhiteSharks }: { isWhiteSharks: boolean }) {
   const { i18n: i18nInstance } = useTranslation();
   const currentLang = (i18nInstance.language ?? "fr").split("-")[0];
+  const activeColor = isWhiteSharks ? "text-violet-600 dark:text-violet-300" : "text-[#5B7D95]";
 
   return (
     <div className="flex items-center gap-0.5">
@@ -24,11 +25,7 @@ function LanguageSwitcher({ isWhitesSharkPage }: { isWhitesSharkPage: boolean })
           type="button"
           onClick={() => void i18nInstance.changeLanguage(lang.code)}
           className={`px-1.5 py-0.5 text-xs font-semibold rounded transition-colors ${
-            currentLang === lang.code
-              ? isWhitesSharkPage
-                ? "text-violet-600 dark:text-violet-300"
-                : "text-[#5B7D95]"
-              : "text-muted-foreground hover:text-foreground"
+            currentLang === lang.code ? activeColor : "text-muted-foreground hover:text-foreground"
           }`}
         >
           {lang.code === "zh" ? "中文" : lang.code.toUpperCase()}
@@ -38,24 +35,29 @@ function LanguageSwitcher({ isWhitesSharkPage }: { isWhitesSharkPage: boolean })
   );
 }
 
+const NAV_LINKS = [
+  { to: "/", key: "nav.home", exact: true },
+  { to: "/club", key: "nav.club", exact: false },
+  { to: "/planning", key: "nav.planning", exact: false },
+  { to: "/white-sharks", key: "nav.whiteSharks", exact: false },
+  { to: "/galerie", key: "nav.gallery", exact: false },
+  { to: "/contact", key: "nav.contact", exact: false },
+] as const;
+
 export function Header() {
   const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const isHomePage = location.pathname === "/";
-  const isWhitesSharkPage = location.pathname.startsWith("/white-sharks");
+  const isWhiteSharks = location.pathname.startsWith("/white-sharks");
+
+  const isActive = (to: string, exact: boolean) =>
+    exact ? location.pathname === to : location.pathname.startsWith(to);
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setIsVisible(true);
-      } else {
-        setIsVisible(false);
-      }
-    };
-
     if (isHomePage) {
+      const handleScroll = () => setIsVisible(window.scrollY > 10);
       window.addEventListener("scroll", handleScroll);
       handleScroll();
       return () => window.removeEventListener("scroll", handleScroll);
@@ -68,6 +70,30 @@ export function Header() {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
+  const navLinkClass = (to: string, exact: boolean) => {
+    const active = isActive(to, exact);
+    const activeStyle = isWhiteSharks
+      ? "text-violet-700 dark:text-violet-300"
+      : "text-[#5B7D95]";
+    const inactiveStyle = isWhiteSharks
+      ? "text-foreground/70 hover:text-violet-700 dark:hover:text-violet-300"
+      : "text-foreground/70 hover:text-foreground";
+    return `relative text-sm font-medium transition-colors pb-0.5 ${active ? activeStyle : inactiveStyle}`;
+  };
+
+  const mobileLinkClass = (to: string, exact: boolean) => {
+    const active = isActive(to, exact);
+    const baseStyle = "rounded-md px-3 py-2 text-sm font-medium transition-colors";
+    if (active) {
+      return isWhiteSharks
+        ? `${baseStyle} bg-violet-100 dark:bg-violet-500/20 text-violet-800 dark:text-violet-200`
+        : `${baseStyle} bg-accent text-[#5B7D95]`;
+    }
+    return isWhiteSharks
+      ? `${baseStyle} hover:bg-violet-100/70 dark:hover:bg-violet-500/10 text-foreground/70`
+      : `${baseStyle} hover:bg-accent/60 text-foreground/70`;
+  };
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
@@ -76,120 +102,69 @@ export function Header() {
     >
       <div
         className={`backdrop-blur-md border-b ${
-          isWhitesSharkPage
-            ? "bg-violet-100/80 dark:bg-background/90 border-violet-300/70 dark:border-violet-400/35"
-            : "bg-background/80 border-border"
+          isWhiteSharks
+            ? "bg-violet-50/85 dark:bg-background/90 border-violet-200/60 dark:border-violet-400/25"
+            : "bg-background/85 border-border/60"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-11 w-auto object-contain" />
-            {isWhitesSharkPage && (
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3 flex-shrink-0">
+            <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-9 w-auto object-contain" />
+            {isWhiteSharks && (
               <>
-                <span className="font-semibold text-violet-400 dark:text-violet-300">X</span>
-                <img src="/images/WhiteSharksLogo.png" alt="Logo White Sharks" className="h-11 w-auto object-contain rounded-sm" />
+                <span className="text-sm font-medium text-muted-foreground">×</span>
+                <img
+                  src="/images/WhiteSharksLogo.png"
+                  alt="Logo White Sharks"
+                  className="h-9 w-auto object-contain rounded-sm"
+                />
               </>
             )}
           </Link>
-          
-          <nav className="hidden md:flex items-center gap-8">
-            <Link to="/" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#5B7D95] transition-colors"}>
-              {t("nav.home")}
-            </Link>
-            <Link to="/club" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#5B7D95] transition-colors"}>
-              {t("nav.club")}
-            </Link>
-            <Link to="/planning" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#5B7D95] transition-colors"}>
-              {t("nav.planning")}
-            </Link>
-            <Link to="/white-sharks" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#5B7D95] transition-colors"}>
-              {t("nav.whiteSharks")}
-            </Link>
-            <Link to="/galerie" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#5B7D95] transition-colors"}>
-              {t("nav.gallery")}
-            </Link>
-            <Link to="/contact" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#5B7D95] transition-colors"}>
-              {t("nav.contact")}
-            </Link>
-            <LanguageSwitcher isWhitesSharkPage={isWhitesSharkPage} />
+
+          <nav className="hidden md:flex items-center gap-7">
+            {NAV_LINKS.map(({ to, key, exact }) => (
+              <Link key={to} to={to} className={navLinkClass(to, exact)}>
+                {t(key)}
+                {isActive(to, exact) && (
+                  <span
+                    className={`absolute bottom-0 left-0 right-0 h-px ${
+                      isWhiteSharks ? "bg-violet-500" : "bg-[#5B7D95]"
+                    }`}
+                  />
+                )}
+              </Link>
+            ))}
+            <LanguageSwitcher isWhiteSharks={isWhiteSharks} />
             <ThemeToggle />
           </nav>
 
           <div className="md:hidden flex items-center gap-2">
-            <LanguageSwitcher isWhitesSharkPage={isWhitesSharkPage} />
+            <LanguageSwitcher isWhiteSharks={isWhiteSharks} />
             <ThemeToggle />
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button type="button" variant="outline" size="icon" aria-label={t("nav.openMenu")}>
+                <Button type="button" variant="ghost" size="icon" aria-label={t("nav.openMenu")}>
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent
                 side="right"
-                className={`pt-12 ${isWhitesSharkPage ? "bg-violet-100/90 dark:bg-background border-violet-300/70 dark:border-violet-400/35" : ""}`}
+                className={`pt-10 ${
+                  isWhiteSharks
+                    ? "bg-violet-50/95 dark:bg-background border-violet-200/60 dark:border-violet-400/25"
+                    : "bg-background"
+                }`}
               >
                 <SheetTitle className="sr-only">{t("nav.mainMenu")}</SheetTitle>
-                <nav className="flex flex-col gap-2 px-1">
-                  <SheetClose asChild>
-                    <Link
-                      to="/"
-                      className={`rounded-md px-3 py-2 font-medium ${
-                        isWhitesSharkPage ? "hover:bg-violet-200/70 dark:hover:bg-violet-500/20 hover:text-violet-800 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
-                      }`}
-                    >
-                      {t("nav.home")}
-                    </Link>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <Link
-                      to="/club"
-                      className={`rounded-md px-3 py-2 font-medium ${
-                        isWhitesSharkPage ? "hover:bg-violet-200/70 dark:hover:bg-violet-500/20 hover:text-violet-800 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
-                      }`}
-                    >
-                      {t("nav.club")}
-                    </Link>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <Link
-                      to="/planning"
-                      className={`rounded-md px-3 py-2 font-medium ${
-                        isWhitesSharkPage ? "hover:bg-violet-200/70 dark:hover:bg-violet-500/20 hover:text-violet-800 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
-                      }`}
-                    >
-                      {t("nav.planning")}
-                    </Link>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <Link
-                      to="/white-sharks"
-                      className={`rounded-md px-3 py-2 font-medium ${
-                        isWhitesSharkPage ? "hover:bg-violet-200/70 dark:hover:bg-violet-500/20 hover:text-violet-800 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
-                      }`}
-                    >
-                      {t("nav.whiteSharks")}
-                    </Link>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <Link
-                      to="/galerie"
-                      className={`rounded-md px-3 py-2 font-medium ${
-                        isWhitesSharkPage ? "hover:bg-violet-200/70 dark:hover:bg-violet-500/20 hover:text-violet-800 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
-                      }`}
-                    >
-                      {t("nav.gallery")}
-                    </Link>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <Link
-                      to="/contact"
-                      className={`rounded-md px-3 py-2 font-medium ${
-                        isWhitesSharkPage ? "hover:bg-violet-200/70 dark:hover:bg-violet-500/20 hover:text-violet-800 dark:hover:text-violet-200" : "hover:bg-accent hover:text-accent-foreground"
-                      }`}
-                    >
-                      {t("nav.contact")}
-                    </Link>
-                  </SheetClose>
+                <nav className="flex flex-col gap-1 px-1">
+                  {NAV_LINKS.map(({ to, key, exact }) => (
+                    <SheetClose key={to} asChild>
+                      <Link to={to} className={mobileLinkClass(to, exact)}>
+                        {t(key)}
+                      </Link>
+                    </SheetClose>
+                  ))}
                 </nav>
               </SheetContent>
             </Sheet>
