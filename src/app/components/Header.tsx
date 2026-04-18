@@ -27,7 +27,7 @@ function LanguageSwitcher({ isWhitesSharkPage }: { isWhitesSharkPage: boolean })
             currentLang === lang.code
               ? isWhitesSharkPage
                 ? "text-violet-600 dark:text-violet-300"
-                : "text-[#4C93C3]"
+                : "text-[#5B7D95]"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
@@ -93,22 +93,22 @@ export function Header() {
           </Link>
           
           <nav className="hidden md:flex items-center gap-8">
-            <Link to="/" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
+            <Link to="/" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#5B7D95] transition-colors"}>
               {t("nav.home")}
             </Link>
-            <Link to="/club" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
+            <Link to="/club" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#5B7D95] transition-colors"}>
               {t("nav.club")}
             </Link>
-            <Link to="/planning" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
+            <Link to="/planning" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#5B7D95] transition-colors"}>
               {t("nav.planning")}
             </Link>
-            <Link to="/white-sharks" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
+            <Link to="/white-sharks" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#5B7D95] transition-colors"}>
               {t("nav.whiteSharks")}
             </Link>
-            <Link to="/galerie" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
+            <Link to="/galerie" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#5B7D95] transition-colors"}>
               {t("nav.gallery")}
             </Link>
-            <Link to="/contact" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#4C93C3] transition-colors"}>
+            <Link to="/contact" className={isWhitesSharkPage ? "hover:text-violet-700 dark:hover:text-violet-200 transition-colors" : "hover:text-[#5B7D95] transition-colors"}>
               {t("nav.contact")}
             </Link>
             <LanguageSwitcher isWhitesSharkPage={isWhitesSharkPage} />

@@ -25,7 +25,7 @@ export function Hero() {
           alt="OIBOI"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#F6FBFF]/72 via-[#DDF4FF]/38 to-background/72 dark:from-[#0f1d2a]/55 dark:via-[#102733]/35 dark:to-background/80" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#F6FBFF]/72 via-[#EAF2F6]/38 to-background/72 dark:from-[#0f1d2a]/55 dark:via-[#17242C]/35 dark:to-background/80" />
       </div>
 
       {/* Content */}
@@ -72,7 +72,7 @@ export function Hero() {
           <Button
             size="lg"
             variant="outline"
-            className="border-2 border-[#0F172A] bg-[#F6FBFF]/80 text-[#0F172A] backdrop-blur-sm hover:bg-[#DDF4FF] px-8 py-6 text-lg dark:border-white/70 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
+            className="border-2 border-[#0F172A] bg-[#F6FBFF]/80 text-[#0F172A] backdrop-blur-sm hover:bg-[#EAF2F6] px-8 py-6 text-lg dark:border-white/70 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
             onClick={() => navigate("/contact")}
           >
             {t("hero.contactUs")}

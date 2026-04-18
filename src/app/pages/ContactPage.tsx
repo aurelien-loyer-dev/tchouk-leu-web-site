@@ -112,7 +112,7 @@ export function ContactPage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-[#DDF4FF] to-background dark:from-[#1a3a4a] dark:to-background">
+      <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-[#EAF2F6] to-background dark:from-[#1E2D36] dark:to-background">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -138,7 +138,7 @@ export function ContactPage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <Card className="border-2 border-[#4C93C3]">
+              <Card className="border-2 border-[#5B7D95]">
                 <CardHeader>
                   <CardTitle className="text-3xl">{t("contact.sendMessage")}</CardTitle>
                 </CardHeader>
@@ -219,7 +219,7 @@ export function ContactPage() {
                     <Button
                       type="submit"
                       size="lg"
-                      className="w-full bg-[#4C93C3] hover:bg-[#3a7ba8] text-white"
+                      className="w-full bg-[#5B7D95] hover:bg-[#4E6C83] text-white"
                       disabled={isSubmitting}
                     >
                       <Send className="mr-2 h-5 w-5" />
@@ -261,15 +261,15 @@ export function ContactPage() {
                     <Card className="hover:shadow-lg transition-shadow">
                       <CardContent className="p-6">
                         <div className="flex items-start gap-4">
-                          <div className="p-3 bg-[#BFE6FF] dark:bg-[#4C93C3]/20 rounded-lg flex-shrink-0">
-                            <info.icon className="h-6 w-6 text-[#4C93C3]" />
+                          <div className="p-3 bg-[#D7E7F1] dark:bg-[#5B7D95]/20 rounded-lg flex-shrink-0">
+                            <info.icon className="h-6 w-6 text-[#5B7D95]" />
                           </div>
                           <div>
                             <h3 className="font-semibold mb-1">{info.title}</h3>
                             {info.link ? (
                               <a
                                 href={info.link}
-                                className="text-muted-foreground hover:text-[#4C93C3] transition-colors"
+                                className="text-muted-foreground hover:text-[#5B7D95] transition-colors"
                               >
                                 {info.content}
                               </a>
@@ -284,7 +284,7 @@ export function ContactPage() {
                 ))}
               </div>
 
-              <Card className="bg-[#DDF4FF] dark:bg-[#4C93C3]/10 border-[#4C93C3]">
+              <Card className="bg-[#EAF2F6] dark:bg-[#5B7D95]/10 border-[#5B7D95]">
                 <CardContent className="p-6">
                   <h3 className="font-bold text-xl mb-3">{t("contact.contactHours")}</h3>
                   <p className="text-muted-foreground mb-2">
@@ -316,16 +316,16 @@ export function ContactPage() {
             <p className="text-xl text-muted-foreground mb-8">
               {t("contact.visitDesc")}
             </p>
-            <div className="mx-auto max-w-2xl rounded-3xl border border-[#4C93C3]/20 bg-background/90 p-8 shadow-lg shadow-[#4C93C3]/10">
+            <div className="mx-auto max-w-2xl rounded-3xl border border-[#5B7D95]/20 bg-background/90 p-8 shadow-lg shadow-[#5B7D95]/10">
               <div className="flex flex-col items-center text-center">
-                <div className="mb-5 rounded-full bg-[#BFE6FF] p-4 dark:bg-[#4C93C3]/20">
-                  <MapPin className="h-8 w-8 text-[#4C93C3]" />
+                <div className="mb-5 rounded-full bg-[#D7E7F1] p-4 dark:bg-[#5B7D95]/20">
+                  <MapPin className="h-8 w-8 text-[#5B7D95]" />
                 </div>
                 <p className="text-lg font-semibold">{t("contact.venueTitle")}</p>
                 <p className="mt-2 mb-6 max-w-xl text-muted-foreground">
                   {t("contact.venueDesc")}
                 </p>
-                <Button asChild size="lg" className="bg-[#4C93C3] text-white hover:bg-[#3a7ba8]">
+                <Button asChild size="lg" className="bg-[#5B7D95] text-white hover:bg-[#4E6C83]">
                   <Link to="/planning">{t("contact.seePlanning")}</Link>
                 </Button>
               </div>

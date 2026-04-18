@@ -44,7 +44,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/"
-                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#5B7D95] transition-colors"}
                 >
                   {t("nav.home")}
                 </Link>
@@ -52,7 +52,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/club"
-                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#5B7D95] transition-colors"}
                 >
                   {t("nav.club")}
                 </Link>
@@ -60,7 +60,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/planning"
-                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#5B7D95] transition-colors"}
                 >
                   {t("nav.planning")}
                 </Link>
@@ -68,7 +68,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/white-sharks"
-                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#5B7D95] transition-colors"}
                 >
                   White Sharks
                 </Link>
@@ -76,7 +76,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/galerie"
-                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#5B7D95] transition-colors"}
                 >
                   {t("nav.gallery")}
                 </Link>
@@ -84,7 +84,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/contact"
-                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#4C93C3] transition-colors"}
+                  className={isWhitesSharkPage ? "text-muted-foreground hover:text-violet-800 dark:hover:text-violet-200 transition-colors" : "text-muted-foreground hover:text-[#5B7D95] transition-colors"}
                 >
                   {t("nav.contact")}
                 </Link>
@@ -97,7 +97,7 @@ export function Footer() {
             <h4 className="font-bold mb-4 text-lg">{t("footer.contact")}</h4>
             <ul className="space-y-3">
               <li className={isWhitesSharkPage ? "flex items-center gap-3 text-muted-foreground" : "flex items-center gap-3 text-muted-foreground"}>
-                <Instagram className={isWhitesSharkPage ? "h-5 w-5 text-violet-500 dark:text-violet-300" : "h-5 w-5 text-[#4C93C3]"} />
+                <Instagram className={isWhitesSharkPage ? "h-5 w-5 text-violet-500 dark:text-violet-300" : "h-5 w-5 text-[#5B7D95]"} />
                 {isWhitesSharkPage && (
                   <a
                     href="https://www.instagram.com/wst_tchoukball/"
@@ -113,36 +113,36 @@ export function Footer() {
                     href="https://www.instagram.com/tchouk_leu/"
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:text-[#4C93C3] transition-colors"
+                    className="hover:text-[#5B7D95] transition-colors"
                   >
                     @tchouk_leu
                   </a>
                 )}
               </li>
               <li className={isWhitesSharkPage ? "flex items-center gap-3 text-muted-foreground" : "flex items-center gap-3 text-muted-foreground"}>
-                <Mail className={isWhitesSharkPage ? "h-5 w-5 text-violet-500 dark:text-violet-300" : "h-5 w-5 text-[#4C93C3]"} />
+                <Mail className={isWhitesSharkPage ? "h-5 w-5 text-violet-500 dark:text-violet-300" : "h-5 w-5 text-[#5B7D95]"} />
                 {isWhitesSharkPage ? (
                   <span>bgaillard.pro@gmail.com</span>
                 ) : (
                   <div className="flex flex-col">
-                    <a href="mailto:bgaillard.pro@gmail.com" className="hover:text-[#4C93C3] transition-colors">bgaillard.pro@gmail.com</a>
-                    <a href="mailto:nicolasg97424@gmail.com" className="hover:text-[#4C93C3] transition-colors">nicolasg97424@gmail.com</a>
+                    <a href="mailto:bgaillard.pro@gmail.com" className="hover:text-[#5B7D95] transition-colors">bgaillard.pro@gmail.com</a>
+                    <a href="mailto:nicolasg97424@gmail.com" className="hover:text-[#5B7D95] transition-colors">nicolasg97424@gmail.com</a>
                   </div>
                 )}
               </li>
               <li className={isWhitesSharkPage ? "flex items-center gap-3 text-muted-foreground" : "flex items-center gap-3 text-muted-foreground"}>
-                <Phone className={isWhitesSharkPage ? "h-5 w-5 text-violet-500 dark:text-violet-300" : "h-5 w-5 text-[#4C93C3]"} />
+                <Phone className={isWhitesSharkPage ? "h-5 w-5 text-violet-500 dark:text-violet-300" : "h-5 w-5 text-[#5B7D95]"} />
                 {isWhitesSharkPage ? (
                   <a href="tel:+33656714037" className="hover:text-violet-800 dark:hover:text-violet-200 transition-colors">+33 6 56 71 40 37</a>
                 ) : (
                   <div className="flex flex-col">
-                    <a href="tel:+33656714037" className="hover:text-[#4C93C3] transition-colors">+33 6 56 71 40 37</a>
-                    <a href="tel:+262692812102" className="hover:text-[#4C93C3] transition-colors">+262 692 812102</a>
+                    <a href="tel:+33656714037" className="hover:text-[#5B7D95] transition-colors">+33 6 56 71 40 37</a>
+                    <a href="tel:+262692812102" className="hover:text-[#5B7D95] transition-colors">+262 692 812102</a>
                   </div>
                 )}
               </li>
               <li className={isWhitesSharkPage ? "flex items-center gap-3 text-muted-foreground" : "flex items-center gap-3 text-muted-foreground"}>
-                <MapPin className={isWhitesSharkPage ? "h-5 w-5 text-violet-500 dark:text-violet-300" : "h-5 w-5 text-[#4C93C3]"} />
+                <MapPin className={isWhitesSharkPage ? "h-5 w-5 text-violet-500 dark:text-violet-300" : "h-5 w-5 text-[#5B7D95]"} />
                 <span>{isWhitesSharkPage ? t("footer.indianOcean") : "Saint-Leu, Réunion"}</span>
               </li>
             </ul>

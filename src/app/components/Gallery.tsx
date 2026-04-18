@@ -60,7 +60,7 @@ export function Gallery() {
                 alt={image.alt}
                 className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
               />
-              <div className="absolute inset-0 bg-[#4C93C3]/0 group-hover:bg-[#4C93C3]/20 transition-colors duration-300" />
+              <div className="absolute inset-0 bg-[#5B7D95]/0 group-hover:bg-[#5B7D95]/20 transition-colors duration-300" />
             </motion.div>
           ))}
         </div>

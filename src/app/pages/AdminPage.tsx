@@ -873,17 +873,17 @@ export function AdminPage() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen">
-        <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-[#DDF4FF] to-background dark:from-[#1a3a4a] dark:to-background">
+        <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-[#EAF2F6] to-background dark:from-[#1E2D36] dark:to-background">
           <div className="max-w-xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <Card className="border-2 border-[#4C93C3]">
+              <Card className="border-2 border-[#5B7D95]">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-3xl">
-                    <LockKeyhole className="h-7 w-7 text-[#4C93C3]" />
+                    <LockKeyhole className="h-7 w-7 text-[#5B7D95]" />
                     Admin prive
                   </CardTitle>
                 </CardHeader>
@@ -916,7 +916,7 @@ export function AdminPage() {
                       />
                     </div>
                     {loginError ? <p className="text-sm text-red-600">{loginError}</p> : null}
-                    <Button type="submit" className="w-full bg-[#4C93C3] text-white hover:bg-[#3a7ba8]">
+                    <Button type="submit" className="w-full bg-[#5B7D95] text-white hover:bg-[#4E6C83]">
                       Entrer dans le panel admin
                     </Button>
                   </form>
@@ -931,7 +931,7 @@ export function AdminPage() {
 
   return (
     <div className="min-h-screen">
-      <section className="pt-32 pb-12 px-6 bg-gradient-to-b from-[#DDF4FF] via-[#F4FBFF] to-background dark:from-[#1a3a4a] dark:via-[#102733] dark:to-background border-b border-border/60">
+      <section className="pt-32 pb-12 px-6 bg-gradient-to-b from-[#EAF2F6] via-[#F7FAFC] to-background dark:from-[#1E2D36] dark:via-[#17242C] dark:to-background border-b border-border/60">
         <div className="max-w-7xl mx-auto flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="text-5xl font-bold mb-4">Panel admin</h1>
@@ -958,10 +958,10 @@ export function AdminPage() {
 
       <section className="py-12 px-6 bg-background">
         <div className="max-w-7xl mx-auto grid xl:grid-cols-[1.05fr_1.35fr] gap-8">
-          <Card className="border-2 border-[#4C93C3]/20">
+          <Card className="border-2 border-[#5B7D95]/20">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-2xl">
-                <Eye className="h-6 w-6 text-[#4C93C3]" />
+                <Eye className="h-6 w-6 text-[#5B7D95]" />
                 Activites enregistrees
               </CardTitle>
             </CardHeader>
@@ -979,7 +979,7 @@ export function AdminPage() {
                       type="button"
                       onClick={() => handleSelectActivity(activity)}
                       className={`w-full rounded-xl border p-4 text-left transition-colors ${
-                        selectedId === activity.id ? "border-[#4C93C3] bg-[#4C93C3]/5" : "border-border hover:border-[#4C93C3]/50"
+                        selectedId === activity.id ? "border-[#5B7D95] bg-[#5B7D95]/5" : "border-border hover:border-[#5B7D95]/50"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -989,7 +989,7 @@ export function AdminPage() {
                             {dateFormatter.format(new Date(`${activity.date}T00:00:00`))} • {activity.startTime} - {activity.endTime}
                           </p>
                         </div>
-                        <span className="rounded-full bg-[#4C93C3]/10 px-2.5 py-1 text-xs font-medium text-[#4C93C3]">
+                        <span className="rounded-full bg-[#5B7D95]/10 px-2.5 py-1 text-xs font-medium text-[#5B7D95]">
                           {getCategoryLabel(activity.category)}
                         </span>
                       </div>
@@ -1006,7 +1006,7 @@ export function AdminPage() {
                   <div
                     key={activity.id}
                     className={`rounded-xl border overflow-hidden transition-colors ${
-                      hasSelectedOccurrence ? "border-[#4C93C3]" : "border-border"
+                      hasSelectedOccurrence ? "border-[#5B7D95]" : "border-border"
                     }`}
                   >
                     <button
@@ -1026,7 +1026,7 @@ export function AdminPage() {
                             Recurrent • {recurringOccurrencesCount} seances enregistrees
                           </p>
                         </div>
-                        <span className="rounded-full bg-[#4C93C3]/10 px-2.5 py-1 text-xs font-medium text-[#4C93C3] shrink-0">
+                        <span className="rounded-full bg-[#5B7D95]/10 px-2.5 py-1 text-xs font-medium text-[#5B7D95] shrink-0">
                           {getCategoryLabel(activity.category)}
                         </span>
                       </div>
@@ -1042,11 +1042,11 @@ export function AdminPage() {
                             onClick={() => handleSelectActivity(occurrence)}
                             className={`w-full px-4 py-3 text-left transition-colors ${
                               selectedId === occurrence.id
-                                ? "bg-[#4C93C3]/10 text-[#4C93C3]"
+                                ? "bg-[#5B7D95]/10 text-[#5B7D95]"
                                 : "hover:bg-muted/30"
                             }`}
                           >
-                            <p className={`text-sm font-medium ${selectedId === occurrence.id ? "text-[#4C93C3]" : ""}`}>
+                            <p className={`text-sm font-medium ${selectedId === occurrence.id ? "text-[#5B7D95]" : ""}`}>
                               {dateFormatter.format(new Date(`${occurrence.date}T00:00:00`))}
                             </p>
                             <p className="text-xs text-muted-foreground">
@@ -1063,10 +1063,10 @@ export function AdminPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-2 border-[#4C93C3]/20">
+          <Card className="border-2 border-[#5B7D95]/20">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-2xl">
-                <Pencil className="h-6 w-6 text-[#4C93C3]" />
+                <Pencil className="h-6 w-6 text-[#5B7D95]" />
                 {selectedActivity ? "Modifier l'activite" : "Nouvelle activite"}
               </CardTitle>
             </CardHeader>
@@ -1158,7 +1158,7 @@ export function AdminPage() {
               </div>
 
               <div className="flex flex-wrap gap-3">
-                <Button type="button" className="bg-[#4C93C3] text-white hover:bg-[#3a7ba8]" onClick={handleSave}>
+                <Button type="button" className="bg-[#5B7D95] text-white hover:bg-[#4E6C83]" onClick={handleSave}>
                   <Save className="h-4 w-4" />
                   Enregistrer
                 </Button>
@@ -1183,7 +1183,7 @@ export function AdminPage() {
                     type="button"
                     size="sm"
                     variant={attendancePeriodFilter === "upcoming" ? "default" : "outline"}
-                    className={attendancePeriodFilter === "upcoming" ? "bg-[#4C93C3] text-white hover:bg-[#3a7ba8]" : ""}
+                    className={attendancePeriodFilter === "upcoming" ? "bg-[#5B7D95] text-white hover:bg-[#4E6C83]" : ""}
                     onClick={() => setAttendancePeriodFilter("upcoming")}
                   >
                     Futures
@@ -1192,7 +1192,7 @@ export function AdminPage() {
                     type="button"
                     size="sm"
                     variant={attendancePeriodFilter === "past" ? "default" : "outline"}
-                    className={attendancePeriodFilter === "past" ? "bg-[#4C93C3] text-white hover:bg-[#3a7ba8]" : ""}
+                    className={attendancePeriodFilter === "past" ? "bg-[#5B7D95] text-white hover:bg-[#4E6C83]" : ""}
                     onClick={() => setAttendancePeriodFilter("past")}
                   >
                     Passees
@@ -1201,7 +1201,7 @@ export function AdminPage() {
                     type="button"
                     size="sm"
                     variant={attendancePeriodFilter === "all" ? "default" : "outline"}
-                    className={attendancePeriodFilter === "all" ? "bg-[#4C93C3] text-white hover:bg-[#3a7ba8]" : ""}
+                    className={attendancePeriodFilter === "all" ? "bg-[#5B7D95] text-white hover:bg-[#4E6C83]" : ""}
                     onClick={() => setAttendancePeriodFilter("all")}
                   >
                     Toutes
@@ -1267,7 +1267,7 @@ export function AdminPage() {
 
       <section className="pb-20 px-6 bg-background">
         <div className="max-w-7xl mx-auto">
-          <Card className="border-2 border-[#4C93C3]/20">
+          <Card className="border-2 border-[#5B7D95]/20">
             <CardHeader>
               <CardTitle className="text-2xl">Galerie photos</CardTitle>
             </CardHeader>
@@ -1309,7 +1309,7 @@ export function AdminPage() {
 
                   <Button
                     type="button"
-                    className="w-full bg-[#4C93C3] text-white hover:bg-[#3a7ba8]"
+                    className="w-full bg-[#5B7D95] text-white hover:bg-[#4E6C83]"
                     onClick={() => void handleUploadGalleryAlbum()}
                     disabled={isGallerySaving}
                   >
@@ -1357,7 +1357,7 @@ export function AdminPage() {
 
       <section className="pb-20 px-6 bg-background">
         <div className="max-w-7xl mx-auto">
-          <Card className="border-2 border-[#4C93C3]/20">
+          <Card className="border-2 border-[#5B7D95]/20">
             <CardHeader>
               <CardTitle className="text-2xl">Wall of Fame</CardTitle>
             </CardHeader>
@@ -1451,7 +1451,7 @@ export function AdminPage() {
                   <div className="flex gap-2">
                     <Button
                       type="button"
-                      className="flex-1 bg-[#4C93C3] text-white hover:bg-[#3a7ba8]"
+                      className="flex-1 bg-[#5B7D95] text-white hover:bg-[#4E6C83]"
                       onClick={() => void handleSubmitWallOfFameMember()}
                       disabled={isWallSaving}
                     >

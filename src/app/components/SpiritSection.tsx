@@ -7,10 +7,10 @@ export function SpiritSection() {
   const { t } = useTranslation();
 
   const values = [
-    { icon: Heart, label: t("spirit.fairPlay"), color: "#4C93C3" },
-    { icon: Users, label: t("spirit.teamSpirit"), color: "#4C93C3" },
-    { icon: Shield, label: t("spirit.respect"), color: "#4C93C3" },
-    { icon: Zap, label: t("spirit.energy"), color: "#4C93C3" },
+    { icon: Heart, label: t("spirit.fairPlay"), color: "#5B7D95" },
+    { icon: Users, label: t("spirit.teamSpirit"), color: "#5B7D95" },
+    { icon: Shield, label: t("spirit.respect"), color: "#5B7D95" },
+    { icon: Zap, label: t("spirit.energy"), color: "#5B7D95" },
   ];
 
   return (
@@ -38,7 +38,7 @@ export function SpiritSection() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="flex items-center gap-3 p-4 rounded-lg bg-[#DDF4FF]/30 dark:bg-[#4C93C3]/10 border border-[#BFE6FF]/50 dark:border-[#4C93C3]/20"
+                  className="flex items-center gap-3 p-4 rounded-lg bg-[#EAF2F6]/30 dark:bg-[#5B7D95]/10 border border-[#D7E7F1]/50 dark:border-[#5B7D95]/20"
                 >
                   <value.icon className="h-6 w-6 flex-shrink-0" style={{ color: value.color }} />
                   <span className="font-medium">{value.label}</span>
@@ -61,7 +61,7 @@ export function SpiritSection() {
                 alt="Action de tchoukball"
                 className="w-full h-[500px] object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#4C93C3]/20 to-transparent dark:from-[#4C93C3]/40" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#5B7D95]/20 to-transparent dark:from-[#5B7D95]/40" />
             </div>
           </motion.div>
         </div>

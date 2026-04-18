@@ -272,7 +272,7 @@ export function PlanningPage() {
 
   return (
     <div className="min-h-screen">
-      <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-[#DDF4FF] via-[#F4FBFF] to-background dark:from-[#1a3a4a] dark:via-[#102733] dark:to-background">
+      <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-[#EAF2F6] via-[#F7FAFC] to-background dark:from-[#1E2D36] dark:via-[#17242C] dark:to-background">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -287,10 +287,10 @@ export function PlanningPage() {
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6 mt-14">
-            <Card className="border-2 border-[#4C93C3]/30">
+            <Card className="border-2 border-[#5B7D95]/30">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-2xl">
-                  <CalendarDays className="h-6 w-6 text-[#4C93C3]" />
+                  <CalendarDays className="h-6 w-6 text-[#5B7D95]" />
                   {t("planning.nextEvent")}
                 </CardTitle>
               </CardHeader>
@@ -307,28 +307,28 @@ export function PlanningPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-[#4C93C3]/30">
+            <Card className="border-2 border-[#5B7D95]/30">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-2xl">
-                  <Clock3 className="h-6 w-6 text-[#4C93C3]" />
+                  <Clock3 className="h-6 w-6 text-[#5B7D95]" />
                   {t("planning.trainingsPlanned")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-4xl font-bold text-[#4C93C3]">{trainingCount}</p>
+                <p className="text-4xl font-bold text-[#5B7D95]">{trainingCount}</p>
                 <p className="text-muted-foreground mt-2">{t("planning.trainingsVisible")}</p>
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-[#4C93C3]/30">
+            <Card className="border-2 border-[#5B7D95]/30">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-2xl">
-                  <Trophy className="h-6 w-6 text-[#4C93C3]" />
+                  <Trophy className="h-6 w-6 text-[#5B7D95]" />
                   {t("planning.tournamentsAnnounced")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-4xl font-bold text-[#4C93C3]">{tournamentCount}</p>
+                <p className="text-4xl font-bold text-[#5B7D95]">{tournamentCount}</p>
                 <p className="text-muted-foreground mt-2">{t("planning.tournamentsAdded")}</p>
               </CardContent>
             </Card>
@@ -348,7 +348,7 @@ export function PlanningPage() {
                 key={filter}
                 type="button"
                 variant={activeFilter === filter ? "default" : "outline"}
-                className={activeFilter === filter ? "bg-[#4C93C3] text-white hover:bg-[#3a7ba8]" : ""}
+                className={activeFilter === filter ? "bg-[#5B7D95] text-white hover:bg-[#4E6C83]" : ""}
                 onClick={() => setActiveFilter(filter)}
               >
                 {filter === "all" ? t("planning.showAll") : t(`planning.categories.${filter}`)}
@@ -360,10 +360,10 @@ export function PlanningPage() {
 
       <section className="py-10 px-6 bg-background border-b border-border/60">
         <div className="max-w-7xl mx-auto">
-          <Card className="border-2 border-[#4C93C3]/30">
+          <Card className="border-2 border-[#5B7D95]/30">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-2xl">
-                <Clock3 className="h-6 w-6 text-[#4C93C3]" />
+                <Clock3 className="h-6 w-6 text-[#5B7D95]" />
                 {t("planning.quickVote")}
               </CardTitle>
               <p className="text-muted-foreground">{t("planning.quickVoteDesc")}</p>
@@ -412,7 +412,7 @@ export function PlanningPage() {
                             type="button"
                             size="sm"
                             variant={voteByActivity[activity.id] === option.value ? "default" : "outline"}
-                            className={voteByActivity[activity.id] === option.value ? "bg-[#4C93C3] text-white hover:bg-[#3a7ba8]" : ""}
+                            className={voteByActivity[activity.id] === option.value ? "bg-[#5B7D95] text-white hover:bg-[#4E6C83]" : ""}
                             disabled={votingActivityId === activity.id}
                             onClick={() => void handleVote(activity.id, option.value)}
                           >
@@ -433,11 +433,11 @@ export function PlanningPage() {
 
       <section className="py-16 px-6 bg-background border-b border-border/60">
         <div className="max-w-7xl mx-auto grid xl:grid-cols-[1.25fr_1fr] gap-8">
-          <Card className="border-2 border-[#4C93C3]/25">
+          <Card className="border-2 border-[#5B7D95]/25">
             <CardHeader>
               <div className="flex items-center justify-between gap-4">
                 <CardTitle className="flex items-center gap-3 text-2xl">
-                  <CalendarDays className="h-6 w-6 text-[#4C93C3]" />
+                  <CalendarDays className="h-6 w-6 text-[#5B7D95]" />
                   {t("planning.activityCalendar")}
                 </CardTitle>
                 <div className="flex items-center gap-2">
@@ -476,17 +476,17 @@ export function PlanningPage() {
                       onClick={() => setSelectedDate(cell.date)}
                       className={`h-20 rounded-lg border p-2 text-left transition-colors ${
                         isSelected
-                          ? "border-[#4C93C3] bg-[#4C93C3]/10"
-                          : "border-border bg-background hover:border-[#4C93C3]/50"
+                          ? "border-[#5B7D95] bg-[#5B7D95]/10"
+                          : "border-border bg-background hover:border-[#5B7D95]/50"
                       }`}
                     >
                       <p className="text-sm font-semibold">{cell.day}</p>
                       {dayActivities.length > 0 ? (
                         <div className="mt-2 flex flex-wrap gap-1">
                           {dayActivities.slice(0, 3).map((activity) => (
-                            <span key={`${cell.date}-${activity.id}`} className="h-2 w-2 rounded-full bg-[#4C93C3]" />
+                            <span key={`${cell.date}-${activity.id}`} className="h-2 w-2 rounded-full bg-[#5B7D95]" />
                           ))}
-                          {dayActivities.length > 3 ? <span className="text-[10px] text-[#4C93C3]">+{dayActivities.length - 3}</span> : null}
+                          {dayActivities.length > 3 ? <span className="text-[10px] text-[#5B7D95]">+{dayActivities.length - 3}</span> : null}
                         </div>
                       ) : (
                         <p className="mt-2 text-[11px] text-muted-foreground">{t("planning.noActivityDay")}</p>
@@ -510,7 +510,7 @@ export function PlanningPage() {
                           key={`selected-${activity.id}`}
                           type="button"
                           onClick={() => setSelectedLocation(activity.location)}
-                          className="w-full rounded-md bg-background p-3 border border-border/70 text-left hover:border-[#4C93C3]/60"
+                          className="w-full rounded-md bg-background p-3 border border-border/70 text-left hover:border-[#5B7D95]/60"
                         >
                           <p className="font-medium">{activity.title}</p>
                           <p className="text-sm text-muted-foreground">{activity.startTime} - {activity.endTime} • {activity.location}</p>
@@ -527,10 +527,10 @@ export function PlanningPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-2 border-[#4C93C3]/25">
+          <Card className="border-2 border-[#5B7D95]/25">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-2xl">
-                <MapPin className="h-6 w-6 text-[#4C93C3]" />
+                <MapPin className="h-6 w-6 text-[#5B7D95]" />
                 {t("planning.interactiveMap")}
               </CardTitle>
               <p className="text-muted-foreground">
@@ -553,7 +553,7 @@ export function PlanningPage() {
                 href={toGoogleMapsUrl(selectedLocation)}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 text-[#4C93C3] hover:underline"
+                className="inline-flex items-center gap-2 text-[#5B7D95] hover:underline"
               >
                 {t("planning.openOnMaps")}
                 <ExternalLink className="h-4 w-4" />
@@ -572,7 +572,7 @@ export function PlanningPage() {
           ) : null}
 
           {voteMessage ? (
-            <Card className="mb-8 border-[#4C93C3]/40">
+            <Card className="mb-8 border-[#5B7D95]/40">
               <CardContent className="py-4 text-center text-sm text-muted-foreground">{voteMessage}</CardContent>
             </Card>
           ) : null}
@@ -593,34 +593,34 @@ export function PlanningPage() {
                 transition={{ duration: 0.5, delay: index * 0.06 }}
               >
                 <Card
-                  className="h-full border-2 hover:border-[#4C93C3] transition-colors cursor-pointer"
+                  className="h-full border-2 hover:border-[#5B7D95] transition-colors cursor-pointer"
                   onClick={() => setSelectedLocation(activity.location)}
                 >
                   <CardHeader>
                     <div className="flex items-center justify-between gap-4">
                       <CardTitle className="text-2xl">{activity.title}</CardTitle>
-                      <span className="rounded-full bg-[#4C93C3]/10 px-3 py-1 text-sm font-medium text-[#4C93C3]">
+                      <span className="rounded-full bg-[#5B7D95]/10 px-3 py-1 text-sm font-medium text-[#5B7D95]">
                         {t(`planning.categories.${activity.category}`)}
                       </span>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4 text-lg">
                     <div className="flex items-start gap-3 text-muted-foreground">
-                      <CalendarDays className="h-5 w-5 text-[#4C93C3] mt-1 flex-shrink-0" />
+                      <CalendarDays className="h-5 w-5 text-[#5B7D95] mt-1 flex-shrink-0" />
                       <div>
                         <p className="font-semibold text-foreground">{t("planning.date")}</p>
                         <p>{dateFormatter.format(new Date(`${activity.date}T00:00:00`))}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 text-muted-foreground">
-                      <Clock3 className="h-5 w-5 text-[#4C93C3] mt-1 flex-shrink-0" />
+                      <Clock3 className="h-5 w-5 text-[#5B7D95] mt-1 flex-shrink-0" />
                       <div>
                         <p className="font-semibold text-foreground">{t("planning.time")}</p>
                         <p>{activity.startTime} - {activity.endTime}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 text-muted-foreground">
-                      <MapPin className="h-5 w-5 text-[#4C93C3] mt-1 flex-shrink-0" />
+                      <MapPin className="h-5 w-5 text-[#5B7D95] mt-1 flex-shrink-0" />
                       <div>
                         <p className="font-semibold text-foreground">{t("planning.location")}</p>
                         <p>{activity.location}</p>

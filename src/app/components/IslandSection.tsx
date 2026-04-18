@@ -6,7 +6,7 @@ export function IslandSection() {
   const { t } = useTranslation();
 
   return (
-    <section className="py-24 px-6 bg-[#DDF4FF] dark:bg-[#1a3a4a] relative overflow-hidden">
+    <section className="py-24 px-6 bg-[#EAF2F6] dark:bg-[#1E2D36] relative overflow-hidden">
       {/* Bird Silhouette Decoration */}
       <div className="absolute top-20 right-20 opacity-10 dark:opacity-5">
         <ImageWithFallback

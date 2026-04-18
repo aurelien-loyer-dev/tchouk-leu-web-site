@@ -85,7 +85,7 @@ export function ClubPage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-[#DDF4FF] to-background dark:from-[#1a3a4a] dark:to-background">
+      <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-[#EAF2F6] to-background dark:from-[#1E2D36] dark:to-background">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -154,8 +154,8 @@ export function ClubPage() {
                 <Card className="h-full text-center hover:shadow-xl transition-shadow">
                   <CardHeader>
                     <div className="flex justify-center mb-4">
-                      <div className="p-4 bg-[#BFE6FF] dark:bg-[#4C93C3]/20 rounded-full">
-                        <value.icon className="h-10 w-10 text-[#4C93C3]" />
+                      <div className="p-4 bg-[#D7E7F1] dark:bg-[#5B7D95]/20 rounded-full">
+                        <value.icon className="h-10 w-10 text-[#5B7D95]" />
                       </div>
                     </div>
                     <CardTitle className="text-2xl">{value.title}</CardTitle>
@@ -180,7 +180,7 @@ export function ClubPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <Trophy className="h-16 w-16 mx-auto mb-6 text-[#4C93C3]" />
+            <Trophy className="h-16 w-16 mx-auto mb-6 text-[#5B7D95]" />
             <h2 className="text-5xl font-bold mb-4">{t("club.wofTitle")}</h2>
             <p className="text-xl text-muted-foreground">
               {t("club.wofSubtitle")}
@@ -201,7 +201,7 @@ export function ClubPage() {
                     const palmaresEntries = getPalmaresEntries(member);
 
                     return (
-                  <Card className="overflow-hidden border-2 border-[#4C93C3]/20 grid grid-cols-1 md:grid-cols-[280px_1fr] items-stretch">
+                  <Card className="overflow-hidden border-2 border-[#5B7D95]/20 grid grid-cols-1 md:grid-cols-[280px_1fr] items-stretch">
                     <div className="relative overflow-hidden h-56 md:h-auto md:min-h-64">
                         <ImageWithFallback
                           src={member.photoSrc}

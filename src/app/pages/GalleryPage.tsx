@@ -60,7 +60,7 @@ export function GalleryPage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-[#DDF4FF] to-background dark:from-[#1a3a4a] dark:to-background">
+      <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-[#EAF2F6] to-background dark:from-[#1E2D36] dark:to-background">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -86,7 +86,7 @@ export function GalleryPage() {
                 onClick={() => setSelectedCategory(category.id)}
                 className={`px-6 py-3 rounded-full font-medium transition-all ${
                   selectedCategory === category.id
-                    ? "bg-[#4C93C3] text-white"
+                    ? "bg-[#5B7D95] text-white"
                     : "bg-muted hover:bg-muted/80 text-foreground"
                 }`}
               >
@@ -147,7 +147,7 @@ export function GalleryPage() {
                 />
               </div>
               <div className="flex justify-end">
-                <Button asChild className="bg-[#4C93C3] text-white hover:bg-[#3a7ba8]">
+                <Button asChild className="bg-[#5B7D95] text-white hover:bg-[#4E6C83]">
                   <a href={selectedImage.src} download={toDownloadFileName(selectedImage)}>
                     <Download className="h-4 w-4" />
                     {t("gallery.download")}

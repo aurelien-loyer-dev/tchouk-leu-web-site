@@ -49,11 +49,11 @@ export function TrainingSection() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.2 }}
             >
-              <Card className="h-full border-2 hover:border-[#4C93C3] transition-all duration-300 hover:shadow-xl bg-card dark:bg-card">
+              <Card className="h-full border-2 hover:border-[#5B7D95] transition-all duration-300 hover:shadow-xl bg-card dark:bg-card">
                 <CardHeader>
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="p-3 bg-[#BFE6FF] dark:bg-[#4C93C3]/20 rounded-lg">
-                      <card.icon className="h-8 w-8 text-[#4C93C3]" />
+                    <div className="p-3 bg-[#D7E7F1] dark:bg-[#5B7D95]/20 rounded-lg">
+                      <card.icon className="h-8 w-8 text-[#5B7D95]" />
                     </div>
                     <CardTitle className="text-2xl">{card.title}</CardTitle>
                   </div>
@@ -62,7 +62,7 @@ export function TrainingSection() {
                   <ul className="space-y-3">
                     {card.content.map((item, i) => (
                       <li key={i} className="text-lg text-muted-foreground flex items-start gap-2">
-                        <span className="text-[#4C93C3] mt-1.5">•</span>
+                        <span className="text-[#5B7D95] mt-1.5">•</span>
                         <span>{item}</span>
                       </li>
                     ))}
