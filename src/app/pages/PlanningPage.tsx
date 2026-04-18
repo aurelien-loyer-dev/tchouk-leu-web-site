@@ -4,6 +4,7 @@ import { CalendarDays, ChevronLeft, ChevronRight, Clock3, ExternalLink, Filter, 
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
+import { Skeleton } from "../components/ui/skeleton";
 import { ActivityCategory, loadActivities, type Activity } from "../data/activities";
 import { getSavedAttendanceIdentity, submitAttendanceVote, type AttendanceVote } from "../data/attendanceVotes";
 import { useTranslation } from "react-i18next";
@@ -79,6 +80,7 @@ export function PlanningPage() {
   const weekdayLabels = t("planning.weekdays", { returnObjects: true }) as string[];
 
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<ActivityCategory | "all">("all");
   const [loadingError, setLoadingError] = useState("");
   const [voteMessage, setVoteMessage] = useState("");
@@ -105,6 +107,8 @@ export function PlanningPage() {
         setLoadingError("");
       } catch {
         setLoadingError(t("planning.loadingError"));
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -295,7 +299,13 @@ export function PlanningPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {nextActivity ? (
+                {isLoading ? (
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-4 w-2/5" />
+                  </div>
+                ) : nextActivity ? (
                   <div className="space-y-2">
                     <p className="font-semibold text-lg">{nextActivity.title}</p>
                     <p className="text-muted-foreground">{dateFormatter.format(new Date(`${nextActivity.date}T00:00:00`))}</p>
@@ -315,7 +325,11 @@ export function PlanningPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-4xl font-bold text-[#5B7D95]">{trainingCount}</p>
+                {isLoading ? (
+                  <Skeleton className="h-10 w-16" />
+                ) : (
+                  <p className="text-4xl font-bold text-[#5B7D95]">{trainingCount}</p>
+                )}
                 <p className="text-muted-foreground mt-2">{t("planning.trainingsVisible")}</p>
               </CardContent>
             </Card>
@@ -328,7 +342,11 @@ export function PlanningPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-4xl font-bold text-[#5B7D95]">{tournamentCount}</p>
+                {isLoading ? (
+                  <Skeleton className="h-10 w-16" />
+                ) : (
+                  <p className="text-4xl font-bold text-[#5B7D95]">{tournamentCount}</p>
+                )}
                 <p className="text-muted-foreground mt-2">{t("planning.tournamentsAdded")}</p>
               </CardContent>
             </Card>
@@ -578,7 +596,45 @@ export function PlanningPage() {
           ) : null}
 
           <div className="grid lg:grid-cols-2 gap-8">
-            {listedActivities.map((activity, index) => {
+            {isLoading
+              ? Array.from({ length: 4 }).map((_, index) => (
+                  <Card key={index} className="h-full border-2">
+                    <CardHeader>
+                      <div className="flex items-center justify-between gap-4">
+                        <Skeleton className="h-7 w-48" />
+                        <Skeleton className="h-6 w-24 rounded-full" />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-start gap-3">
+                        <Skeleton className="h-5 w-5 mt-1 rounded flex-shrink-0" />
+                        <div className="space-y-1.5 flex-1">
+                          <Skeleton className="h-4 w-16" />
+                          <Skeleton className="h-4 w-40" />
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Skeleton className="h-5 w-5 mt-1 rounded flex-shrink-0" />
+                        <div className="space-y-1.5 flex-1">
+                          <Skeleton className="h-4 w-16" />
+                          <Skeleton className="h-4 w-32" />
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Skeleton className="h-5 w-5 mt-1 rounded flex-shrink-0" />
+                        <div className="space-y-1.5 flex-1">
+                          <Skeleton className="h-4 w-16" />
+                          <Skeleton className="h-4 w-48" />
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-full" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              : listedActivities.map((activity, index) => {
               const recurringTemplateId = getRecurringTemplateId(activity.id);
               const recurringOccurrencesCount = recurringTemplateId
                 ? recurringOccurrencesCountByTemplate[recurringTemplateId] ?? 1
@@ -644,7 +700,7 @@ export function PlanningPage() {
             })}
           </div>
 
-          {listedActivities.length === 0 ? (
+          {!isLoading && listedActivities.length === 0 ? (
             <Card className="mt-8 border-dashed">
               <CardContent className="py-10 text-center text-muted-foreground">
                 {t("planning.noMatchFilter")}

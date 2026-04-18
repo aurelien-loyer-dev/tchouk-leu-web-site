@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { loadGalleryPhotos, type GalleryPhoto } from "../data/gallery";
 import { Dialog, DialogContent, DialogTitle } from "../components/ui/dialog";
 import { Button } from "../components/ui/button";
+import { Skeleton } from "../components/ui/skeleton";
 import { Download } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -101,30 +102,32 @@ export function GalleryPage() {
       <section className="py-16 px-6 bg-background">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredImages.map((image, index) => (
-              <motion.div
-                key={image.id}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: index * 0.05 }}
-                className="relative overflow-hidden rounded-xl group cursor-pointer aspect-square"
-                onClick={() => setSelectedImage(image)}
-              >
-                <ImageWithFallback
-                  src={image.src}
-                  alt={image.alt}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
-              </motion.div>
-            ))}
+            {isLoading
+              ? Array.from({ length: 9 }).map((_, index) => (
+                  <Skeleton key={index} className="aspect-square rounded-xl" />
+                ))
+              : filteredImages.map((image, index) => (
+                  <motion.div
+                    key={image.id}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: index * 0.05 }}
+                    className="relative overflow-hidden rounded-xl group cursor-pointer aspect-square"
+                    onClick={() => setSelectedImage(image)}
+                  >
+                    <ImageWithFallback
+                      src={image.src}
+                      alt={image.alt}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+                  </motion.div>
+                ))}
           </div>
 
-          {filteredImages.length === 0 && (
+          {!isLoading && filteredImages.length === 0 && (
             <div className="text-center py-20">
-              {isLoading ? (
-                <p className="text-xl text-muted-foreground">{t("gallery.loading")}</p>
-              ) : errorMessage ? (
+              {errorMessage ? (
                 <p className="text-xl text-red-600">{errorMessage}</p>
               ) : (
                 <p className="text-xl text-muted-foreground">{t("gallery.empty")}</p>
