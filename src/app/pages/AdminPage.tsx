@@ -18,7 +18,6 @@ import {
   type Activity,
   type ActivityCategory,
 } from "../data/activities";
-import { loadAttendanceSummaryForAdmin, type AttendanceSummary } from "../data/attendanceVotes";
 import { deleteGalleryPhoto, loadGalleryPhotos, uploadGalleryAlbum, type GalleryCategory, type GalleryPhoto } from "../data/gallery";
 import {
   createWallOfFameMember,
@@ -63,97 +62,69 @@ const wallFunctionOptions: Array<{ value: WallOfFameFunction; label: string }> =
   { value: "president", label: "Président" },
 ];
 
-const wallFunctionLabelByValue = wallFunctionOptions.reduce<Record<WallOfFameFunction, string>>((accumulator, option) => {
-  accumulator[option.value] = option.label;
-  return accumulator;
-}, {
+const wallFunctionLabelByValue: Record<WallOfFameFunction, string> = {
   coach: "Coach",
   joueur: "Joueur",
   benevole: "Staff",
   president: "Président",
-});
+};
 
 function sanitizeWallPalmaresByFunction(
   functions: WallOfFameFunction[],
   palmaresByFunction: Partial<Record<WallOfFameFunction, string>>,
 ): WallOfFamePalmaresByFunction {
-  return functions.reduce<WallOfFamePalmaresByFunction>((accumulator, functionValue) => {
-    const value = palmaresByFunction[functionValue]?.trim() ?? "";
-
-    if (value) {
-      accumulator[functionValue] = value;
-    }
-
-    return accumulator;
+  return functions.reduce<WallOfFamePalmaresByFunction>((acc, fn) => {
+    const value = palmaresByFunction[fn]?.trim() ?? "";
+    if (value) acc[fn] = value;
+    return acc;
   }, {});
 }
 
 function getWallPalmaresByFunctionFromMember(member: WallOfFameMember): WallOfFamePalmaresByFunction {
-  const normalizedPalmares = sanitizeWallPalmaresByFunction(member.functions, member.palmaresByFunction ?? {});
-
-  if (Object.keys(normalizedPalmares).length > 0) {
-    return normalizedPalmares;
-  }
-
+  const normalized = sanitizeWallPalmaresByFunction(member.functions, member.palmaresByFunction ?? {});
+  if (Object.keys(normalized).length > 0) return normalized;
   if (member.palmares?.trim()) {
-    return member.functions.reduce<WallOfFamePalmaresByFunction>((accumulator, functionValue) => {
-      accumulator[functionValue] = member.palmares?.trim() ?? "";
-      return accumulator;
+    return member.functions.reduce<WallOfFamePalmaresByFunction>((acc, fn) => {
+      acc[fn] = member.palmares?.trim() ?? "";
+      return acc;
     }, {});
   }
-
   return {};
 }
 
 function getWallPalmaresSummary(member: WallOfFameMember) {
   const palmaresByFunction = getWallPalmaresByFunctionFromMember(member);
-
   return member.functions
-    .map((functionValue) => {
-      const palmares = palmaresByFunction[functionValue]?.trim() ?? "";
-
-      if (!palmares) {
-        return null;
-      }
-
-      return `${wallFunctionLabelByValue[functionValue]}: ${palmares}`;
+    .map((fn) => {
+      const p = palmaresByFunction[fn]?.trim() ?? "";
+      return p ? `${wallFunctionLabelByValue[fn]}: ${p}` : null;
     })
-    .filter((value): value is string => Boolean(value));
+    .filter((v): v is string => Boolean(v));
 }
 
-const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
+const dateFormatter = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
 function getRecurringTemplateId(activityId: string) {
-  if (!activityId.startsWith("recurring:")) {
-    return null;
-  }
-
+  if (!activityId.startsWith("recurring:")) return null;
   const segments = activityId.split(":");
-  if (segments.length < 3) {
-    return null;
-  }
-
-  return segments[1];
+  return segments.length >= 3 ? segments[1] : null;
 }
 
 function compareActivitiesByDate(left: Activity, right: Activity) {
-  const leftValue = `${left.date}T${left.startTime}`;
-  const rightValue = `${right.date}T${right.startTime}`;
-  return leftValue.localeCompare(rightValue);
+  return `${left.date}T${left.startTime}`.localeCompare(`${right.date}T${right.startTime}`);
 }
 
 function fileToDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
-    const fileReader = new FileReader();
-    fileReader.onload = () => resolve(typeof fileReader.result === "string" ? fileReader.result : "");
-    fileReader.onerror = () => reject(new Error("Impossible de lire le fichier image."));
-    fileReader.readAsDataURL(file);
+    const reader = new FileReader();
+    reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+    reader.onerror = () => reject(new Error("Impossible de lire le fichier image."));
+    reader.readAsDataURL(file);
   });
 }
+
+const selectClass =
+  "dark:bg-input/30 border-input focus-visible:border-ring focus-visible:ring-ring/50 h-10 w-full rounded-md border bg-input-background px-3 outline-none focus-visible:ring-[3px]";
 
 export function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -165,10 +136,6 @@ export function AdminPage() {
   const [draft, setDraft] = useState<Activity>(createEmptyActivity());
   const [isLoading, setIsLoading] = useState(true);
   const [feedbackMessage, setFeedbackMessage] = useState("");
-  const [attendanceSummaryByActivity, setAttendanceSummaryByActivity] = useState<Record<string, AttendanceSummary>>({});
-  const [attendancePeriodFilter, setAttendancePeriodFilter] = useState<"upcoming" | "past" | "all">("upcoming");
-  const [attendanceCategoryFilter, setAttendanceCategoryFilter] = useState<ActivityCategory | "all">("all");
-  const [attendanceOnlyWithVotes, setAttendanceOnlyWithVotes] = useState(false);
   const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>([]);
   const [galleryCategory, setGalleryCategory] = useState<GalleryCategory>("events");
   const [galleryAlbumTitle, setGalleryAlbumTitle] = useState("");
@@ -207,185 +174,102 @@ export function AdminPage() {
   const [expandedTemplates, setExpandedTemplates] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    const initializeAdmin = async () => {
+    const init = async () => {
       try {
         const authenticated = await checkAdminSession();
         setIsAuthenticated(authenticated);
-
-        if (!authenticated) {
-          return;
-        }
-
-        const loadedActivities = await loadActivities();
-        const loadedGalleryPhotos = await loadGalleryPhotos();
-        const loadedWallOfFameMembers = await loadWallOfFameMembers();
-        const loadedWhiteSharksData = await loadWhiteSharksData();
+        if (!authenticated) return;
+        const [loadedActivities, loadedPhotos, loadedWoF, loadedWS] = await Promise.all([
+          loadActivities(),
+          loadGalleryPhotos(),
+          loadWallOfFameMembers(),
+          loadWhiteSharksData(),
+        ]);
         setActivities(loadedActivities);
-        setGalleryPhotos(loadedGalleryPhotos);
-        setWallOfFameMembers(loadedWallOfFameMembers);
-        setWhiteSharksPalmares(loadedWhiteSharksData.palmares);
-        setWhiteSharksPlayers(loadedWhiteSharksData.players);
+        setGalleryPhotos(loadedPhotos);
+        setWallOfFameMembers(loadedWoF);
+        setWhiteSharksPalmares(loadedWS.palmares);
+        setWhiteSharksPlayers(loadedWS.players);
         setSelectedId(loadedActivities[0]?.id ?? null);
         setDraft(loadedActivities[0] ?? createEmptyActivity());
-        await refreshAttendanceSummary();
       } catch {
         setLoginError("Impossible de charger la session admin.");
       } finally {
         setIsLoading(false);
       }
     };
-
-    initializeAdmin();
+    init();
   }, []);
 
   const selectedActivity = useMemo(
-    () => activities.find((activity) => activity.id === selectedId) ?? null,
+    () => activities.find((a) => a.id === selectedId) ?? null,
     [activities, selectedId],
   );
 
   const listedActivities = useMemo(() => {
-    const todayIsoDate = new Date().toISOString().slice(0, 10);
+    const todayIso = new Date().toISOString().slice(0, 10);
     const recurringByTemplate = new Map<string, Activity[]>();
-    const nonRecurringActivities: Activity[] = [];
+    const nonRecurring: Activity[] = [];
 
-    for (const activity of activities) {
-      const recurringTemplateId = getRecurringTemplateId(activity.id);
-
-      if (!recurringTemplateId) {
-        nonRecurringActivities.push(activity);
-        continue;
-      }
-
-      const existingTemplateActivities = recurringByTemplate.get(recurringTemplateId) ?? [];
-      existingTemplateActivities.push(activity);
-      recurringByTemplate.set(recurringTemplateId, existingTemplateActivities);
+    for (const a of activities) {
+      const tid = getRecurringTemplateId(a.id);
+      if (!tid) { nonRecurring.push(a); continue; }
+      const arr = recurringByTemplate.get(tid) ?? [];
+      arr.push(a);
+      recurringByTemplate.set(tid, arr);
     }
 
-    const recurringRepresentatives = Array.from(recurringByTemplate.values()).map((templateActivities) => {
-      const sortedTemplateActivities = [...templateActivities].sort(compareActivitiesByDate);
-      return sortedTemplateActivities.find((activity) => activity.date >= todayIsoDate) ?? sortedTemplateActivities[0];
+    const reps = Array.from(recurringByTemplate.values()).map((arr) => {
+      const sorted = [...arr].sort(compareActivitiesByDate);
+      return sorted.find((a) => a.date >= todayIso) ?? sorted[0];
     });
 
-    const mergedActivities = [...nonRecurringActivities, ...recurringRepresentatives].filter(Boolean);
-    return mergedActivities.sort(compareActivitiesByDate);
+    return [...nonRecurring, ...reps].filter(Boolean).sort(compareActivitiesByDate);
   }, [activities]);
 
   const recurringOccurrencesCountByTemplate = useMemo(() => {
-    return activities.reduce<Record<string, number>>((accumulator, activity) => {
-      const recurringTemplateId = getRecurringTemplateId(activity.id);
-
-      if (!recurringTemplateId) {
-        return accumulator;
-      }
-
-      accumulator[recurringTemplateId] = (accumulator[recurringTemplateId] ?? 0) + 1;
-      return accumulator;
+    return activities.reduce<Record<string, number>>((acc, a) => {
+      const tid = getRecurringTemplateId(a.id);
+      if (!tid) return acc;
+      acc[tid] = (acc[tid] ?? 0) + 1;
+      return acc;
     }, {});
   }, [activities]);
 
   const recurringOccurrencesByTemplate = useMemo(() => {
     const map = new Map<string, Activity[]>();
-
-    for (const activity of activities) {
-      const templateId = getRecurringTemplateId(activity.id);
-      if (!templateId) continue;
-      const existing = map.get(templateId) ?? [];
-      existing.push(activity);
-      map.set(templateId, existing);
+    for (const a of activities) {
+      const tid = getRecurringTemplateId(a.id);
+      if (!tid) continue;
+      const arr = map.get(tid) ?? [];
+      arr.push(a);
+      map.set(tid, arr);
     }
-
-    for (const [key, occs] of map.entries()) {
-      map.set(key, [...occs].sort(compareActivitiesByDate));
-    }
-
+    for (const [k, v] of map) map.set(k, [...v].sort(compareActivitiesByDate));
     return map;
   }, [activities]);
 
-  const filteredAttendanceActivities = useMemo(() => {
-    const todayIsoDate = new Date().toISOString().slice(0, 10);
-
-    return listedActivities.filter((activity) => {
-      if (attendancePeriodFilter === "upcoming" && activity.date < todayIsoDate) {
-        return false;
-      }
-
-      if (attendancePeriodFilter === "past" && activity.date >= todayIsoDate) {
-        return false;
-      }
-
-      if (attendanceCategoryFilter !== "all" && activity.category !== attendanceCategoryFilter) {
-        return false;
-      }
-
-      if (!attendanceOnlyWithVotes) {
-        return true;
-      }
-
-      const summary = attendanceSummaryByActivity[activity.id];
-      return Boolean(summary && summary.total > 0);
-    });
-  }, [listedActivities, attendancePeriodFilter, attendanceCategoryFilter, attendanceOnlyWithVotes, attendanceSummaryByActivity]);
-
-  const attendanceTotals = useMemo(() => {
-    return filteredAttendanceActivities.reduce(
-      (accumulator, activity) => {
-        const summary = attendanceSummaryByActivity[activity.id];
-
-        if (!summary) {
-          return accumulator;
-        }
-
-        accumulator.present += summary.present;
-        accumulator.absent += summary.absent;
-        accumulator.total += summary.total;
-        return accumulator;
-      },
-      { present: 0, absent: 0, total: 0 },
-    );
-  }, [filteredAttendanceActivities, attendanceSummaryByActivity]);
-
-  const refreshAttendanceSummary = async () => {
-    try {
-      const nextSummary = await loadAttendanceSummaryForAdmin();
-      setAttendanceSummaryByActivity(nextSummary);
-    } catch {
-      setAttendanceSummaryByActivity({});
-    }
-  };
-
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     setLoginError("");
-    setFeedbackMessage("");
-
     try {
       const loggedIn = await loginAsAdmin(username, password);
-
-      if (!loggedIn) {
-        setLoginError("Identifiants invalides ou acces non autorise.");
-        return;
-      }
-
-      const loadedActivities = await loadActivities();
-      const loadedGalleryPhotos = await loadGalleryPhotos();
-      const loadedWallOfFameMembers = await loadWallOfFameMembers();
+      if (!loggedIn) { setLoginError("Identifiants invalides."); return; }
+      const [loadedActivities, loadedPhotos, loadedWoF] = await Promise.all([
+        loadActivities(),
+        loadGalleryPhotos(),
+        loadWallOfFameMembers(),
+      ]);
       setIsAuthenticated(true);
       setActivities(loadedActivities);
-      setGalleryPhotos(loadedGalleryPhotos);
-      setWallOfFameMembers(loadedWallOfFameMembers);
+      setGalleryPhotos(loadedPhotos);
+      setWallOfFameMembers(loadedWoF);
       setSelectedId(loadedActivities[0]?.id ?? null);
       setDraft(loadedActivities[0] ?? createEmptyActivity());
       setUsername("");
       setPassword("");
-      setLoginError("");
-      await refreshAttendanceSummary();
     } catch (error) {
-      if (error instanceof Error) {
-        setLoginError(error.message);
-      } else {
-        setLoginError("Connexion impossible pour le moment.");
-      }
+      setLoginError(error instanceof Error ? error.message : "Connexion impossible.");
     }
   };
 
@@ -403,121 +287,67 @@ export function AdminPage() {
 
   const persistActivities = async (nextActivities: Activity[], nextSelectedId?: string | null) => {
     try {
-      const savedActivities = await saveActivities(nextActivities);
-      setActivities(savedActivities);
-
-      if (nextSelectedId === undefined) {
-        return;
-      }
-
+      const saved = await saveActivities(nextActivities);
+      setActivities(saved);
+      if (nextSelectedId === undefined) return;
       setSelectedId(nextSelectedId);
-
-      const nextSelectedActivity = savedActivities.find((activity) => activity.id === nextSelectedId);
-      setDraft(nextSelectedActivity ?? createEmptyActivity());
-      setFeedbackMessage("Planning enregistre avec succes.");
-      await refreshAttendanceSummary();
+      setDraft(saved.find((a) => a.id === nextSelectedId) ?? createEmptyActivity());
+      setFeedbackMessage("Planning enregistré.");
     } catch (error) {
-      if (error instanceof Error && error.message) {
-        setFeedbackMessage(error.message);
-        return;
-      }
-
-      setFeedbackMessage("Impossible d'enregistrer les modifications.");
+      setFeedbackMessage(error instanceof Error && error.message ? error.message : "Impossible d'enregistrer.");
     }
   };
 
   const handleCreate = () => {
-    const newActivity = createEmptyActivity();
-    setSelectedId(newActivity.id);
-    setDraft(newActivity);
+    const n = createEmptyActivity();
+    setSelectedId(n.id);
+    setDraft(n);
+    setFeedbackMessage("");
   };
 
-  const toggleExpandedTemplate = (templateId: string) => {
-    setExpandedTemplates((current) => {
-      const next = new Set(current);
-      if (next.has(templateId)) {
-        next.delete(templateId);
-      } else {
-        next.add(templateId);
-      }
+  const toggleExpandedTemplate = (tid: string) => {
+    setExpandedTemplates((prev) => {
+      const next = new Set(prev);
+      next.has(tid) ? next.delete(tid) : next.add(tid);
       return next;
     });
   };
 
   const handleSave = async () => {
     if (!draft.title || !draft.date || !draft.startTime || !draft.endTime || !draft.location) {
-      setFeedbackMessage("Renseignez les champs obligatoires avant d'enregistrer.");
+      setFeedbackMessage("Renseignez tous les champs obligatoires.");
       return;
     }
-
-    const existingIndex = activities.findIndex((activity) => activity.id === draft.id);
-    let nextActivities: Activity[];
-
-    if (existingIndex >= 0) {
-      nextActivities = activities.map((activity) => (activity.id === draft.id ? draft : activity));
-    } else {
-      nextActivities = [...activities, draft];
-    }
-
-    await persistActivities(nextActivities, draft.id);
+    const idx = activities.findIndex((a) => a.id === draft.id);
+    const next = idx >= 0
+      ? activities.map((a) => (a.id === draft.id ? draft : a))
+      : [...activities, draft];
+    await persistActivities(next, draft.id);
   };
 
   const handleDelete = async (id: string) => {
-    const nextActivities = activities.filter((activity) => activity.id !== id);
-    const nextSelectedId = nextActivities[0]?.id ?? null;
-    await persistActivities(nextActivities, nextSelectedId);
+    const next = activities.filter((a) => a.id !== id);
+    await persistActivities(next, next[0]?.id ?? null);
   };
 
   const handleReset = async () => {
-    const resetActivities = [...defaultActivities];
-    await persistActivities(resetActivities, resetActivities[0]?.id ?? null);
+    await persistActivities([...defaultActivities], defaultActivities[0]?.id ?? null);
   };
 
   const handleUploadGalleryAlbum = async () => {
-    if (galleryFiles.length === 0) {
-      setGalleryFeedbackMessage("Selectionnez au moins une photo pour l'album.");
-      return;
-    }
-
-    if (!galleryAlbumTitle.trim()) {
-      setGalleryFeedbackMessage("Ajoutez un titre d'album.");
-      return;
-    }
-
+    if (!galleryFiles.length) { setGalleryFeedbackMessage("Sélectionnez au moins une photo."); return; }
+    if (!galleryAlbumTitle.trim()) { setGalleryFeedbackMessage("Ajoutez un titre d'album."); return; }
     try {
       setIsGallerySaving(true);
       setGalleryFeedbackMessage("");
-      const albumPhotoPayload = await Promise.all(
-        galleryFiles.map(async (file) => {
-          const src = await fileToDataUrl(file);
-
-          if (!src) {
-            throw new Error("Impossible de convertir une des photos.");
-          }
-
-          return {
-            src,
-            alt: file.name,
-          };
-        }),
-      );
-
-      const nextPhotos = await uploadGalleryAlbum({
-        title: galleryAlbumTitle.trim(),
-        category: galleryCategory,
-        photos: albumPhotoPayload,
-      });
-
-      setGalleryPhotos(nextPhotos);
+      const photos = await Promise.all(galleryFiles.map(async (f) => ({ src: await fileToDataUrl(f), alt: f.name })));
+      const next = await uploadGalleryAlbum({ title: galleryAlbumTitle.trim(), category: galleryCategory, photos });
+      setGalleryPhotos(next);
       setGalleryAlbumTitle("");
       setGalleryFiles([]);
-      setGalleryFeedbackMessage("Album ajoute dans la galerie.");
+      setGalleryFeedbackMessage("Album ajouté.");
     } catch (error) {
-      if (error instanceof Error && error.message) {
-        setGalleryFeedbackMessage(error.message);
-      } else {
-        setGalleryFeedbackMessage("Impossible d'ajouter l'album.");
-      }
+      setGalleryFeedbackMessage(error instanceof Error ? error.message : "Impossible d'ajouter l'album.");
     } finally {
       setIsGallerySaving(false);
     }
@@ -526,28 +356,18 @@ export function AdminPage() {
   const handleDeleteGalleryPhoto = async (photoId: string) => {
     try {
       setIsGallerySaving(true);
-      setGalleryFeedbackMessage("");
-      const nextPhotos = await deleteGalleryPhoto(photoId);
-      setGalleryPhotos(nextPhotos);
-      setGalleryFeedbackMessage("Photo supprimee de la galerie.");
+      setGalleryPhotos(await deleteGalleryPhoto(photoId));
+      setGalleryFeedbackMessage("Photo supprimée.");
     } catch (error) {
-      if (error instanceof Error && error.message) {
-        setGalleryFeedbackMessage(error.message);
-      } else {
-        setGalleryFeedbackMessage("Impossible de supprimer la photo.");
-      }
+      setGalleryFeedbackMessage(error instanceof Error ? error.message : "Impossible de supprimer.");
     } finally {
       setIsGallerySaving(false);
     }
   };
 
   const resetWallForm = () => {
-    setWallFirstName("");
-    setWallLastName("");
-    setWallPalmaresByFunction({});
-    setWallMemberSince("");
-    setWallFunctions([]);
-    setWallPhotoFile(null);
+    setWallFirstName(""); setWallLastName(""); setWallPalmaresByFunction({});
+    setWallMemberSince(""); setWallFunctions([]); setWallPhotoFile(null);
     setEditingWallMemberId(null);
   };
 
@@ -559,69 +379,35 @@ export function AdminPage() {
     setWallMemberSince(member.memberSince);
     setWallFunctions(member.functions);
     setWallPhotoFile(null);
-    setWallFeedbackMessage("Mode modification activé. Ajoutez une nouvelle photo uniquement si nécessaire.");
+    setWallFeedbackMessage("Mode modification. Ajoutez une photo uniquement si nécessaire.");
   };
 
-  const toggleWallFunction = (functionValue: WallOfFameFunction) => {
-    setWallFunctions((current) => {
-      if (current.includes(functionValue)) {
-        setWallPalmaresByFunction((palmaresByFunction) => {
-          const nextPalmaresByFunction = { ...palmaresByFunction };
-          delete nextPalmaresByFunction[functionValue];
-          return nextPalmaresByFunction;
-        });
-        return current.filter((entry) => entry !== functionValue);
+  const toggleWallFunction = (fn: WallOfFameFunction) => {
+    setWallFunctions((prev) => {
+      if (prev.includes(fn)) {
+        setWallPalmaresByFunction((p) => { const n = { ...p }; delete n[fn]; return n; });
+        return prev.filter((f) => f !== fn);
       }
-
-      return [...current, functionValue];
+      return [...prev, fn];
     });
   };
 
-  const updateWallPalmares = (functionValue: WallOfFameFunction, value: string) => {
-    setWallPalmaresByFunction((current) => ({
-      ...current,
-      [functionValue]: value,
-    }));
-  };
-
   const handleSubmitWallOfFameMember = async () => {
-    if (!wallFirstName.trim() || !wallLastName.trim()) {
-      setWallFeedbackMessage("Le prénom et le nom sont obligatoires.");
-      return;
-    }
-
-    if (!wallMemberSince.trim()) {
-      setWallFeedbackMessage("Le champ 'adhérent depuis' est obligatoire.");
-      return;
-    }
-
-    if (wallFunctions.length === 0) {
-      setWallFeedbackMessage("Sélectionnez au moins une fonction.");
-      return;
-    }
-
-    if (!editingWallMemberId && !wallPhotoFile) {
-      setWallFeedbackMessage("Ajoutez une photo.");
-      return;
-    }
-
+    if (!wallFirstName.trim() || !wallLastName.trim()) { setWallFeedbackMessage("Prénom et nom obligatoires."); return; }
+    if (!wallMemberSince.trim()) { setWallFeedbackMessage("Champ « adhérent depuis » obligatoire."); return; }
+    if (!wallFunctions.length) { setWallFeedbackMessage("Sélectionnez au moins une fonction."); return; }
+    if (!editingWallMemberId && !wallPhotoFile) { setWallFeedbackMessage("Ajoutez une photo."); return; }
     try {
       setIsWallSaving(true);
       setWallFeedbackMessage("");
       const photoSrc = wallPhotoFile ? await fileToDataUrl(wallPhotoFile) : "";
-
-      if (wallPhotoFile && !photoSrc) {
-        throw new Error("Impossible de convertir la photo.");
-      }
-
-      const normalizedPalmaresByFunction = sanitizeWallPalmaresByFunction(wallFunctions, wallPalmaresByFunction);
-
-      const nextMembers = editingWallMemberId
+      const palmares = sanitizeWallPalmaresByFunction(wallFunctions, wallPalmaresByFunction);
+      const next = editingWallMemberId
         ? await updateWallOfFameMember({
             id: editingWallMemberId,
             firstName: wallFirstName.trim(),
             lastName: wallLastName.trim(),
-            palmaresByFunction: normalizedPalmaresByFunction,
+            palmaresByFunction: palmares,
             memberSince: wallMemberSince.trim(),
             functions: wallFunctions,
             ...(photoSrc ? { photoSrc } : {}),
@@ -629,21 +415,16 @@ export function AdminPage() {
         : await createWallOfFameMember({
             firstName: wallFirstName.trim(),
             lastName: wallLastName.trim(),
-            palmaresByFunction: normalizedPalmaresByFunction,
+            palmaresByFunction: palmares,
             memberSince: wallMemberSince.trim(),
             functions: wallFunctions,
             photoSrc,
           });
-
-      setWallOfFameMembers(nextMembers);
+      setWallOfFameMembers(next);
       resetWallForm();
-      setWallFeedbackMessage(editingWallMemberId ? "Profil modifié dans le Wall of Fame." : "Profil ajouté au Wall of Fame.");
+      setWallFeedbackMessage(editingWallMemberId ? "Profil modifié." : "Profil ajouté au Wall of Fame.");
     } catch (error) {
-      if (error instanceof Error && error.message) {
-        setWallFeedbackMessage(error.message);
-      } else {
-        setWallFeedbackMessage("Impossible d'ajouter le profil.");
-      }
+      setWallFeedbackMessage(error instanceof Error ? error.message : "Impossible d'enregistrer.");
     } finally {
       setIsWallSaving(false);
     }
@@ -652,40 +433,26 @@ export function AdminPage() {
   const handleDeleteWallOfFameMember = async (memberId: string) => {
     try {
       setIsWallSaving(true);
-      setWallFeedbackMessage("");
-      const nextMembers = await deleteWallOfFameMember(memberId);
-      setWallOfFameMembers(nextMembers);
-      setWallFeedbackMessage("Profil supprimé du Wall of Fame.");
+      setWallOfFameMembers(await deleteWallOfFameMember(memberId));
+      setWallFeedbackMessage("Profil supprimé.");
     } catch (error) {
-      if (error instanceof Error && error.message) {
-        setWallFeedbackMessage(error.message);
-      } else {
-        setWallFeedbackMessage("Impossible de supprimer le profil.");
-      }
+      setWallFeedbackMessage(error instanceof Error ? error.message : "Impossible de supprimer.");
     } finally {
       setIsWallSaving(false);
     }
   };
 
   const resetWhiteSharksPalmaresForm = () => {
-    setWhiteSharksPalmaresTitle("");
-    setWhiteSharksPalmaresTitleEn("");
-    setWhiteSharksPalmaresTitleZh("");
-    setWhiteSharksPalmaresYear("");
-    setWhiteSharksPalmaresDescription("");
-    setWhiteSharksPalmaresDescriptionEn("");
-    setWhiteSharksPalmaresDescriptionZh("");
+    setWhiteSharksPalmaresTitle(""); setWhiteSharksPalmaresTitleEn(""); setWhiteSharksPalmaresTitleZh("");
+    setWhiteSharksPalmaresYear(""); setWhiteSharksPalmaresDescription("");
+    setWhiteSharksPalmaresDescriptionEn(""); setWhiteSharksPalmaresDescriptionZh("");
     setEditingWhiteSharksPalmaresId(null);
   };
 
   const resetWhiteSharksPlayerForm = () => {
-    setWhiteSharksPlayerFirstName("");
-    setWhiteSharksPlayerLastName("");
-    setWhiteSharksPlayerClub("");
-    setWhiteSharksPlayerPositions([]);
-    setWhiteSharksPlayerBirthYear("");
-    setWhiteSharksPlayerMemberType("joueur");
-    setEditingWhiteSharksPlayerId(null);
+    setWhiteSharksPlayerFirstName(""); setWhiteSharksPlayerLastName(""); setWhiteSharksPlayerClub("");
+    setWhiteSharksPlayerPositions([]); setWhiteSharksPlayerBirthYear("");
+    setWhiteSharksPlayerMemberType("joueur"); setEditingWhiteSharksPlayerId(null);
   };
 
   const handleEditWhiteSharksPalmares = (entry: WhiteSharksPalmaresEntry) => {
@@ -697,7 +464,7 @@ export function AdminPage() {
     setWhiteSharksPalmaresDescription(entry.description);
     setWhiteSharksPalmaresDescriptionEn(entry.descriptionTranslations?.en ?? "");
     setWhiteSharksPalmaresDescriptionZh(entry.descriptionTranslations?.zh ?? "");
-    setWhiteSharksFeedbackMessage("Mode modification du palmarès activé.");
+    setWhiteSharksFeedbackMessage("Mode modification palmarès.");
   };
 
   const handleEditWhiteSharksPlayer = (player: WhiteSharksPlayer) => {
@@ -708,61 +475,45 @@ export function AdminPage() {
     setWhiteSharksPlayerPositions(player.positions?.length ? player.positions : player.position ? [player.position] : []);
     setWhiteSharksPlayerBirthYear(player.birthYear !== undefined ? String(player.birthYear) : "");
     setWhiteSharksPlayerMemberType(player.memberType);
-    setWhiteSharksFeedbackMessage("Mode modification joueur activé.");
+    setWhiteSharksFeedbackMessage("Mode modification joueur.");
   };
 
   const handleSubmitWhiteSharksPalmares = async () => {
-    if (!whiteSharksPalmaresTitle.trim()) {
-      setWhiteSharksFeedbackMessage("Le titre du palmarès est obligatoire.");
-      return;
-    }
-
-    if (!whiteSharksPalmaresYear.trim()) {
-      setWhiteSharksFeedbackMessage("L'année du palmarès est obligatoire.");
-      return;
-    }
-
+    if (!whiteSharksPalmaresTitle.trim()) { setWhiteSharksFeedbackMessage("Titre obligatoire."); return; }
+    if (!whiteSharksPalmaresYear.trim()) { setWhiteSharksFeedbackMessage("Année obligatoire."); return; }
     try {
       setIsWhiteSharksSaving(true);
       setWhiteSharksFeedbackMessage("");
-
-      const titleTranslationsPayload = {
+      const titleTr = {
         ...(whiteSharksPalmaresTitleEn.trim() ? { en: whiteSharksPalmaresTitleEn.trim() } : {}),
         ...(whiteSharksPalmaresTitleZh.trim() ? { zh: whiteSharksPalmaresTitleZh.trim() } : {}),
       };
-
-      const descriptionTranslationsPayload = {
+      const descTr = {
         ...(whiteSharksPalmaresDescriptionEn.trim() ? { en: whiteSharksPalmaresDescriptionEn.trim() } : {}),
         ...(whiteSharksPalmaresDescriptionZh.trim() ? { zh: whiteSharksPalmaresDescriptionZh.trim() } : {}),
       };
-
-      const nextData = editingWhiteSharksPalmaresId
+      const next = editingWhiteSharksPalmaresId
         ? await updateWhiteSharksPalmares({
             id: editingWhiteSharksPalmaresId,
             title: whiteSharksPalmaresTitle.trim(),
-            ...(Object.keys(titleTranslationsPayload).length > 0 ? { titleTranslations: titleTranslationsPayload } : {}),
+            ...(Object.keys(titleTr).length ? { titleTranslations: titleTr } : {}),
             year: whiteSharksPalmaresYear.trim(),
             description: whiteSharksPalmaresDescription.trim(),
-            ...(Object.keys(descriptionTranslationsPayload).length > 0 ? { descriptionTranslations: descriptionTranslationsPayload } : {}),
+            ...(Object.keys(descTr).length ? { descriptionTranslations: descTr } : {}),
           })
         : await createWhiteSharksPalmares({
             title: whiteSharksPalmaresTitle.trim(),
-            ...(Object.keys(titleTranslationsPayload).length > 0 ? { titleTranslations: titleTranslationsPayload } : {}),
+            ...(Object.keys(titleTr).length ? { titleTranslations: titleTr } : {}),
             year: whiteSharksPalmaresYear.trim(),
             description: whiteSharksPalmaresDescription.trim(),
-            ...(Object.keys(descriptionTranslationsPayload).length > 0 ? { descriptionTranslations: descriptionTranslationsPayload } : {}),
+            ...(Object.keys(descTr).length ? { descriptionTranslations: descTr } : {}),
           });
-
-      setWhiteSharksPalmares(nextData.palmares ?? []);
-      setWhiteSharksPlayers(nextData.players ?? []);
+      setWhiteSharksPalmares(next.palmares ?? []);
+      setWhiteSharksPlayers(next.players ?? []);
       resetWhiteSharksPalmaresForm();
-      setWhiteSharksFeedbackMessage(editingWhiteSharksPalmaresId ? "Palmarès White Sharks modifié." : "Palmarès White Sharks ajouté.");
+      setWhiteSharksFeedbackMessage(editingWhiteSharksPalmaresId ? "Palmarès modifié." : "Palmarès ajouté.");
     } catch (error) {
-      if (error instanceof Error && error.message) {
-        setWhiteSharksFeedbackMessage(error.message);
-      } else {
-        setWhiteSharksFeedbackMessage("Impossible d'enregistrer le palmarès White Sharks.");
-      }
+      setWhiteSharksFeedbackMessage(error instanceof Error ? error.message : "Impossible d'enregistrer.");
     } finally {
       setIsWhiteSharksSaving(false);
     }
@@ -771,17 +522,12 @@ export function AdminPage() {
   const handleDeleteWhiteSharksPalmares = async (entryId: string) => {
     try {
       setIsWhiteSharksSaving(true);
-      setWhiteSharksFeedbackMessage("");
-      const nextData = await deleteWhiteSharksPalmares(entryId);
-      setWhiteSharksPalmares(nextData.palmares ?? []);
-      setWhiteSharksPlayers(nextData.players ?? []);
-      setWhiteSharksFeedbackMessage("Palmarès White Sharks supprimé.");
+      const next = await deleteWhiteSharksPalmares(entryId);
+      setWhiteSharksPalmares(next.palmares ?? []);
+      setWhiteSharksPlayers(next.players ?? []);
+      setWhiteSharksFeedbackMessage("Palmarès supprimé.");
     } catch (error) {
-      if (error instanceof Error && error.message) {
-        setWhiteSharksFeedbackMessage(error.message);
-      } else {
-        setWhiteSharksFeedbackMessage("Impossible de supprimer le palmarès White Sharks.");
-      }
+      setWhiteSharksFeedbackMessage(error instanceof Error ? error.message : "Impossible de supprimer.");
     } finally {
       setIsWhiteSharksSaving(false);
     }
@@ -789,23 +535,16 @@ export function AdminPage() {
 
   const handleSubmitWhiteSharksPlayer = async () => {
     if (!whiteSharksPlayerFirstName.trim() || !whiteSharksPlayerLastName.trim()) {
-      setWhiteSharksFeedbackMessage("Le prénom et le nom du joueur sont obligatoires.");
+      setWhiteSharksFeedbackMessage("Prénom et nom obligatoires.");
       return;
     }
-
-    if (!whiteSharksPlayerClub.trim()) {
-      setWhiteSharksFeedbackMessage("Le club d'origine du joueur est obligatoire.");
-      return;
-    }
-
+    if (!whiteSharksPlayerClub.trim()) { setWhiteSharksFeedbackMessage("Club obligatoire."); return; }
     try {
       setIsWhiteSharksSaving(true);
       setWhiteSharksFeedbackMessage("");
-
-      const parsedBirthYear = whiteSharksPlayerBirthYear.trim() ? Number(whiteSharksPlayerBirthYear.trim()) : undefined;
-      const birthYearPayload = parsedBirthYear && Number.isInteger(parsedBirthYear) ? { birthYear: parsedBirthYear } : {};
-
-      const nextData = editingWhiteSharksPlayerId
+      const birthYear = whiteSharksPlayerBirthYear.trim() ? Number(whiteSharksPlayerBirthYear.trim()) : undefined;
+      const birthYearPayload = birthYear && Number.isInteger(birthYear) ? { birthYear } : {};
+      const next = editingWhiteSharksPlayerId
         ? await updateWhiteSharksPlayer({
             id: editingWhiteSharksPlayerId,
             firstName: whiteSharksPlayerFirstName.trim(),
@@ -823,17 +562,12 @@ export function AdminPage() {
             memberType: whiteSharksPlayerMemberType,
             ...birthYearPayload,
           });
-
-      setWhiteSharksPalmares(nextData.palmares ?? []);
-      setWhiteSharksPlayers(nextData.players ?? []);
+      setWhiteSharksPalmares(next.palmares ?? []);
+      setWhiteSharksPlayers(next.players ?? []);
       resetWhiteSharksPlayerForm();
-      setWhiteSharksFeedbackMessage(editingWhiteSharksPlayerId ? "Joueur White Sharks modifié." : "Joueur White Sharks ajouté.");
+      setWhiteSharksFeedbackMessage(editingWhiteSharksPlayerId ? "Joueur modifié." : "Joueur ajouté.");
     } catch (error) {
-      if (error instanceof Error && error.message) {
-        setWhiteSharksFeedbackMessage(error.message);
-      } else {
-        setWhiteSharksFeedbackMessage("Impossible d'enregistrer le joueur White Sharks.");
-      }
+      setWhiteSharksFeedbackMessage(error instanceof Error ? error.message : "Impossible d'enregistrer.");
     } finally {
       setIsWhiteSharksSaving(false);
     }
@@ -842,503 +576,331 @@ export function AdminPage() {
   const handleDeleteWhiteSharksPlayer = async (playerId: string) => {
     try {
       setIsWhiteSharksSaving(true);
-      setWhiteSharksFeedbackMessage("");
-      const nextData = await deleteWhiteSharksPlayer(playerId);
-      setWhiteSharksPalmares(nextData.palmares ?? []);
-      setWhiteSharksPlayers(nextData.players ?? []);
-      setWhiteSharksFeedbackMessage("Joueur White Sharks supprimé.");
+      const next = await deleteWhiteSharksPlayer(playerId);
+      setWhiteSharksPalmares(next.palmares ?? []);
+      setWhiteSharksPlayers(next.players ?? []);
+      setWhiteSharksFeedbackMessage("Joueur supprimé.");
     } catch (error) {
-      if (error instanceof Error && error.message) {
-        setWhiteSharksFeedbackMessage(error.message);
-      } else {
-        setWhiteSharksFeedbackMessage("Impossible de supprimer le joueur White Sharks.");
-      }
+      setWhiteSharksFeedbackMessage(error instanceof Error ? error.message : "Impossible de supprimer.");
     } finally {
       setIsWhiteSharksSaving(false);
     }
   };
 
+  // ─── Loading ───────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="min-h-screen pt-32 pb-20 px-6">
-        <div className="max-w-4xl mx-auto">
-          <Card>
-            <CardContent className="py-10 text-center text-muted-foreground">Chargement du panel admin...</CardContent>
-          </Card>
-        </div>
+      <div className="min-h-screen pt-24 px-6 flex items-start justify-center">
+        <p className="text-muted-foreground mt-12">Chargement du panel admin...</p>
       </div>
     );
   }
 
+  // ─── Login ─────────────────────────────────────────────────
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen">
-        <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-[#EAF2F6] to-background dark:from-[#1E2D36] dark:to-background">
-          <div className="max-w-xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <Card className="border-2 border-[#5B7D95]">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-3xl">
-                    <LockKeyhole className="h-7 w-7 text-[#5B7D95]" />
-                    Admin prive
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <form className="space-y-5" onSubmit={handleLogin}>
-                    <div>
-                      <label className="mb-2 block font-medium" htmlFor="admin-username">
-                        Identifiant admin
-                      </label>
-                      <Input
-                        id="admin-username"
-                        type="text"
-                        value={username}
-                        onChange={(event) => setUsername(event.target.value)}
-                        placeholder="Identifiant"
-                        autoComplete="username"
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-2 block font-medium" htmlFor="admin-password">
-                        Mot de passe admin
-                      </label>
-                      <Input
-                        id="admin-password"
-                        type="password"
-                        value={password}
-                        onChange={(event) => setPassword(event.target.value)}
-                        placeholder="Mot de passe"
-                        autoComplete="current-password"
-                      />
-                    </div>
-                    {loginError ? <p className="text-sm text-red-600">{loginError}</p> : null}
-                    <Button type="submit" className="w-full bg-[#5B7D95] text-white hover:bg-[#4E6C83]">
-                      Entrer dans le panel admin
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </motion.div>
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-sm"
+        >
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <LockKeyhole className="h-5 w-5 text-[#5B7D95]" />
+              <h1 className="text-2xl font-bold tracking-tight">Administration</h1>
+            </div>
+            <p className="text-sm text-muted-foreground">Espace réservé aux administrateurs du club.</p>
           </div>
-        </section>
+          <form className="space-y-4" onSubmit={handleLogin}>
+            <div>
+              <label className="block text-sm font-medium mb-1.5" htmlFor="admin-username">Identifiant</label>
+              <Input
+                id="admin-username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Identifiant"
+                autoComplete="username"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5" htmlFor="admin-password">Mot de passe</label>
+              <Input
+                id="admin-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Mot de passe"
+                autoComplete="current-password"
+              />
+            </div>
+            {loginError ? <p className="text-sm text-red-600">{loginError}</p> : null}
+            <Button type="submit" className="w-full bg-[#5B7D95] text-white hover:bg-[#4E6C83]">
+              Connexion
+            </Button>
+          </form>
+        </motion.div>
       </div>
     );
   }
 
+  // ─── Dashboard ─────────────────────────────────────────────
   return (
-    <div className="min-h-screen">
-      <section className="pt-32 pb-12 px-6 bg-gradient-to-b from-[#EAF2F6] via-[#F7FAFC] to-background dark:from-[#1E2D36] dark:via-[#17242C] dark:to-background border-b border-border/60">
-        <div className="max-w-7xl mx-auto flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <h1 className="text-5xl font-bold mb-4">Panel admin</h1>
-            <p className="text-xl text-muted-foreground max-w-3xl">
-              Ajoutez, modifiez ou supprimez les entrainements, tournois et autres activites affichees dans le planning.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Button type="button" variant="outline" onClick={handleCreate}>
+    <div className="min-h-screen bg-muted/10">
+      {/* Header */}
+      <div className="sticky top-16 z-20 bg-background border-b border-border/40 px-6 py-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+          <h1 className="text-lg font-bold tracking-tight">Panel admin</h1>
+          <div className="flex gap-2">
+            <Button type="button" size="sm" variant="outline" onClick={handleCreate}>
               <Plus className="h-4 w-4" />
-              Nouvelle activite
+              Nouvelle activité
             </Button>
-            <Button type="button" variant="outline" onClick={handleReset}>
+            <Button type="button" size="sm" variant="outline" onClick={handleReset}>
               <RotateCcw className="h-4 w-4" />
-              Reinitialiser
+              Réinitialiser
             </Button>
-            <Button type="button" variant="outline" onClick={handleLogout}>
+            <Button type="button" size="sm" variant="outline" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
-              Deconnexion
+              Déconnexion
             </Button>
           </div>
         </div>
-      </section>
+      </div>
 
-      <section className="py-12 px-6 bg-background">
-        <div className="max-w-7xl mx-auto grid xl:grid-cols-[1.05fr_1.35fr] gap-8">
-          <Card className="border-2 border-[#5B7D95]/20">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-2xl">
-                <Eye className="h-6 w-6 text-[#5B7D95]" />
-                Activites enregistrees
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {listedActivities.map((activity) => {
-                const recurringTemplateId = getRecurringTemplateId(activity.id);
-                const recurringOccurrencesCount = recurringTemplateId
-                  ? recurringOccurrencesCountByTemplate[recurringTemplateId] ?? 1
-                  : 1;
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
 
-                if (!recurringTemplateId) {
-                  return (
-                    <button
-                      key={activity.id}
-                      type="button"
-                      onClick={() => handleSelectActivity(activity)}
-                      className={`w-full rounded-xl border p-4 text-left transition-colors ${
-                        selectedId === activity.id ? "border-[#5B7D95] bg-[#5B7D95]/5" : "border-border hover:border-[#5B7D95]/50"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="font-semibold">{activity.title}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {dateFormatter.format(new Date(`${activity.date}T00:00:00`))} • {activity.startTime} - {activity.endTime}
-                          </p>
-                        </div>
-                        <span className="rounded-full bg-[#5B7D95]/10 px-2.5 py-1 text-xs font-medium text-[#5B7D95]">
-                          {getCategoryLabel(activity.category)}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-2">{activity.location}</p>
-                    </button>
-                  );
-                }
+        {/* ── Planning ── */}
+        <section>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Planning</h2>
+          <div className="grid xl:grid-cols-[1fr_1.4fr] gap-6">
+            {/* Liste activités */}
+            <Card className="border">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Eye className="h-4 w-4 text-[#5B7D95]" />
+                  Activités enregistrées
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {listedActivities.map((activity) => {
+                  const tid = getRecurringTemplateId(activity.id);
+                  const count = tid ? recurringOccurrencesCountByTemplate[tid] ?? 1 : 1;
 
-                const isExpanded = expandedTemplates.has(recurringTemplateId);
-                const occurrences = recurringOccurrencesByTemplate.get(recurringTemplateId) ?? [];
-                const hasSelectedOccurrence = occurrences.some((o) => o.id === selectedId);
-
-                return (
-                  <div
-                    key={activity.id}
-                    className={`rounded-xl border overflow-hidden transition-colors ${
-                      hasSelectedOccurrence ? "border-[#5B7D95]" : "border-border"
-                    }`}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => toggleExpandedTemplate(recurringTemplateId)}
-                      className="w-full p-4 text-left hover:bg-muted/30 transition-colors"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="font-semibold">{activity.title}</p>
-                            <ChevronDown
-                              className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`}
-                            />
+                  if (!tid) {
+                    return (
+                      <button
+                        key={activity.id}
+                        type="button"
+                        onClick={() => handleSelectActivity(activity)}
+                        className={`w-full rounded-lg border p-3 text-left transition-colors text-sm ${
+                          selectedId === activity.id
+                            ? "border-[#5B7D95] bg-[#5B7D95]/5"
+                            : "border-border/50 hover:border-[#5B7D95]/40"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="font-medium">{activity.title}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {dateFormatter.format(new Date(`${activity.date}T00:00:00`))} · {activity.startTime}–{activity.endTime}
+                            </p>
                           </div>
-                          <p className="text-sm text-muted-foreground">
-                            Recurrent • {recurringOccurrencesCount} seances enregistrees
-                          </p>
+                          <span className="text-xs bg-[#5B7D95]/10 text-[#5B7D95] px-2 py-0.5 rounded-full shrink-0">
+                            {getCategoryLabel(activity.category)}
+                          </span>
                         </div>
-                        <span className="rounded-full bg-[#5B7D95]/10 px-2.5 py-1 text-xs font-medium text-[#5B7D95] shrink-0">
-                          {getCategoryLabel(activity.category)}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-2">{activity.location}</p>
-                    </button>
+                        <p className="text-xs text-muted-foreground mt-1">{activity.location}</p>
+                      </button>
+                    );
+                  }
 
-                    {isExpanded && (
-                      <div className="border-t border-border/60 divide-y divide-border/40 bg-muted/10">
-                        {occurrences.map((occurrence) => (
-                          <button
-                            key={occurrence.id}
-                            type="button"
-                            onClick={() => handleSelectActivity(occurrence)}
-                            className={`w-full px-4 py-3 text-left transition-colors ${
-                              selectedId === occurrence.id
-                                ? "bg-[#5B7D95]/10 text-[#5B7D95]"
-                                : "hover:bg-muted/30"
-                            }`}
-                          >
-                            <p className={`text-sm font-medium ${selectedId === occurrence.id ? "text-[#5B7D95]" : ""}`}>
-                              {dateFormatter.format(new Date(`${occurrence.date}T00:00:00`))}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {occurrence.startTime} - {occurrence.endTime}
-                              {occurrence.audience ? ` • ${occurrence.audience}` : ""}
-                            </p>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </CardContent>
-          </Card>
+                  const isExpanded = expandedTemplates.has(tid);
+                  const occurrences = recurringOccurrencesByTemplate.get(tid) ?? [];
+                  const hasSelected = occurrences.some((o) => o.id === selectedId);
 
-          <Card className="border-2 border-[#5B7D95]/20">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-2xl">
-                <Pencil className="h-6 w-6 text-[#5B7D95]" />
-                {selectedActivity ? "Modifier l'activite" : "Nouvelle activite"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
+                  return (
+                    <div
+                      key={activity.id}
+                      className={`rounded-lg border overflow-hidden transition-colors ${hasSelected ? "border-[#5B7D95]" : "border-border/50"}`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => toggleExpandedTemplate(tid)}
+                        className="w-full p-3 text-left hover:bg-muted/30 transition-colors text-sm"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                            <p className="font-medium truncate">{activity.title}</p>
+                            <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                          </div>
+                          <span className="text-xs bg-[#5B7D95]/10 text-[#5B7D95] px-2 py-0.5 rounded-full shrink-0">
+                            {getCategoryLabel(activity.category)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Récurrent · {count} séances · {activity.location}</p>
+                      </button>
+                      {isExpanded && (
+                        <div className="border-t border-border/40 divide-y divide-border/30 bg-muted/10">
+                          {occurrences.map((o) => (
+                            <button
+                              key={o.id}
+                              type="button"
+                              onClick={() => handleSelectActivity(o)}
+                              className={`w-full px-4 py-2.5 text-left text-sm transition-colors ${
+                                selectedId === o.id ? "bg-[#5B7D95]/10 text-[#5B7D95]" : "hover:bg-muted/30"
+                              }`}
+                            >
+                              <p className="font-medium text-xs">{dateFormatter.format(new Date(`${o.date}T00:00:00`))}</p>
+                              <p className="text-xs text-muted-foreground">{o.startTime}–{o.endTime}</p>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+
+            {/* Éditeur */}
+            <Card className="border">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Pencil className="h-4 w-4 text-[#5B7D95]" />
+                  {selectedActivity ? "Modifier l'activité" : "Nouvelle activité"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 {feedbackMessage ? (
                   <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">{feedbackMessage}</p>
                 ) : null}
 
-              <div className="grid md:grid-cols-2 gap-5">
-                <div>
-                  <label htmlFor="title" className="mb-2 block font-medium">Titre</label>
-                  <Input
-                    id="title"
-                    value={draft.title}
-                    onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
-                    placeholder="Ex: Tournoi regional"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="category" className="mb-2 block font-medium">Type</label>
-                  <select
-                    id="category"
-                    value={draft.category}
-                    onChange={(event) => setDraft((current) => ({ ...current, category: event.target.value as ActivityCategory }))}
-                    className="dark:bg-input/30 border-input focus-visible:border-ring focus-visible:ring-ring/50 h-10 w-full rounded-md border bg-input-background px-3 outline-none focus-visible:ring-[3px]"
-                  >
-                    <option value="entrainement">Entrainement</option>
-                    <option value="tournoi">Tournoi</option>
-                    <option value="evenement">Evenement</option>
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="date" className="mb-2 block font-medium">Date</label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={draft.date}
-                    onChange={(event) => setDraft((current) => ({ ...current, date: event.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="audience" className="mb-2 block font-medium">Public</label>
-                  <Input
-                    id="audience"
-                    value={draft.audience}
-                    onChange={(event) => setDraft((current) => ({ ...current, audience: event.target.value }))}
-                    placeholder="Ex: M12 / M15"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="startTime" className="mb-2 block font-medium">Heure de debut</label>
-                  <Input
-                    id="startTime"
-                    type="time"
-                    value={draft.startTime}
-                    onChange={(event) => setDraft((current) => ({ ...current, startTime: event.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="endTime" className="mb-2 block font-medium">Heure de fin</label>
-                  <Input
-                    id="endTime"
-                    type="time"
-                    value={draft.endTime}
-                    onChange={(event) => setDraft((current) => ({ ...current, endTime: event.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="location" className="mb-2 block font-medium">Lieu</label>
-                <Input
-                  id="location"
-                  value={draft.location}
-                  onChange={(event) => setDraft((current) => ({ ...current, location: event.target.value }))}
-                  placeholder="Ex: Gymnase de Stella"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="description" className="mb-2 block font-medium">Description</label>
-                <Textarea
-                  id="description"
-                  value={draft.description}
-                  onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))}
-                  placeholder="Informations affichees dans la page planning"
-                  className="min-h-28"
-                />
-              </div>
-
-              <div className="flex flex-wrap gap-3">
-                <Button type="button" className="bg-[#5B7D95] text-white hover:bg-[#4E6C83]" onClick={handleSave}>
-                  <Save className="h-4 w-4" />
-                  Enregistrer
-                </Button>
-                {selectedActivity ? (
-                  <Button type="button" variant="destructive" onClick={() => handleDelete(selectedActivity.id)}>
-                    <Trash2 className="h-4 w-4" />
-                    Supprimer
-                  </Button>
-                ) : null}
-              </div>
-
-              <div className="rounded-lg border border-border/70 bg-muted/20 p-4 space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-semibold">Compte rendu des presences</p>
-                  <Button type="button" variant="outline" size="sm" onClick={() => void refreshAttendanceSummary()}>
-                    Actualiser
-                  </Button>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={attendancePeriodFilter === "upcoming" ? "default" : "outline"}
-                    className={attendancePeriodFilter === "upcoming" ? "bg-[#5B7D95] text-white hover:bg-[#4E6C83]" : ""}
-                    onClick={() => setAttendancePeriodFilter("upcoming")}
-                  >
-                    Futures
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={attendancePeriodFilter === "past" ? "default" : "outline"}
-                    className={attendancePeriodFilter === "past" ? "bg-[#5B7D95] text-white hover:bg-[#4E6C83]" : ""}
-                    onClick={() => setAttendancePeriodFilter("past")}
-                  >
-                    Passees
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={attendancePeriodFilter === "all" ? "default" : "outline"}
-                    className={attendancePeriodFilter === "all" ? "bg-[#5B7D95] text-white hover:bg-[#4E6C83]" : ""}
-                    onClick={() => setAttendancePeriodFilter("all")}
-                  >
-                    Toutes
-                  </Button>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-4">
-                  <select
-                    value={attendanceCategoryFilter}
-                    onChange={(event) => setAttendanceCategoryFilter(event.target.value as ActivityCategory | "all")}
-                    className="dark:bg-input/30 border-input focus-visible:border-ring focus-visible:ring-ring/50 h-9 rounded-md border bg-input-background px-3 outline-none focus-visible:ring-[3px]"
-                  >
-                    <option value="all">Tous les types</option>
-                    <option value="entrainement">Entrainements</option>
-                    <option value="tournoi">Tournois</option>
-                    <option value="evenement">Evenements</option>
-                  </select>
-
-                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <input
-                      type="checkbox"
-                      checked={attendanceOnlyWithVotes}
-                      onChange={(event) => setAttendanceOnlyWithVotes(event.target.checked)}
-                    />
-                    Avec votes uniquement
-                  </label>
-                </div>
-
-                <div className="rounded-md border border-border/60 bg-background px-3 py-2 text-xs text-muted-foreground">
-                  Totaux filtres • Present: {attendanceTotals.present} • Absent: {attendanceTotals.absent} • Votes: {attendanceTotals.total}
-                </div>
-
-                {filteredAttendanceActivities.length > 0 ? (
-                  <div className="space-y-2">
-                    {filteredAttendanceActivities.map((activity) => {
-                      const summary = attendanceSummaryByActivity[activity.id] ?? { present: 0, absent: 0, total: 0, voters: [] };
-
-                      return (
-                        <div key={`attendance-${activity.id}`} className="rounded-md border border-border/60 bg-background px-3 py-2">
-                          <p className="font-medium text-sm">{activity.title}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Present: {summary.present} • Absent: {summary.absent} • Total: {summary.total}
-                          </p>
-                          {summary.voters && summary.voters.length > 0 ? (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {summary.voters
-                                .map((voter) => `${voter.firstName} ${voter.lastName} (${voter.vote})`)
-                                .join(" • ")}
-                            </p>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Aucune activite ne correspond aux filtres.</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      <section className="pb-20 px-6 bg-background">
-        <div className="max-w-7xl mx-auto">
-          <Card className="border-2 border-[#5B7D95]/20">
-            <CardHeader>
-              <CardTitle className="text-2xl">Galerie photos</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid lg:grid-cols-[1.1fr_1.9fr] gap-6">
-                <div className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="gallery-file" className="mb-2 block font-medium">Photo</label>
+                    <label htmlFor="title" className="block text-sm font-medium mb-1.5">Titre</label>
                     <Input
-                      id="gallery-file"
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={(event) => setGalleryFiles(Array.from(event.target.files ?? []))}
+                      id="title"
+                      value={draft.title}
+                      onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
+                      placeholder="Ex: Tournoi régional"
                     />
                   </div>
                   <div>
-                    <label htmlFor="gallery-alt" className="mb-2 block font-medium">Titre de l'album</label>
-                    <Input
-                      id="gallery-alt"
-                      value={galleryAlbumTitle}
-                      onChange={(event) => setGalleryAlbumTitle(event.target.value)}
-                      placeholder="Ex: Tournoi regional 2026"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="gallery-category" className="mb-2 block font-medium">Categorie</label>
+                    <label htmlFor="category" className="block text-sm font-medium mb-1.5">Type</label>
                     <select
-                      id="gallery-category"
-                      value={galleryCategory}
-                      onChange={(event) => setGalleryCategory(event.target.value as GalleryCategory)}
-                      className="dark:bg-input/30 border-input focus-visible:border-ring focus-visible:ring-ring/50 h-10 w-full rounded-md border bg-input-background px-3 outline-none focus-visible:ring-[3px]"
+                      id="category"
+                      value={draft.category}
+                      onChange={(e) => setDraft((d) => ({ ...d, category: e.target.value as ActivityCategory }))}
+                      className={selectClass}
                     >
-                      <option value="matches">Matchs</option>
-                      <option value="training">Entrainements</option>
-                      <option value="events">Evenements</option>
+                      <option value="entrainement">Entraînement</option>
+                      <option value="tournoi">Tournoi</option>
+                      <option value="evenement">Événement</option>
                     </select>
                   </div>
+                  <div>
+                    <label htmlFor="date" className="block text-sm font-medium mb-1.5">Date</label>
+                    <Input id="date" type="date" value={draft.date} onChange={(e) => setDraft((d) => ({ ...d, date: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label htmlFor="audience" className="block text-sm font-medium mb-1.5">Public</label>
+                    <Input
+                      id="audience"
+                      value={draft.audience}
+                      onChange={(e) => setDraft((d) => ({ ...d, audience: e.target.value }))}
+                      placeholder="Ex: M12 / Tout public"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="startTime" className="block text-sm font-medium mb-1.5">Début</label>
+                    <Input id="startTime" type="time" value={draft.startTime} onChange={(e) => setDraft((d) => ({ ...d, startTime: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label htmlFor="endTime" className="block text-sm font-medium mb-1.5">Fin</label>
+                    <Input id="endTime" type="time" value={draft.endTime} onChange={(e) => setDraft((d) => ({ ...d, endTime: e.target.value }))} />
+                  </div>
+                </div>
 
-                  <Button
-                    type="button"
-                    className="w-full bg-[#5B7D95] text-white hover:bg-[#4E6C83]"
-                    onClick={() => void handleUploadGalleryAlbum()}
-                    disabled={isGallerySaving}
-                  >
+                <div>
+                  <label htmlFor="location" className="block text-sm font-medium mb-1.5">Lieu</label>
+                  <Input
+                    id="location"
+                    value={draft.location}
+                    onChange={(e) => setDraft((d) => ({ ...d, location: e.target.value }))}
+                    placeholder="Ex: Gymnase de Stella"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="description" className="block text-sm font-medium mb-1.5">Description</label>
+                  <Textarea
+                    id="description"
+                    value={draft.description}
+                    onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
+                    placeholder="Informations affichées dans le planning"
+                    className="min-h-24"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <Button type="button" className="bg-[#5B7D95] text-white hover:bg-[#4E6C83]" onClick={handleSave}>
+                    <Save className="h-4 w-4" />
+                    Enregistrer
+                  </Button>
+                  {selectedActivity ? (
+                    <Button type="button" variant="destructive" onClick={() => handleDelete(selectedActivity.id)}>
+                      <Trash2 className="h-4 w-4" />
+                      Supprimer
+                    </Button>
+                  ) : null}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        {/* ── Galerie ── */}
+        <section>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Galerie photos</h2>
+          <Card className="border">
+            <CardContent className="pt-6">
+              <div className="grid lg:grid-cols-[280px_1fr] gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="gallery-file" className="block text-sm font-medium mb-1.5">Photos</label>
+                    <Input id="gallery-file" type="file" accept="image/*" multiple onChange={(e) => setGalleryFiles(Array.from(e.target.files ?? []))} />
+                  </div>
+                  <div>
+                    <label htmlFor="gallery-title" className="block text-sm font-medium mb-1.5">Titre de l'album</label>
+                    <Input id="gallery-title" value={galleryAlbumTitle} onChange={(e) => setGalleryAlbumTitle(e.target.value)} placeholder="Ex: Tournoi 2026" />
+                  </div>
+                  <div>
+                    <label htmlFor="gallery-category" className="block text-sm font-medium mb-1.5">Catégorie</label>
+                    <select id="gallery-category" value={galleryCategory} onChange={(e) => setGalleryCategory(e.target.value as GalleryCategory)} className={selectClass}>
+                      <option value="matches">Matchs</option>
+                      <option value="training">Entraînements</option>
+                      <option value="events">Événements</option>
+                    </select>
+                  </div>
+                  <Button type="button" className="w-full bg-[#5B7D95] text-white hover:bg-[#4E6C83]" onClick={() => void handleUploadGalleryAlbum()} disabled={isGallerySaving}>
                     {isGallerySaving ? "Enregistrement..." : "Ajouter l'album"}
                   </Button>
-
-                  {galleryFeedbackMessage ? (
-                    <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">{galleryFeedbackMessage}</p>
-                  ) : null}
+                  {galleryFeedbackMessage ? <p className="text-sm text-muted-foreground">{galleryFeedbackMessage}</p> : null}
                 </div>
 
                 <div>
                   {galleryPhotos.length > 0 ? (
-                    <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
                       {galleryPhotos.map((photo) => (
-                        <div key={photo.id} className="rounded-xl border border-border overflow-hidden bg-background">
-                          <ImageWithFallback src={photo.src} alt={photo.alt} className="h-36 w-full object-cover" />
-                          <div className="p-3 space-y-2">
-                            <p className="text-sm font-medium line-clamp-2">{photo.alt}</p>
-                            {photo.albumTitle ? <p className="text-xs text-muted-foreground">Album: {photo.albumTitle}</p> : null}
-                            <p className="text-xs text-muted-foreground">{photo.category}</p>
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              className="w-full"
-                              onClick={() => void handleDeleteGalleryPhoto(photo.id)}
-                              disabled={isGallerySaving}
-                            >
+                        <div key={photo.id} className="rounded-lg border border-border/50 overflow-hidden bg-background">
+                          <ImageWithFallback src={photo.src} alt={photo.alt} className="h-32 w-full object-cover" />
+                          <div className="p-2.5 space-y-1.5">
+                            <p className="text-xs font-medium line-clamp-1">{photo.alt}</p>
+                            {photo.albumTitle ? <p className="text-xs text-muted-foreground line-clamp-1">{photo.albumTitle}</p> : null}
+                            <Button type="button" variant="destructive" size="sm" className="w-full h-7 text-xs" onClick={() => void handleDeleteGalleryPhoto(photo.id)} disabled={isGallerySaving}>
                               Supprimer
                             </Button>
                           </div>
@@ -1346,461 +908,254 @@ export function AdminPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">Aucune photo dans la galerie pour le moment.</p>
+                    <p className="text-sm text-muted-foreground">Aucune photo pour le moment.</p>
                   )}
                 </div>
               </div>
             </CardContent>
           </Card>
-        </div>
-      </section>
+        </section>
 
-      <section className="pb-20 px-6 bg-background">
-        <div className="max-w-7xl mx-auto">
-          <Card className="border-2 border-[#5B7D95]/20">
-            <CardHeader>
-              <CardTitle className="text-2xl">Wall of Fame</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid lg:grid-cols-[1.1fr_1.9fr] gap-6">
+        {/* ── Wall of Fame ── */}
+        <section>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Wall of Fame</h2>
+          <Card className="border">
+            <CardContent className="pt-6">
+              <div className="grid lg:grid-cols-[280px_1fr] gap-6">
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label htmlFor="wall-first-name" className="mb-2 block font-medium">Prénom</label>
-                      <Input
-                        id="wall-first-name"
-                        value={wallFirstName}
-                        onChange={(event) => setWallFirstName(event.target.value)}
-                        placeholder="Ex: Lucas"
-                      />
+                      <label htmlFor="wall-first-name" className="block text-sm font-medium mb-1.5">Prénom</label>
+                      <Input id="wall-first-name" value={wallFirstName} onChange={(e) => setWallFirstName(e.target.value)} placeholder="Lucas" />
                     </div>
                     <div>
-                      <label htmlFor="wall-last-name" className="mb-2 block font-medium">Nom</label>
-                      <Input
-                        id="wall-last-name"
-                        value={wallLastName}
-                        onChange={(event) => setWallLastName(event.target.value)}
-                        placeholder="Ex: Hoareau"
-                      />
+                      <label htmlFor="wall-last-name" className="block text-sm font-medium mb-1.5">Nom</label>
+                      <Input id="wall-last-name" value={wallLastName} onChange={(e) => setWallLastName(e.target.value)} placeholder="Hoareau" />
                     </div>
                   </div>
-
                   <div>
-                    <label htmlFor="wall-member-since" className="mb-2 block font-medium">Adhérent depuis</label>
-                    <Input
-                      id="wall-member-since"
-                      value={wallMemberSince}
-                      onChange={(event) => setWallMemberSince(event.target.value)}
-                      placeholder="Ex: 2019"
-                    />
+                    <label htmlFor="wall-since" className="block text-sm font-medium mb-1.5">Adhérent depuis</label>
+                    <Input id="wall-since" value={wallMemberSince} onChange={(e) => setWallMemberSince(e.target.value)} placeholder="2019" />
                   </div>
-
                   <div>
-                    <label htmlFor="wall-photo" className="mb-2 block font-medium">Photo</label>
-                    <Input
-                      id="wall-photo"
-                      type="file"
-                      accept="image/*"
-                      onChange={(event) => setWallPhotoFile(event.target.files?.[0] ?? null)}
-                    />
-                    {editingWallMemberId ? (
-                      <p className="mt-1 text-xs text-muted-foreground">Laissez vide pour conserver la photo actuelle.</p>
-                    ) : null}
+                    <label htmlFor="wall-photo" className="block text-sm font-medium mb-1.5">Photo</label>
+                    <Input id="wall-photo" type="file" accept="image/*" onChange={(e) => setWallPhotoFile(e.target.files?.[0] ?? null)} />
+                    {editingWallMemberId ? <p className="mt-1 text-xs text-muted-foreground">Laissez vide pour conserver la photo actuelle.</p> : null}
                   </div>
-
                   <div>
-                    <p className="mb-2 block font-medium">Fonctions</p>
-                    <div className="grid grid-cols-2 gap-2 rounded-md border border-border/60 p-3">
-                      {wallFunctionOptions.map((option) => (
-                        <label key={option.value} className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <input
-                            type="checkbox"
-                            checked={wallFunctions.includes(option.value)}
-                            onChange={() => toggleWallFunction(option.value)}
-                          />
-                          <span>{option.label}</span>
+                    <p className="text-sm font-medium mb-1.5">Fonctions</p>
+                    <div className="grid grid-cols-2 gap-2 rounded-md border border-border/50 p-3">
+                      {wallFunctionOptions.map((opt) => (
+                        <label key={opt.value} className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <input type="checkbox" checked={wallFunctions.includes(opt.value)} onChange={() => toggleWallFunction(opt.value)} />
+                          {opt.label}
                         </label>
                       ))}
                     </div>
                   </div>
-
-                  <div className="space-y-2">
-                    <p className="font-medium">Palmarès par fonction (optionnel)</p>
-                    {wallFunctions.length > 0 ? (
-                      <div className="space-y-3">
-                        {wallFunctions.map((functionValue) => (
-                          <div key={functionValue}>
-                            <label htmlFor={`wall-palmares-${functionValue}`} className="mb-2 block text-sm text-muted-foreground">
-                              {wallFunctionLabelByValue[functionValue]}
-                            </label>
-                            <Textarea
-                              id={`wall-palmares-${functionValue}`}
-                              value={wallPalmaresByFunction[functionValue] ?? ""}
-                              onChange={(event) => updateWallPalmares(functionValue, event.target.value)}
-                              placeholder="Laissez vide pour masquer ce palmarès"
-                              className="min-h-20"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Sélectionnez au moins une fonction pour saisir un palmarès.</p>
-                    )}
-                  </div>
-
+                  {wallFunctions.length > 0 ? (
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium">Palmarès par fonction (optionnel)</p>
+                      {wallFunctions.map((fn) => (
+                        <div key={fn}>
+                          <label htmlFor={`wall-p-${fn}`} className="block text-xs text-muted-foreground mb-1">{wallFunctionLabelByValue[fn]}</label>
+                          <Textarea
+                            id={`wall-p-${fn}`}
+                            value={wallPalmaresByFunction[fn] ?? ""}
+                            onChange={(e) => setWallPalmaresByFunction((p) => ({ ...p, [fn]: e.target.value }))}
+                            placeholder="Laissez vide pour masquer"
+                            className="min-h-16"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                   <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      className="flex-1 bg-[#5B7D95] text-white hover:bg-[#4E6C83]"
-                      onClick={() => void handleSubmitWallOfFameMember()}
-                      disabled={isWallSaving}
-                    >
+                    <Button type="button" className="flex-1 bg-[#5B7D95] text-white hover:bg-[#4E6C83]" onClick={() => void handleSubmitWallOfFameMember()} disabled={isWallSaving}>
                       {isWallSaving ? "Enregistrement..." : editingWallMemberId ? "Modifier" : "Ajouter"}
                     </Button>
-                    {editingWallMemberId ? (
-                      <Button type="button" variant="outline" onClick={resetWallForm} disabled={isWallSaving}>
-                        Annuler
-                      </Button>
-                    ) : null}
+                    {editingWallMemberId ? <Button type="button" variant="outline" onClick={resetWallForm} disabled={isWallSaving}>Annuler</Button> : null}
                   </div>
-
-                  {wallFeedbackMessage ? (
-                    <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">{wallFeedbackMessage}</p>
-                  ) : null}
+                  {wallFeedbackMessage ? <p className="text-sm text-muted-foreground">{wallFeedbackMessage}</p> : null}
                 </div>
 
                 <div>
                   {wallOfFameMembers.length > 0 ? (
-                    <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
                       {wallOfFameMembers.map((member) => (
-                        <div key={member.id} className="rounded-xl border border-border overflow-hidden bg-background">
-                          <ImageWithFallback
-                            src={member.photoSrc}
-                            alt={`${member.firstName} ${member.lastName}`}
-                            className="h-36 w-full object-cover"
-                          />
-                          <div className="p-3 space-y-2">
-                            <p className="text-sm font-semibold">{member.firstName} {member.lastName}</p>
-                            <p className="text-xs text-muted-foreground">Adhérent depuis: {member.memberSince}</p>
-                            <p className="text-xs text-muted-foreground">Fonctions: {member.functions.join(" • ")}</p>
+                        <div key={member.id} className="rounded-lg border border-border/50 overflow-hidden bg-background">
+                          <ImageWithFallback src={member.photoSrc} alt={`${member.firstName} ${member.lastName}`} className="h-32 w-full object-cover" />
+                          <div className="p-2.5 space-y-1.5">
+                            <p className="text-xs font-semibold">{member.firstName} {member.lastName}</p>
+                            <p className="text-xs text-muted-foreground">Depuis {member.memberSince}</p>
+                            <p className="text-xs text-muted-foreground">{member.functions.join(" · ")}</p>
                             {getWallPalmaresSummary(member).length > 0 ? (
-                              <p className="text-xs text-muted-foreground line-clamp-3">{getWallPalmaresSummary(member).join(" | ")}</p>
+                              <p className="text-xs text-muted-foreground line-clamp-2">{getWallPalmaresSummary(member).join(" | ")}</p>
                             ) : null}
-                            <div className="grid grid-cols-2 gap-2">
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="outline"
-                                className="w-full"
-                                onClick={() => handleEditWallOfFameMember(member)}
-                                disabled={isWallSaving}
-                              >
-                                Modifier
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="sm"
-                                className="w-full"
-                                onClick={() => void handleDeleteWallOfFameMember(member.id)}
-                                disabled={isWallSaving}
-                              >
-                                Supprimer
-                              </Button>
+                            <div className="grid grid-cols-2 gap-1.5">
+                              <Button type="button" size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleEditWallOfFameMember(member)} disabled={isWallSaving}>Modifier</Button>
+                              <Button type="button" size="sm" variant="destructive" className="h-7 text-xs" onClick={() => void handleDeleteWallOfFameMember(member.id)} disabled={isWallSaving}>Supprimer</Button>
                             </div>
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">Aucun profil Wall of Fame pour le moment.</p>
+                    <p className="text-sm text-muted-foreground">Aucun profil pour le moment.</p>
                   )}
                 </div>
               </div>
             </CardContent>
           </Card>
-        </div>
-      </section>
+        </section>
 
-      <section className="pb-20 px-6 bg-background">
-        <div className="max-w-7xl mx-auto">
-          <Card className="border-2 border-violet-300/30 dark:border-violet-500/30">
-            <CardHeader>
-              <CardTitle className="text-2xl">White Sharks</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-8">
+        {/* ── White Sharks ── */}
+        <section>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">White Sharks</h2>
+          <Card className="border border-violet-200/60 dark:border-violet-800/40">
+            <CardContent className="pt-6">
               <div className="grid xl:grid-cols-2 gap-8">
-                <div className="space-y-4 rounded-xl border border-border/60 p-4">
-                  <h3 className="text-lg font-semibold">Palmarès</h3>
+                {/* Palmarès */}
+                <div className="space-y-4 rounded-xl border border-border/50 p-4">
+                  <h3 className="text-sm font-semibold">Palmarès</h3>
                   <div>
-                    <label htmlFor="ws-palmares-title" className="mb-2 block font-medium">Titre</label>
-                    <Input
-                      id="ws-palmares-title"
-                      value={whiteSharksPalmaresTitle}
-                      onChange={(event) => setWhiteSharksPalmaresTitle(event.target.value)}
-                      placeholder="Ex: Championnat régional"
-                    />
+                    <label htmlFor="ws-title" className="block text-sm font-medium mb-1.5">Titre (FR)</label>
+                    <Input id="ws-title" value={whiteSharksPalmaresTitle} onChange={(e) => setWhiteSharksPalmaresTitle(e.target.value)} placeholder="Ex: Championnat régional" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label htmlFor="ws-palmares-title-en" className="mb-2 block font-medium">Titre EN (optionnel)</label>
-                      <Input
-                        id="ws-palmares-title-en"
-                        value={whiteSharksPalmaresTitleEn}
-                        onChange={(event) => setWhiteSharksPalmaresTitleEn(event.target.value)}
-                        placeholder="Ex: Regional championship"
-                      />
+                      <label htmlFor="ws-title-en" className="block text-sm font-medium mb-1.5">Titre EN</label>
+                      <Input id="ws-title-en" value={whiteSharksPalmaresTitleEn} onChange={(e) => setWhiteSharksPalmaresTitleEn(e.target.value)} placeholder="Regional championship" />
                     </div>
                     <div>
-                      <label htmlFor="ws-palmares-title-zh" className="mb-2 block font-medium">Titre 中文 (optionnel)</label>
-                      <Input
-                        id="ws-palmares-title-zh"
-                        value={whiteSharksPalmaresTitleZh}
-                        onChange={(event) => setWhiteSharksPalmaresTitleZh(event.target.value)}
-                        placeholder="例：地区锦标赛"
-                      />
+                      <label htmlFor="ws-title-zh" className="block text-sm font-medium mb-1.5">Titre 中文</label>
+                      <Input id="ws-title-zh" value={whiteSharksPalmaresTitleZh} onChange={(e) => setWhiteSharksPalmaresTitleZh(e.target.value)} placeholder="地区锦标赛" />
                     </div>
                   </div>
                   <div>
-                    <label htmlFor="ws-palmares-year" className="mb-2 block font-medium">Année</label>
-                    <Input
-                      id="ws-palmares-year"
-                      value={whiteSharksPalmaresYear}
-                      onChange={(event) => setWhiteSharksPalmaresYear(event.target.value)}
-                      placeholder="Ex: 2026"
-                    />
+                    <label htmlFor="ws-year" className="block text-sm font-medium mb-1.5">Année</label>
+                    <Input id="ws-year" value={whiteSharksPalmaresYear} onChange={(e) => setWhiteSharksPalmaresYear(e.target.value)} placeholder="2026" />
                   </div>
                   <div>
-                    <label htmlFor="ws-palmares-description" className="mb-2 block font-medium">Description (optionnel)</label>
-                    <Textarea
-                      id="ws-palmares-description"
-                      value={whiteSharksPalmaresDescription}
-                      onChange={(event) => setWhiteSharksPalmaresDescription(event.target.value)}
-                      className="min-h-20"
-                      placeholder="Ex: Finale remportée face à ..."
-                    />
+                    <label htmlFor="ws-desc" className="block text-sm font-medium mb-1.5">Description (FR)</label>
+                    <Textarea id="ws-desc" value={whiteSharksPalmaresDescription} onChange={(e) => setWhiteSharksPalmaresDescription(e.target.value)} className="min-h-16" placeholder="Finale remportée face à..." />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label htmlFor="ws-palmares-description-en" className="mb-2 block font-medium">Description EN (optionnel)</label>
-                      <Textarea
-                        id="ws-palmares-description-en"
-                        value={whiteSharksPalmaresDescriptionEn}
-                        onChange={(event) => setWhiteSharksPalmaresDescriptionEn(event.target.value)}
-                        className="min-h-20"
-                        placeholder="Ex: Final won against ..."
-                      />
+                      <label htmlFor="ws-desc-en" className="block text-sm font-medium mb-1.5">Description EN</label>
+                      <Textarea id="ws-desc-en" value={whiteSharksPalmaresDescriptionEn} onChange={(e) => setWhiteSharksPalmaresDescriptionEn(e.target.value)} className="min-h-16" />
                     </div>
                     <div>
-                      <label htmlFor="ws-palmares-description-zh" className="mb-2 block font-medium">Description 中文 (optionnel)</label>
-                      <Textarea
-                        id="ws-palmares-description-zh"
-                        value={whiteSharksPalmaresDescriptionZh}
-                        onChange={(event) => setWhiteSharksPalmaresDescriptionZh(event.target.value)}
-                        className="min-h-20"
-                        placeholder="例如：决赛战胜..."
-                      />
+                      <label htmlFor="ws-desc-zh" className="block text-sm font-medium mb-1.5">Description 中文</label>
+                      <Textarea id="ws-desc-zh" value={whiteSharksPalmaresDescriptionZh} onChange={(e) => setWhiteSharksPalmaresDescriptionZh(e.target.value)} className="min-h-16" />
                     </div>
                   </div>
-
                   <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      className="flex-1 bg-violet-600 text-white hover:bg-violet-700"
-                      onClick={() => void handleSubmitWhiteSharksPalmares()}
-                      disabled={isWhiteSharksSaving}
-                    >
+                    <Button type="button" className="flex-1 bg-violet-600 text-white hover:bg-violet-700" onClick={() => void handleSubmitWhiteSharksPalmares()} disabled={isWhiteSharksSaving}>
                       {isWhiteSharksSaving ? "Enregistrement..." : editingWhiteSharksPalmaresId ? "Modifier" : "Ajouter"}
                     </Button>
-                    {editingWhiteSharksPalmaresId ? (
-                      <Button type="button" variant="outline" onClick={resetWhiteSharksPalmaresForm} disabled={isWhiteSharksSaving}>
-                        Annuler
-                      </Button>
-                    ) : null}
+                    {editingWhiteSharksPalmaresId ? <Button type="button" variant="outline" onClick={resetWhiteSharksPalmaresForm} disabled={isWhiteSharksSaving}>Annuler</Button> : null}
                   </div>
-
                   {whiteSharksPalmares.length > 0 ? (
-                    <div className="space-y-2 pt-2">
+                    <div className="space-y-2 pt-1">
                       {whiteSharksPalmares.map((entry) => (
-                        <div key={entry.id} className="rounded-md border border-border/60 bg-muted/20 px-3 py-2">
+                        <div key={entry.id} className="rounded-md border border-border/50 bg-muted/20 px-3 py-2">
                           <p className="text-sm font-medium">{entry.title} ({entry.year})</p>
-                          {entry.description ? <p className="text-xs text-muted-foreground mt-1">{entry.description}</p> : null}
+                          {entry.description ? <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{entry.description}</p> : null}
                           <div className="grid grid-cols-2 gap-2 mt-2">
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEditWhiteSharksPalmares(entry)}
-                              disabled={isWhiteSharksSaving}
-                            >
-                              Modifier
-                            </Button>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => void handleDeleteWhiteSharksPalmares(entry.id)}
-                              disabled={isWhiteSharksSaving}
-                            >
-                              Supprimer
-                            </Button>
+                            <Button type="button" size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleEditWhiteSharksPalmares(entry)} disabled={isWhiteSharksSaving}>Modifier</Button>
+                            <Button type="button" size="sm" variant="destructive" className="h-7 text-xs" onClick={() => void handleDeleteWhiteSharksPalmares(entry.id)} disabled={isWhiteSharksSaving}>Supprimer</Button>
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">Aucun palmarès White Sharks pour le moment.</p>
+                    <p className="text-sm text-muted-foreground">Aucun palmarès pour le moment.</p>
                   )}
                 </div>
 
-                <div className="space-y-4 rounded-xl border border-border/60 p-4">
-                  <h3 className="text-lg font-semibold">Joueurs</h3>
+                {/* Joueurs */}
+                <div className="space-y-4 rounded-xl border border-border/50 p-4">
+                  <h3 className="text-sm font-semibold">Joueurs</h3>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label htmlFor="ws-player-first-name" className="mb-2 block font-medium">Prénom</label>
-                      <Input
-                        id="ws-player-first-name"
-                        value={whiteSharksPlayerFirstName}
-                        onChange={(event) => setWhiteSharksPlayerFirstName(event.target.value)}
-                        placeholder="Ex: Noah"
-                      />
+                      <label htmlFor="ws-p-fn" className="block text-sm font-medium mb-1.5">Prénom</label>
+                      <Input id="ws-p-fn" value={whiteSharksPlayerFirstName} onChange={(e) => setWhiteSharksPlayerFirstName(e.target.value)} placeholder="Noah" />
                     </div>
                     <div>
-                      <label htmlFor="ws-player-last-name" className="mb-2 block font-medium">Nom</label>
-                      <Input
-                        id="ws-player-last-name"
-                        value={whiteSharksPlayerLastName}
-                        onChange={(event) => setWhiteSharksPlayerLastName(event.target.value)}
-                        placeholder="Ex: Payet"
-                      />
+                      <label htmlFor="ws-p-ln" className="block text-sm font-medium mb-1.5">Nom</label>
+                      <Input id="ws-p-ln" value={whiteSharksPlayerLastName} onChange={(e) => setWhiteSharksPlayerLastName(e.target.value)} placeholder="Payet" />
                     </div>
                   </div>
                   <div>
-                    <label htmlFor="ws-player-club" className="mb-2 block font-medium">Club d'origine</label>
-                    <Input
-                      id="ws-player-club"
-                      value={whiteSharksPlayerClub}
-                      onChange={(event) => setWhiteSharksPlayerClub(event.target.value)}
-                      placeholder="Ex: Tchouk'Leu"
-                    />
+                    <label htmlFor="ws-p-club" className="block text-sm font-medium mb-1.5">Club d'origine</label>
+                    <Input id="ws-p-club" value={whiteSharksPlayerClub} onChange={(e) => setWhiteSharksPlayerClub(e.target.value)} placeholder="Tchouk'Leu" />
                   </div>
                   <div>
-                    <label htmlFor="ws-player-member-type" className="mb-2 block font-medium">Type de membre</label>
-                    <select
-                      id="ws-player-member-type"
-                      value={whiteSharksPlayerMemberType}
-                      onChange={(event) => setWhiteSharksPlayerMemberType(event.target.value as WhiteSharksMemberType)}
-                      className="dark:bg-input/30 border-input focus-visible:border-ring focus-visible:ring-ring/50 h-10 w-full rounded-md border bg-input-background px-3 outline-none focus-visible:ring-[3px]"
-                    >
-                      {whiteSharksMemberTypeOptions.map((option) => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
+                    <label htmlFor="ws-p-type" className="block text-sm font-medium mb-1.5">Type de membre</label>
+                    <select id="ws-p-type" value={whiteSharksPlayerMemberType} onChange={(e) => setWhiteSharksPlayerMemberType(e.target.value as WhiteSharksMemberType)} className={selectClass}>
+                      {whiteSharksMemberTypeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="mb-2 block font-medium">Postes / rôles (optionnel, plusieurs possibles)</label>
+                    <p className="text-sm font-medium mb-1.5">Postes (optionnel)</p>
                     <div className="grid grid-cols-2 gap-2 rounded-md border border-input bg-background p-3 text-sm">
                       {[
                         { value: "ailierDroit", label: "Ailier droit" },
                         { value: "ailierGauche", label: "Ailier gauche" },
                         { value: "centreCadre", label: "Centre cadre" },
                         { value: "milieu", label: "Milieu" },
-                      ].map((option) => (
-                        <label key={option.value} className="flex items-center gap-2">
+                      ].map((opt) => (
+                        <label key={opt.value} className="flex items-center gap-2 text-sm">
                           <input
                             type="checkbox"
-                            checked={whiteSharksPlayerPositions.includes(option.value)}
-                            onChange={(event) => {
-                              setWhiteSharksPlayerPositions((current) =>
-                                event.target.checked
-                                  ? [...current, option.value]
-                                  : current.filter((value) => value !== option.value),
-                              );
-                            }}
+                            checked={whiteSharksPlayerPositions.includes(opt.value)}
+                            onChange={(e) => setWhiteSharksPlayerPositions((prev) =>
+                              e.target.checked ? [...prev, opt.value] : prev.filter((v) => v !== opt.value),
+                            )}
                           />
-                          <span>{option.label}</span>
+                          {opt.label}
                         </label>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <label htmlFor="ws-player-birth-year" className="mb-2 block font-medium">Année de naissance (optionnel)</label>
-                    <Input
-                      id="ws-player-birth-year"
-                      type="number"
-                      min={1900}
-                      max={2100}
-                      value={whiteSharksPlayerBirthYear}
-                      onChange={(event) => setWhiteSharksPlayerBirthYear(event.target.value)}
-                      placeholder="Ex: 1998"
-                    />
+                    <label htmlFor="ws-p-birth" className="block text-sm font-medium mb-1.5">Année de naissance (optionnel)</label>
+                    <Input id="ws-p-birth" type="number" min={1900} max={2100} value={whiteSharksPlayerBirthYear} onChange={(e) => setWhiteSharksPlayerBirthYear(e.target.value)} placeholder="1998" />
                   </div>
-
                   <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      className="flex-1 bg-violet-600 text-white hover:bg-violet-700"
-                      onClick={() => void handleSubmitWhiteSharksPlayer()}
-                      disabled={isWhiteSharksSaving}
-                    >
+                    <Button type="button" className="flex-1 bg-violet-600 text-white hover:bg-violet-700" onClick={() => void handleSubmitWhiteSharksPlayer()} disabled={isWhiteSharksSaving}>
                       {isWhiteSharksSaving ? "Enregistrement..." : editingWhiteSharksPlayerId ? "Modifier" : "Ajouter"}
                     </Button>
-                    {editingWhiteSharksPlayerId ? (
-                      <Button type="button" variant="outline" onClick={resetWhiteSharksPlayerForm} disabled={isWhiteSharksSaving}>
-                        Annuler
-                      </Button>
-                    ) : null}
+                    {editingWhiteSharksPlayerId ? <Button type="button" variant="outline" onClick={resetWhiteSharksPlayerForm} disabled={isWhiteSharksSaving}>Annuler</Button> : null}
                   </div>
-
                   {whiteSharksPlayers.length > 0 ? (
-                    <div className="space-y-2 pt-2">
+                    <div className="space-y-2 pt-1">
                       {whiteSharksPlayers.map((player) => (
-                        <div key={player.id} className="rounded-md border border-border/60 bg-muted/20 px-3 py-2">
+                        <div key={player.id} className="rounded-md border border-border/50 bg-muted/20 px-3 py-2">
                           <p className="text-sm font-medium">{player.firstName} {player.lastName}</p>
-                          <p className="text-xs text-muted-foreground">Type: {whiteSharksMemberTypeLabelByValue[player.memberType]}</p>
-                          <p className="text-xs text-muted-foreground">Club: {player.club}</p>
-                          {(player.positions?.length ? player.positions : player.position ? [player.position] : []).length > 0 ? (
-                            <p className="text-xs text-muted-foreground">
-                              Rôle: {(player.positions?.length ? player.positions : player.position ? [player.position] : []).join(", ")}
-                            </p>
-                          ) : null}
+                          <p className="text-xs text-muted-foreground">{whiteSharksMemberTypeLabelByValue[player.memberType]} · {player.club}</p>
                           {player.birthYear ? <p className="text-xs text-muted-foreground">{player.birthYear}</p> : null}
                           <div className="grid grid-cols-2 gap-2 mt-2">
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEditWhiteSharksPlayer(player)}
-                              disabled={isWhiteSharksSaving}
-                            >
-                              Modifier
-                            </Button>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => void handleDeleteWhiteSharksPlayer(player.id)}
-                              disabled={isWhiteSharksSaving}
-                            >
-                              Supprimer
-                            </Button>
+                            <Button type="button" size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleEditWhiteSharksPlayer(player)} disabled={isWhiteSharksSaving}>Modifier</Button>
+                            <Button type="button" size="sm" variant="destructive" className="h-7 text-xs" onClick={() => void handleDeleteWhiteSharksPlayer(player.id)} disabled={isWhiteSharksSaving}>Supprimer</Button>
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">Aucun joueur White Sharks pour le moment.</p>
+                    <p className="text-sm text-muted-foreground">Aucun joueur pour le moment.</p>
                   )}
                 </div>
               </div>
 
               {whiteSharksFeedbackMessage ? (
-                <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">{whiteSharksFeedbackMessage}</p>
+                <p className="mt-4 text-sm text-muted-foreground">{whiteSharksFeedbackMessage}</p>
               ) : null}
             </CardContent>
           </Card>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }

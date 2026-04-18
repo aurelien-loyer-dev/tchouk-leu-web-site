@@ -1,109 +1,97 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { CalendarDays, ChevronLeft, ChevronRight, Clock3, ExternalLink, Filter, MapPin, Trophy } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, MapPin, Clock3, Trophy, Dumbbell } from "lucide-react";
 import { Button } from "../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
-import { Input } from "../components/ui/input";
 import { Skeleton } from "../components/ui/skeleton";
 import { ActivityCategory, loadActivities, type Activity } from "../data/activities";
-import { getSavedAttendanceIdentity, submitAttendanceVote, type AttendanceVote } from "../data/attendanceVotes";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n/i18n";
 
 const LOCALE_MAP: Record<string, string> = { fr: "fr-FR", en: "en-GB", zh: "zh-CN" };
 
+const CATEGORY_STYLES: Record<ActivityCategory, { label: string; dot: string; badge: string }> = {
+  entrainement: {
+    label: "Entraînement",
+    dot: "bg-[#5B7D95]",
+    badge: "bg-[#5B7D95]/10 text-[#5B7D95]",
+  },
+  tournoi: {
+    label: "Tournoi",
+    dot: "bg-violet-500",
+    badge: "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300",
+  },
+  evenement: {
+    label: "Événement",
+    dot: "bg-emerald-500",
+    badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+  },
+};
+
 function toIsoDate(date: Date) {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const day = `${date.getDate()}`.padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  const y = date.getFullYear();
+  const m = `${date.getMonth() + 1}`.padStart(2, "0");
+  const d = `${date.getDate()}`.padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 function getRecurringTemplateId(activityId: string) {
-  if (!activityId.startsWith("recurring:")) {
-    return null;
-  }
-
+  if (!activityId.startsWith("recurring:")) return null;
   const segments = activityId.split(":");
-  if (segments.length < 3) {
-    return null;
-  }
-
-  return segments[1];
+  return segments.length >= 3 ? segments[1] : null;
 }
 
 function compareActivitiesByDate(left: Activity, right: Activity) {
-  const leftValue = `${left.date}T${left.startTime}`;
-  const rightValue = `${right.date}T${right.startTime}`;
-  return leftValue.localeCompare(rightValue);
+  return `${left.date}T${left.startTime}`.localeCompare(`${right.date}T${right.startTime}`);
 }
 
 function normalizeLocationForMaps(location: string) {
-  const trimmedLocation = (location || "").trim();
-
-  if (!trimmedLocation) {
-    return "Saint-Leu, La Réunion";
+  const trimmed = (location || "").trim();
+  if (!trimmed) return "Saint-Leu, La Réunion";
+  const lower = trimmed.toLowerCase();
+  if (lower.includes("reunion") || lower.includes("réunion") || lower.includes("974") || lower.includes("saint-leu")) {
+    return trimmed;
   }
-
-  const lowerCaseLocation = trimmedLocation.toLowerCase();
-  const alreadyLocalized =
-    lowerCaseLocation.includes("reunion") ||
-    lowerCaseLocation.includes("réunion") ||
-    lowerCaseLocation.includes("974") ||
-    lowerCaseLocation.includes("saint-leu");
-
-  if (alreadyLocalized) {
-    return trimmedLocation;
-  }
-
-  return `${trimmedLocation}, Saint-Leu, La Réunion`;
+  return `${trimmed}, Saint-Leu, La Réunion`;
 }
 
 function toMapEmbedUrl(location: string) {
-  const encodedLocation = encodeURIComponent(normalizeLocationForMaps(location));
-  return `https://maps.google.com/maps?q=${encodedLocation}&z=14&output=embed`;
+  return `https://maps.google.com/maps?q=${encodeURIComponent(normalizeLocationForMaps(location))}&z=14&output=embed`;
 }
 
 function toGoogleMapsUrl(location: string) {
-  const encodedLocation = encodeURIComponent(normalizeLocationForMaps(location));
-  return `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(normalizeLocationForMaps(location))}`;
 }
 
 export function PlanningPage() {
   const { t } = useTranslation();
   const currentLocale = LOCALE_MAP[(i18n.language ?? "fr").split("-")[0]] ?? "fr-FR";
-  const dateFormatter = useMemo(() => new Intl.DateTimeFormat(currentLocale, {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }), [currentLocale]);
+
+  const dateFormatter = useMemo(
+    () => new Intl.DateTimeFormat(currentLocale, { day: "numeric", month: "long", year: "numeric" }),
+    [currentLocale],
+  );
+  const shortDateFormatter = useMemo(
+    () => new Intl.DateTimeFormat(currentLocale, { day: "numeric", month: "short" }),
+    [currentLocale],
+  );
   const weekdayLabels = t("planning.weekdays", { returnObjects: true }) as string[];
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<ActivityCategory | "all">("all");
   const [loadingError, setLoadingError] = useState("");
-  const [voteMessage, setVoteMessage] = useState("");
-  const [voteByActivity, setVoteByActivity] = useState<Record<string, AttendanceVote>>({});
-  const [votingActivityId, setVotingActivityId] = useState<string | null>(null);
-  const [voterFirstName, setVoterFirstName] = useState("");
-  const [voterLastName, setVoterLastName] = useState("");
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [selectedLocation, setSelectedLocation] = useState<string>("");
+  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
 
   useEffect(() => {
-    const identity = getSavedAttendanceIdentity();
-    setVoterFirstName(identity.firstName);
-    setVoterLastName(identity.lastName);
-
     const fetchActivities = async () => {
       try {
-        const nextActivities = await loadActivities();
-        setActivities(nextActivities);
+        const next = await loadActivities();
+        setActivities(next);
         setLoadingError("");
       } catch {
         setLoadingError(t("planning.loadingError"));
@@ -113,600 +101,442 @@ export function PlanningPage() {
     };
 
     fetchActivities();
-
-    const syncActivities = () => {
-      fetchActivities();
-    };
-
-    window.addEventListener("storage", syncActivities);
-    window.addEventListener("focus", syncActivities);
-
+    window.addEventListener("storage", fetchActivities);
+    window.addEventListener("focus", fetchActivities);
     return () => {
-      window.removeEventListener("storage", syncActivities);
-      window.removeEventListener("focus", syncActivities);
+      window.removeEventListener("storage", fetchActivities);
+      window.removeEventListener("focus", fetchActivities);
     };
   }, []);
 
   const filteredActivities = useMemo(() => {
-    if (activeFilter === "all") {
-      return activities;
-    }
-
-    return activities.filter((activity) => activity.category === activeFilter);
+    if (activeFilter === "all") return activities;
+    return activities.filter((a) => a.category === activeFilter);
   }, [activities, activeFilter]);
 
   const listedActivities = useMemo(() => {
-    const todayIsoDate = toIsoDate(new Date());
+    const todayIso = toIsoDate(new Date());
     const recurringByTemplate = new Map<string, Activity[]>();
-    const nonRecurringActivities: Activity[] = [];
+    const nonRecurring: Activity[] = [];
 
     for (const activity of filteredActivities) {
-      const recurringTemplateId = getRecurringTemplateId(activity.id);
-
-      if (!recurringTemplateId) {
-        nonRecurringActivities.push(activity);
-        continue;
-      }
-
-      const templateActivities = recurringByTemplate.get(recurringTemplateId) ?? [];
-      templateActivities.push(activity);
-      recurringByTemplate.set(recurringTemplateId, templateActivities);
+      const tid = getRecurringTemplateId(activity.id);
+      if (!tid) { nonRecurring.push(activity); continue; }
+      const arr = recurringByTemplate.get(tid) ?? [];
+      arr.push(activity);
+      recurringByTemplate.set(tid, arr);
     }
 
-    const recurringRepresentatives = Array.from(recurringByTemplate.values()).map((templateActivities) => {
-      const sortedTemplateActivities = [...templateActivities].sort(compareActivitiesByDate);
-      return sortedTemplateActivities.find((activity) => activity.date >= todayIsoDate) ?? sortedTemplateActivities[0];
+    const recurringReps = Array.from(recurringByTemplate.values()).map((arr) => {
+      const sorted = [...arr].sort(compareActivitiesByDate);
+      return sorted.find((a) => a.date >= todayIso) ?? sorted[0];
     });
 
-    return [...nonRecurringActivities, ...recurringRepresentatives].sort(compareActivitiesByDate);
+    return [...nonRecurring, ...recurringReps].sort(compareActivitiesByDate);
   }, [filteredActivities]);
 
-  const recurringOccurrencesCountByTemplate = useMemo(() => {
-    return filteredActivities.reduce<Record<string, number>>((accumulator, activity) => {
-      const recurringTemplateId = getRecurringTemplateId(activity.id);
-
-      if (!recurringTemplateId) {
-        return accumulator;
-      }
-
-      accumulator[recurringTemplateId] = (accumulator[recurringTemplateId] ?? 0) + 1;
-      return accumulator;
+  const recurringCountByTemplate = useMemo(() => {
+    return filteredActivities.reduce<Record<string, number>>((acc, a) => {
+      const tid = getRecurringTemplateId(a.id);
+      if (!tid) return acc;
+      acc[tid] = (acc[tid] ?? 0) + 1;
+      return acc;
     }, {});
   }, [filteredActivities]);
 
   const activitiesByDate = useMemo(() => {
-    return filteredActivities.reduce<Record<string, Activity[]>>((accumulator, activity) => {
-      const existing = accumulator[activity.date] ?? [];
-      accumulator[activity.date] = [...existing, activity];
-      return accumulator;
+    return filteredActivities.reduce<Record<string, Activity[]>>((acc, a) => {
+      acc[a.date] = [...(acc[a.date] ?? []), a];
+      return acc;
     }, {});
   }, [filteredActivities]);
 
-  const monthLabel = useMemo(() => new Intl.DateTimeFormat(currentLocale, {
-    month: "long",
-    year: "numeric",
-  }).format(currentMonth), [currentMonth, currentLocale]);
+  const monthLabel = useMemo(
+    () => new Intl.DateTimeFormat(currentLocale, { month: "long", year: "numeric" }).format(currentMonth),
+    [currentMonth, currentLocale],
+  );
 
   const calendarCells = useMemo(() => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-    const firstDayOfMonth = new Date(year, month, 1);
+    const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const firstWeekday = (firstDayOfMonth.getDay() + 6) % 7;
-
     const cells: Array<{ date: string; day: number } | null> = [];
-
-    for (let index = 0; index < firstWeekday; index += 1) {
-      cells.push(null);
+    for (let i = 0; i < firstWeekday; i++) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d++) {
+      cells.push({ date: toIsoDate(new Date(year, month, d)), day: d });
     }
-
-    for (let day = 1; day <= daysInMonth; day += 1) {
-      const currentDate = new Date(year, month, day);
-      cells.push({ date: toIsoDate(currentDate), day });
-    }
-
-    while (cells.length % 7 !== 0) {
-      cells.push(null);
-    }
-
+    while (cells.length % 7 !== 0) cells.push(null);
     return cells;
   }, [currentMonth]);
 
-  const displayedDayActivities = useMemo(() => {
-    if (!selectedDate) {
-      return [];
-    }
+  const todayIso = toIsoDate(new Date());
 
-    return activitiesByDate[selectedDate] ?? [];
-  }, [activitiesByDate, selectedDate]);
+  const upcomingActivities = useMemo(
+    () => listedActivities.filter((a) => a.date >= todayIso),
+    [listedActivities, todayIso],
+  );
 
-  const locationOptions = useMemo(() => {
-    const uniqueLocations = Array.from(new Set(filteredActivities.map((activity) => activity.location))).filter(Boolean);
-    return uniqueLocations;
-  }, [filteredActivities]);
-
-  useEffect(() => {
-    if (locationOptions.length === 0) {
-      setSelectedLocation("Saint-Leu, La Réunion");
-      return;
-    }
-
-    if (!locationOptions.includes(selectedLocation)) {
-      setSelectedLocation(locationOptions[0]);
-    }
-  }, [locationOptions, selectedLocation]);
+  const nextActivity = upcomingActivities[0] ?? null;
+  const trainingCount = activities.filter((a) => a.category === "entrainement").length;
+  const tournamentCount = activities.filter((a) => a.category === "tournoi").length;
 
   const changeMonth = (delta: number) => {
-    setCurrentMonth((previousMonth) => new Date(previousMonth.getFullYear(), previousMonth.getMonth() + delta, 1));
+    setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
     setSelectedDate(null);
   };
 
-  const todayIsoDate = toIsoDate(new Date());
-  const nextActivity = filteredActivities.find((activity) => activity.date >= todayIsoDate) ?? filteredActivities[0];
-  const tournamentCount = activities.filter((activity) => activity.category === "tournoi").length;
-  const trainingCount = activities.filter((activity) => activity.category === "entrainement").length;
-  const quickVoteActivities = listedActivities.filter((activity) => activity.date >= todayIsoDate).slice(0, 3);
-
-  const handleVote = async (activityId: string, vote: AttendanceVote) => {
-    const safeFirstName = voterFirstName.trim();
-    const safeLastName = voterLastName.trim();
-
-    if (!safeFirstName || !safeLastName) {
-      setVoteMessage(t("planning.fillName"));
-      return;
-    }
-
-    setVotingActivityId(activityId);
-    setVoteMessage("");
-
-    try {
-      await submitAttendanceVote(activityId, vote, safeFirstName, safeLastName);
-      setVoteByActivity((current) => ({ ...current, [activityId]: vote }));
-      setVoteMessage(t("planning.thankYouVote"));
-    } catch (error) {
-      if (error instanceof Error && error.message) {
-        setVoteMessage(error.message);
-      } else {
-        setVoteMessage(t("planning.voteError"));
-      }
-    } finally {
-      setVotingActivityId(null);
-    }
+  const handleSelectDate = (date: string) => {
+    setSelectedDate(date === selectedDate ? null : date);
+    const dayActivities = activitiesByDate[date];
+    if (dayActivities?.length) setSelectedActivity(dayActivities[0]);
   };
+
+  const handleSelectActivity = (activity: Activity) => {
+    setSelectedActivity(activity === selectedActivity ? null : activity);
+  };
+
+  const filterOptions: Array<{ value: ActivityCategory | "all"; label: string }> = [
+    { value: "all", label: t("planning.showAll") },
+    { value: "entrainement", label: t("planning.categories.entrainement") },
+    { value: "tournoi", label: t("planning.categories.tournoi") },
+    { value: "evenement", label: t("planning.categories.evenement") },
+  ];
 
   return (
     <div className="min-h-screen">
-      <section className="pt-24 pb-14 px-6 bg-gradient-to-b from-[#EAF2F6] to-background dark:from-[#1E2D36] dark:to-background">
+      {/* Hero */}
+      <section className="pt-24 pb-12 px-6 bg-gradient-to-b from-[#EAF2F6] to-background dark:from-[#1E2D36] dark:to-background">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="mb-10"
           >
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">{t("planning.title")}</h1>
-            <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
-              {t("planning.subtitle")}
-            </p>
-          </motion.div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-3 tracking-tight">{t("planning.title")}</h1>
+            <p className="text-lg text-muted-foreground mb-8">{t("planning.subtitle")}</p>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            <Card className="border-2 border-[#5B7D95]/30">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-2xl">
-                  <CalendarDays className="h-6 w-6 text-[#5B7D95]" />
+            <div className="flex flex-wrap gap-4">
+              {/* Prochaine séance */}
+              <div className="flex-1 min-w-[220px] max-w-sm rounded-xl border border-[#5B7D95]/25 bg-background px-5 py-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                   {t("planning.nextEvent")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </p>
                 {isLoading ? (
-                  <div className="space-y-2">
-                    <Skeleton className="h-5 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                    <Skeleton className="h-4 w-2/5" />
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-5 w-36" />
+                    <Skeleton className="h-4 w-28" />
                   </div>
                 ) : nextActivity ? (
-                  <div className="space-y-2">
-                    <p className="font-semibold text-lg">{nextActivity.title}</p>
-                    <p className="text-muted-foreground">{dateFormatter.format(new Date(`${nextActivity.date}T00:00:00`))}</p>
-                    <p className="text-muted-foreground">{nextActivity.startTime} - {nextActivity.endTime}</p>
-                  </div>
+                  <>
+                    <p className="font-semibold">{nextActivity.title}</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      {dateFormatter.format(new Date(`${nextActivity.date}T00:00:00`))}
+                      {" · "}
+                      {nextActivity.startTime}
+                    </p>
+                  </>
                 ) : (
-                  <p className="text-muted-foreground">{t("planning.noActivity")}</p>
+                  <p className="text-sm text-muted-foreground">{t("planning.noActivity")}</p>
                 )}
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 border-[#5B7D95]/30">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-2xl">
-                  <Clock3 className="h-6 w-6 text-[#5B7D95]" />
-                  {t("planning.trainingsPlanned")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <Skeleton className="h-10 w-16" />
-                ) : (
-                  <p className="text-4xl font-bold text-[#5B7D95]">{trainingCount}</p>
-                )}
-                <p className="text-muted-foreground mt-2">{t("planning.trainingsVisible")}</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 border-[#5B7D95]/30">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-2xl">
-                  <Trophy className="h-6 w-6 text-[#5B7D95]" />
-                  {t("planning.tournamentsAnnounced")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <Skeleton className="h-10 w-16" />
-                ) : (
-                  <p className="text-4xl font-bold text-[#5B7D95]">{tournamentCount}</p>
-                )}
-                <p className="text-muted-foreground mt-2">{t("planning.tournamentsAdded")}</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-12 px-6 bg-background border-b border-border/60">
-        <div className="max-w-7xl mx-auto flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Filter className="h-4 w-4" />
-            <span>{t("planning.filterActivities")}</span>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            {(["all", "entrainement", "tournoi", "evenement"] as const).map((filter) => (
-              <Button
-                key={filter}
-                type="button"
-                variant={activeFilter === filter ? "default" : "outline"}
-                className={activeFilter === filter ? "bg-[#5B7D95] text-white hover:bg-[#4E6C83]" : ""}
-                onClick={() => setActiveFilter(filter)}
-              >
-                {filter === "all" ? t("planning.showAll") : t(`planning.categories.${filter}`)}
-              </Button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-10 px-6 bg-background border-b border-border/60">
-        <div className="max-w-7xl mx-auto">
-          <Card className="border-2 border-[#5B7D95]/30">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-2xl">
-                <Clock3 className="h-6 w-6 text-[#5B7D95]" />
-                {t("planning.quickVote")}
-              </CardTitle>
-              <p className="text-muted-foreground">{t("planning.quickVoteDesc")}</p>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-2 gap-3 mb-4">
-                <div>
-                  <label htmlFor="vote-first-name" className="mb-1 block text-sm font-medium">{t("planning.firstName")}</label>
-                  <Input
-                    id="vote-first-name"
-                    value={voterFirstName}
-                    onChange={(event) => setVoterFirstName(event.target.value)}
-                    placeholder={t("planning.firstNamePlaceholder")}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="vote-last-name" className="mb-1 block text-sm font-medium">{t("planning.lastName")}</label>
-                  <Input
-                    id="vote-last-name"
-                    value={voterLastName}
-                    onChange={(event) => setVoterLastName(event.target.value)}
-                    placeholder={t("planning.lastNamePlaceholder")}
-                  />
-                </div>
               </div>
 
-              {quickVoteActivities.length > 0 ? (
-                <div className="grid md:grid-cols-3 gap-4">
-                  {quickVoteActivities.map((activity) => (
-                    <div key={`quick-vote-${activity.id}`} className="rounded-lg border border-border/70 bg-background p-4 space-y-3">
-                      <div>
-                        <p className="font-semibold">{activity.title}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {dateFormatter.format(new Date(`${activity.date}T00:00:00`))} • {activity.startTime} - {activity.endTime}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{activity.location}</p>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2">
-                        {([
-                          { value: "present", label: t("planning.present") },
-                          { value: "absent", label: t("planning.absent") },
-                        ] as const).map((option) => (
-                          <Button
-                            key={`quick-${activity.id}-${option.value}`}
-                            type="button"
-                            size="sm"
-                            variant={voteByActivity[activity.id] === option.value ? "default" : "outline"}
-                            className={voteByActivity[activity.id] === option.value ? "bg-[#5B7D95] text-white hover:bg-[#4E6C83]" : ""}
-                            disabled={votingActivityId === activity.id}
-                            onClick={() => void handleVote(activity.id, option.value)}
-                          >
-                            {option.label}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+              {/* Stats */}
+              <div className="flex gap-4">
+                <div className="rounded-xl border border-[#5B7D95]/25 bg-background px-5 py-4 text-center min-w-[100px]">
+                  <div className="flex items-center justify-center mb-1">
+                    <Dumbbell className="h-4 w-4 text-[#5B7D95]" />
+                  </div>
+                  {isLoading ? (
+                    <Skeleton className="h-7 w-8 mx-auto" />
+                  ) : (
+                    <p className="text-2xl font-bold text-[#5B7D95]">{trainingCount}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-0.5">{t("planning.categories.entrainement")}</p>
                 </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">{t("planning.noFutureVote")}</p>
-              )}
-            </CardContent>
-          </Card>
+                <div className="rounded-xl border border-violet-200 dark:border-violet-800/50 bg-background px-5 py-4 text-center min-w-[100px]">
+                  <div className="flex items-center justify-center mb-1">
+                    <Trophy className="h-4 w-4 text-violet-500" />
+                  </div>
+                  {isLoading ? (
+                    <Skeleton className="h-7 w-8 mx-auto" />
+                  ) : (
+                    <p className="text-2xl font-bold text-violet-500">{tournamentCount}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-0.5">{t("planning.categories.tournoi")}</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
-      <section className="py-16 px-6 bg-background border-b border-border/60">
-        <div className="max-w-7xl mx-auto grid xl:grid-cols-[1.25fr_1fr] gap-8">
-          <Card className="border-2 border-[#5B7D95]/25">
-            <CardHeader>
-              <div className="flex items-center justify-between gap-4">
-                <CardTitle className="flex items-center gap-3 text-2xl">
-                  <CalendarDays className="h-6 w-6 text-[#5B7D95]" />
-                  {t("planning.activityCalendar")}
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  <Button type="button" variant="outline" size="icon" onClick={() => changeMonth(-1)}>
+      {/* Filters */}
+      <section className="px-6 py-4 bg-background border-y border-border/40 sticky top-16 z-30">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 flex-wrap">
+          {filterOptions.map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setActiveFilter(value)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                activeFilter === value
+                  ? value === "tournoi"
+                    ? "bg-violet-500 text-white"
+                    : value === "evenement"
+                    ? "bg-emerald-500 text-white"
+                    : "bg-[#5B7D95] text-white"
+                  : "bg-muted/60 hover:bg-muted text-foreground"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Main content */}
+      <section className="py-10 px-6 bg-background">
+        <div className="max-w-7xl mx-auto grid xl:grid-cols-[1fr_380px] gap-8">
+
+          {/* Activity list */}
+          <div>
+            {loadingError ? (
+              <p className="text-red-600 text-sm mb-4">{loadingError}</p>
+            ) : null}
+
+            {isLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex gap-4 rounded-xl border border-border/40 p-4">
+                    <Skeleton className="h-12 w-12 rounded-lg flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-5 w-48" />
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-full" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : listedActivities.length > 0 ? (
+              <div className="space-y-3">
+                {listedActivities.map((activity, index) => {
+                  const recurringTid = getRecurringTemplateId(activity.id);
+                  const recurringCount = recurringTid ? (recurringCountByTemplate[recurringTid] ?? 1) : null;
+                  const style = CATEGORY_STYLES[activity.category];
+                  const isPast = activity.date < todayIso;
+                  const isSelected = selectedActivity?.id === activity.id;
+
+                  return (
+                    <motion.button
+                      key={activity.id}
+                      type="button"
+                      initial={{ opacity: 0, y: 12 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.4, delay: index * 0.04 }}
+                      onClick={() => handleSelectActivity(activity)}
+                      className={`w-full text-left rounded-xl border transition-all ${
+                        isSelected
+                          ? "border-[#5B7D95] bg-[#5B7D95]/5 dark:bg-[#5B7D95]/10"
+                          : "border-border/40 hover:border-[#5B7D95]/40 bg-background"
+                      } ${isPast ? "opacity-60" : ""}`}
+                    >
+                      <div className="flex gap-4 p-4">
+                        {/* Date badge */}
+                        <div
+                          className={`flex-shrink-0 w-12 h-12 rounded-lg flex flex-col items-center justify-center text-center ${
+                            isPast ? "bg-muted" : style.badge
+                          }`}
+                        >
+                          <span className="text-[10px] font-bold uppercase leading-none">
+                            {new Intl.DateTimeFormat(currentLocale, { month: "short" })
+                              .format(new Date(`${activity.date}T00:00:00`))
+                              .replace(".", "")}
+                          </span>
+                          <span className="text-lg font-bold leading-tight">
+                            {new Date(`${activity.date}T00:00:00`).getDate()}
+                          </span>
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <p className="font-semibold leading-tight truncate">{activity.title}</p>
+                            <span className={`flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${style.badge}`}>
+                              {style.label}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Clock3 className="h-3.5 w-3.5" />
+                              {activity.startTime} – {activity.endTime}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <MapPin className="h-3.5 w-3.5" />
+                              {activity.location}
+                            </span>
+                          </div>
+                          {activity.description ? (
+                            <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2">{activity.description}</p>
+                          ) : null}
+                          {recurringCount && recurringCount > 1 ? (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {t("planning.recurring")} · {recurringCount} {t("planning.sessions")}
+                            </p>
+                          ) : null}
+                        </div>
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-border/60 py-12 text-center text-muted-foreground">
+                {t("planning.noMatchFilter")}
+              </div>
+            )}
+          </div>
+
+          {/* Right: Calendar + Map */}
+          <div className="space-y-6">
+            {/* Calendar */}
+            <div className="rounded-xl border border-border/40 bg-background overflow-hidden">
+              {/* Month nav */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
+                <p className="font-semibold capitalize text-sm">{monthLabel}</p>
+                <div className="flex gap-1">
+                  <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => changeMonth(-1)}>
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <Button type="button" variant="outline" size="icon" onClick={() => changeMonth(1)}>
+                  <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => changeMonth(1)}>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-              <p className="text-muted-foreground capitalize">{monthLabel}</p>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-7 gap-2 text-center mb-3">
-                {weekdayLabels.map((label) => (
-                  <p key={label} className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    {label}
+
+              <div className="p-3">
+                {/* Weekday headers */}
+                <div className="grid grid-cols-7 mb-1">
+                  {weekdayLabels.map((label) => (
+                    <div key={label} className="text-center text-[10px] font-semibold text-muted-foreground uppercase py-1">
+                      {label}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Days */}
+                <div className="grid grid-cols-7 gap-1">
+                  {calendarCells.map((cell, index) => {
+                    if (!cell) return <div key={`e-${index}`} />;
+                    const dayActivities = activitiesByDate[cell.date] ?? [];
+                    const isToday = cell.date === todayIso;
+                    const isSelected = selectedDate === cell.date;
+
+                    return (
+                      <button
+                        key={cell.date}
+                        type="button"
+                        onClick={() => handleSelectDate(cell.date)}
+                        className={`relative flex flex-col items-center py-1.5 rounded-lg text-sm transition-colors ${
+                          isSelected
+                            ? "bg-[#5B7D95] text-white"
+                            : isToday
+                            ? "bg-[#5B7D95]/10 font-bold text-[#5B7D95]"
+                            : "hover:bg-muted/60"
+                        }`}
+                      >
+                        <span className={`font-medium leading-none ${isSelected ? "text-white" : ""}`}>
+                          {cell.day}
+                        </span>
+                        {dayActivities.length > 0 ? (
+                          <div className="flex gap-0.5 mt-1">
+                            {dayActivities.slice(0, 3).map((a) => (
+                              <span
+                                key={a.id}
+                                className={`h-1 w-1 rounded-full ${isSelected ? "bg-white/70" : CATEGORY_STYLES[a.category].dot}`}
+                              />
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="h-2" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Selected day activities */}
+              {selectedDate ? (
+                <div className="border-t border-border/40 px-4 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                    {shortDateFormatter.format(new Date(`${selectedDate}T00:00:00`))}
                   </p>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-7 gap-2">
-                {calendarCells.map((cell, index) => {
-                  if (!cell) {
-                    return <div key={`empty-${index}`} className="h-20 rounded-lg bg-muted/20" />;
-                  }
-
-                  const dayActivities = activitiesByDate[cell.date] ?? [];
-                  const isSelected = selectedDate === cell.date;
-
-                  return (
-                    <button
-                      key={cell.date}
-                      type="button"
-                      onClick={() => setSelectedDate(cell.date)}
-                      className={`h-20 rounded-lg border p-2 text-left transition-colors ${
-                        isSelected
-                          ? "border-[#5B7D95] bg-[#5B7D95]/10"
-                          : "border-border bg-background hover:border-[#5B7D95]/50"
-                      }`}
-                    >
-                      <p className="text-sm font-semibold">{cell.day}</p>
-                      {dayActivities.length > 0 ? (
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {dayActivities.slice(0, 3).map((activity) => (
-                            <span key={`${cell.date}-${activity.id}`} className="h-2 w-2 rounded-full bg-[#5B7D95]" />
-                          ))}
-                          {dayActivities.length > 3 ? <span className="text-[10px] text-[#5B7D95]">+{dayActivities.length - 3}</span> : null}
-                        </div>
-                      ) : (
-                        <p className="mt-2 text-[11px] text-muted-foreground">{t("planning.noActivityDay")}</p>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="mt-6 rounded-lg border border-border/70 bg-muted/20 p-4">
-                <p className="font-semibold mb-2">
-                  {selectedDate
-                    ? `${t("planning.activitiesOf")} ${dateFormatter.format(new Date(`${selectedDate}T00:00:00`))}`
-                    : t("planning.selectDate")}
-                </p>
-                {selectedDate ? (
-                  displayedDayActivities.length > 0 ? (
-                    <div className="space-y-2">
-                      {displayedDayActivities.map((activity) => (
+                  {(activitiesByDate[selectedDate] ?? []).length > 0 ? (
+                    <div className="space-y-1.5">
+                      {(activitiesByDate[selectedDate] ?? []).map((a) => (
                         <button
-                          key={`selected-${activity.id}`}
+                          key={a.id}
                           type="button"
-                          onClick={() => setSelectedLocation(activity.location)}
-                          className="w-full rounded-md bg-background p-3 border border-border/70 text-left hover:border-[#5B7D95]/60"
+                          onClick={() => handleSelectActivity(a)}
+                          className="w-full text-left text-sm px-2 py-1.5 rounded-md hover:bg-muted/60 transition-colors"
                         >
-                          <p className="font-medium">{activity.title}</p>
-                          <p className="text-sm text-muted-foreground">{activity.startTime} - {activity.endTime} • {activity.location}</p>
+                          <div className="flex items-center gap-2">
+                            <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${CATEGORY_STYLES[a.category].dot}`} />
+                            <span className="font-medium truncate">{a.title}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground pl-3.5">{a.startTime} – {a.endTime}</p>
                         </button>
                       ))}
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">{t("planning.noActivityThisDay")}</p>
-                  )
-                ) : (
-                  <p className="text-sm text-muted-foreground">{t("planning.calendarHint")}</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  )}
+                </div>
+              ) : null}
+            </div>
 
-          <Card className="border-2 border-[#5B7D95]/25">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-2xl">
-                <MapPin className="h-6 w-6 text-[#5B7D95]" />
-                {t("planning.interactiveMap")}
-              </CardTitle>
-              <p className="text-muted-foreground">
-                {t("planning.interactiveMapDesc")}
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="overflow-hidden rounded-xl border border-border/80 bg-muted/10">
+            {/* Map */}
+            {selectedActivity ? (
+              <motion.div
+                key={selectedActivity.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="rounded-xl border border-border/40 overflow-hidden bg-background"
+              >
+                <div className="px-4 py-3 border-b border-border/40">
+                  <p className="font-semibold text-sm">{selectedActivity.title}</p>
+                  <p className="text-xs text-muted-foreground">{selectedActivity.location}</p>
+                </div>
                 <iframe
-                  key={selectedLocation}
+                  key={selectedActivity.location}
                   title={t("planning.mapLabel")}
-                  src={toMapEmbedUrl(selectedLocation)}
-                  className="w-full h-[360px]"
+                  src={toMapEmbedUrl(selectedActivity.location)}
+                  className="w-full h-52"
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                 />
-              </div>
-
-              <a
-                href={toGoogleMapsUrl(selectedLocation)}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 text-[#5B7D95] hover:underline"
-              >
-                {t("planning.openOnMaps")}
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      <section className="py-20 px-6 bg-muted/30 dark:bg-muted/10">
-        <div className="max-w-7xl mx-auto">
-          {loadingError ? (
-            <Card className="mb-8 border-red-300">
-              <CardContent className="py-6 text-center text-red-700">{loadingError}</CardContent>
-            </Card>
-          ) : null}
-
-          {voteMessage ? (
-            <Card className="mb-8 border-[#5B7D95]/40">
-              <CardContent className="py-4 text-center text-sm text-muted-foreground">{voteMessage}</CardContent>
-            </Card>
-          ) : null}
-
-          <div className="grid lg:grid-cols-2 gap-8">
-            {isLoading
-              ? Array.from({ length: 4 }).map((_, index) => (
-                  <Card key={index} className="h-full border-2">
-                    <CardHeader>
-                      <div className="flex items-center justify-between gap-4">
-                        <Skeleton className="h-7 w-48" />
-                        <Skeleton className="h-6 w-24 rounded-full" />
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-start gap-3">
-                        <Skeleton className="h-5 w-5 mt-1 rounded flex-shrink-0" />
-                        <div className="space-y-1.5 flex-1">
-                          <Skeleton className="h-4 w-16" />
-                          <Skeleton className="h-4 w-40" />
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Skeleton className="h-5 w-5 mt-1 rounded flex-shrink-0" />
-                        <div className="space-y-1.5 flex-1">
-                          <Skeleton className="h-4 w-16" />
-                          <Skeleton className="h-4 w-32" />
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Skeleton className="h-5 w-5 mt-1 rounded flex-shrink-0" />
-                        <div className="space-y-1.5 flex-1">
-                          <Skeleton className="h-4 w-16" />
-                          <Skeleton className="h-4 w-48" />
-                        </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-4 w-full" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              : listedActivities.map((activity, index) => {
-              const recurringTemplateId = getRecurringTemplateId(activity.id);
-              const recurringOccurrencesCount = recurringTemplateId
-                ? recurringOccurrencesCountByTemplate[recurringTemplateId] ?? 1
-                : 1;
-
-              return (
-              <motion.div
-                key={activity.id}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.06 }}
-              >
-                <Card
-                  className="h-full border-2 hover:border-[#5B7D95] transition-colors cursor-pointer"
-                  onClick={() => setSelectedLocation(activity.location)}
-                >
-                  <CardHeader>
-                    <div className="flex items-center justify-between gap-4">
-                      <CardTitle className="text-2xl">{activity.title}</CardTitle>
-                      <span className="rounded-full bg-[#5B7D95]/10 px-3 py-1 text-sm font-medium text-[#5B7D95]">
-                        {t(`planning.categories.${activity.category}`)}
-                      </span>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4 text-lg">
-                    <div className="flex items-start gap-3 text-muted-foreground">
-                      <CalendarDays className="h-5 w-5 text-[#5B7D95] mt-1 flex-shrink-0" />
-                      <div>
-                        <p className="font-semibold text-foreground">{t("planning.date")}</p>
-                        <p>{dateFormatter.format(new Date(`${activity.date}T00:00:00`))}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3 text-muted-foreground">
-                      <Clock3 className="h-5 w-5 text-[#5B7D95] mt-1 flex-shrink-0" />
-                      <div>
-                        <p className="font-semibold text-foreground">{t("planning.time")}</p>
-                        <p>{activity.startTime} - {activity.endTime}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3 text-muted-foreground">
-                      <MapPin className="h-5 w-5 text-[#5B7D95] mt-1 flex-shrink-0" />
-                      <div>
-                        <p className="font-semibold text-foreground">{t("planning.location")}</p>
-                        <p>{activity.location}</p>
-                      </div>
-                    </div>
-                    <div>
-                      <p className="font-semibold mb-1">{t("planning.audience")}</p>
-                      <p className="text-muted-foreground">{activity.audience}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold mb-1">{t("planning.details")}</p>
-                      <p className="text-muted-foreground">{activity.description}</p>
-                    </div>
-                    {recurringTemplateId ? (
-                      <p className="text-sm text-muted-foreground">{t("planning.recurring")} • {recurringOccurrencesCount} {t("planning.sessions")}</p>
-                    ) : null}
-                  </CardContent>
-                </Card>
+                <div className="px-4 py-2.5">
+                  <a
+                    href={toGoogleMapsUrl(selectedActivity.location)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 text-sm text-[#5B7D95] hover:underline"
+                  >
+                    {t("planning.openOnMaps")}
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </div>
               </motion.div>
-              );
-            })}
+            ) : (
+              <div className="rounded-xl border border-dashed border-border/40 py-8 text-center text-sm text-muted-foreground">
+                <CalendarDays className="h-6 w-6 mx-auto mb-2 opacity-40" />
+                {t("planning.selectDate")}
+              </div>
+            )}
           </div>
-
-          {!isLoading && listedActivities.length === 0 ? (
-            <Card className="mt-8 border-dashed">
-              <CardContent className="py-10 text-center text-muted-foreground">
-                {t("planning.noMatchFilter")}
-              </CardContent>
-            </Card>
-          ) : null}
         </div>
       </section>
     </div>
