@@ -172,6 +172,7 @@ export function AdminPage() {
   const [whiteSharksFeedbackMessage, setWhiteSharksFeedbackMessage] = useState("");
   const [isWhiteSharksSaving, setIsWhiteSharksSaving] = useState(false);
   const [expandedTemplates, setExpandedTemplates] = useState<Set<string>>(new Set());
+  const [showPastActivities, setShowPastActivities] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -206,25 +207,37 @@ export function AdminPage() {
     [activities, selectedId],
   );
 
-  const listedActivities = useMemo(() => {
+  const { upcomingActivities, pastActivities } = useMemo(() => {
     const todayIso = new Date().toISOString().slice(0, 10);
     const recurringByTemplate = new Map<string, Activity[]>();
-    const nonRecurring: Activity[] = [];
+    const nonRecurringUpcoming: Activity[] = [];
+    const nonRecurringPast: Activity[] = [];
 
     for (const a of activities) {
       const tid = getRecurringTemplateId(a.id);
-      if (!tid) { nonRecurring.push(a); continue; }
+      if (!tid) {
+        if (a.date >= todayIso) nonRecurringUpcoming.push(a);
+        else nonRecurringPast.push(a);
+        continue;
+      }
       const arr = recurringByTemplate.get(tid) ?? [];
       arr.push(a);
       recurringByTemplate.set(tid, arr);
     }
 
-    const reps = Array.from(recurringByTemplate.values()).map((arr) => {
+    const recurringUpcoming: Activity[] = [];
+    const recurringPast: Activity[] = [];
+    for (const arr of recurringByTemplate.values()) {
       const sorted = [...arr].sort(compareActivitiesByDate);
-      return sorted.find((a) => a.date >= todayIso) ?? sorted[0];
-    });
+      const next = sorted.find((a) => a.date >= todayIso);
+      if (next) recurringUpcoming.push(next);
+      else recurringPast.push(sorted[sorted.length - 1]);
+    }
 
-    return [...nonRecurring, ...reps].filter(Boolean).sort(compareActivitiesByDate);
+    return {
+      upcomingActivities: [...nonRecurringUpcoming, ...recurringUpcoming].sort(compareActivitiesByDate),
+      pastActivities: [...nonRecurringPast, ...recurringPast].sort(compareActivitiesByDate).reverse(),
+    };
   }, [activities]);
 
   const recurringOccurrencesCountByTemplate = useMemo(() => {
@@ -686,7 +699,7 @@ export function AdminPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {listedActivities.map((activity) => {
+                {upcomingActivities.map((activity) => {
                   const tid = getRecurringTemplateId(activity.id);
                   const count = tid ? recurringOccurrencesCountByTemplate[tid] ?? 1 : 1;
 
@@ -763,6 +776,48 @@ export function AdminPage() {
                     </div>
                   );
                 })}
+
+                {pastActivities.length > 0 && (
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowPastActivities((v) => !v)}
+                      className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full py-1.5"
+                    >
+                      <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showPastActivities ? "rotate-180" : ""}`} />
+                      Événements passés ({pastActivities.length})
+                    </button>
+                    {showPastActivities && (
+                      <div className="space-y-2 mt-2">
+                        {pastActivities.map((activity) => (
+                          <button
+                            key={activity.id}
+                            type="button"
+                            onClick={() => handleSelectActivity(activity)}
+                            className={`w-full rounded-lg border p-3 text-left transition-colors text-sm opacity-60 ${
+                              selectedId === activity.id
+                                ? "border-[#5B7D95] bg-[#5B7D95]/5"
+                                : "border-border/40 hover:border-border"
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <p className="font-medium">{activity.title}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                  {dateFormatter.format(new Date(`${activity.date}T00:00:00`))} · {activity.startTime}–{activity.endTime}
+                                </p>
+                              </div>
+                              <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full shrink-0">
+                                {getCategoryLabel(activity.category)}
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">{activity.location}</p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
