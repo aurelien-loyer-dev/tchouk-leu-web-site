@@ -121,7 +121,7 @@ export function PlanningPage() {
 
     for (const activity of filteredActivities) {
       const tid = getRecurringTemplateId(activity.id);
-      if (!tid) { nonRecurring.push(activity); continue; }
+      if (!tid) { if (activity.date >= todayIso) nonRecurring.push(activity); continue; }
       const arr = recurringByTemplate.get(tid) ?? [];
       arr.push(activity);
       recurringByTemplate.set(tid, arr);
@@ -178,8 +178,8 @@ export function PlanningPage() {
   );
 
   const nextActivity = upcomingActivities[0] ?? null;
-  const trainingCount = activities.filter((a) => a.category === "entrainement").length;
-  const tournamentCount = activities.filter((a) => a.category === "tournoi").length;
+  const trainingCount = activities.filter((a) => a.category === "entrainement" && a.date >= todayIso).length;
+  const tournamentCount = activities.filter((a) => a.category === "tournoi" && a.date >= todayIso).length;
 
   const changeMonth = (delta: number) => {
     setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
@@ -324,7 +324,6 @@ export function PlanningPage() {
                   const recurringTid = getRecurringTemplateId(activity.id);
                   const recurringCount = recurringTid ? (recurringCountByTemplate[recurringTid] ?? 1) : null;
                   const style = CATEGORY_STYLES[activity.category];
-                  const isPast = activity.date < todayIso;
                   const isSelected = selectedActivity?.id === activity.id;
 
                   return (
@@ -340,14 +339,12 @@ export function PlanningPage() {
                         isSelected
                           ? "border-[#5B7D95] bg-[#5B7D95]/5 dark:bg-[#5B7D95]/10"
                           : "border-border/40 hover:border-[#5B7D95]/40 bg-background"
-                      } ${isPast ? "opacity-60" : ""}`}
+                      }`}
                     >
                       <div className="flex gap-4 p-4">
                         {/* Date badge */}
                         <div
-                          className={`flex-shrink-0 w-12 h-12 rounded-lg flex flex-col items-center justify-center text-center ${
-                            isPast ? "bg-muted" : style.badge
-                          }`}
+                          className={`flex-shrink-0 w-12 h-12 rounded-lg flex flex-col items-center justify-center text-center ${style.badge}`}
                         >
                           <span className="text-[10px] font-bold uppercase leading-none">
                             {new Intl.DateTimeFormat(currentLocale, { month: "short" })
