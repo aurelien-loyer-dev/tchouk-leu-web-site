@@ -15,7 +15,9 @@ const LANGUAGES = [
 function LanguageSwitcher({ isWhiteSharks }: { isWhiteSharks: boolean }) {
   const { i18n: i18nInstance } = useTranslation();
   const currentLang = (i18nInstance.language ?? "fr").split("-")[0];
-  const activeColor = isWhiteSharks ? "text-violet-600 dark:text-violet-300" : "text-[#5B7D95]";
+  const activeColor = isWhiteSharks
+    ? "bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300"
+    : "bg-[#5B7D95]/12 text-[#5B7D95]";
 
   return (
     <div className="flex items-center gap-0.5">
@@ -24,8 +26,8 @@ function LanguageSwitcher({ isWhiteSharks }: { isWhiteSharks: boolean }) {
           key={lang.code}
           type="button"
           onClick={() => void i18nInstance.changeLanguage(lang.code)}
-          className={`px-1.5 py-0.5 text-xs font-semibold rounded transition-colors ${
-            currentLang === lang.code ? activeColor : "text-muted-foreground hover:text-foreground"
+          className={`px-2 py-0.5 text-xs font-semibold rounded-full transition-colors ${
+            currentLang === lang.code ? activeColor : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
           }`}
         >
           {lang.code === "zh" ? "中文" : lang.code.toUpperCase()}
@@ -39,13 +41,14 @@ const NAV_LINKS = [
   { to: "/", key: "nav.home", exact: true },
   { to: "/club", key: "nav.club", exact: false },
   { to: "/planning", key: "nav.planning", exact: false },
-  { to: "/white-sharks", key: "nav.whiteSharks", exact: false },
+  { to: "/white-sharks", key: "nav.whiteSharks", exact: false, shortLabel: "WS" },
   { to: "/galerie", key: "nav.gallery", exact: false },
   { to: "/contact", key: "nav.contact", exact: false },
 ] as const;
 
 export function Header() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isChinese = i18n.language?.startsWith("zh");
   const [isVisible, setIsVisible] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
@@ -72,26 +75,29 @@ export function Header() {
 
   const navLinkClass = (to: string, exact: boolean) => {
     const active = isActive(to, exact);
-    const activeStyle = isWhiteSharks
-      ? "text-violet-700 dark:text-violet-300"
-      : "text-[#5B7D95]";
-    const inactiveStyle = isWhiteSharks
-      ? "text-foreground/70 hover:text-violet-700 dark:hover:text-violet-300"
-      : "text-foreground/70 hover:text-foreground";
-    return `relative text-sm font-medium transition-colors pb-0.5 ${active ? activeStyle : inactiveStyle}`;
+    const sizeStyle = isChinese ? "text-sm font-semibold px-3.5 py-1.5" : "text-base font-semibold px-5 py-2";
+    const baseStyle = `${sizeStyle} transition-all rounded-full`;
+    if (active) {
+      return isWhiteSharks
+        ? `${baseStyle} bg-violet-600 dark:bg-violet-500 text-white`
+        : `${baseStyle} bg-[#5B7D95] text-white`;
+    }
+    return isWhiteSharks
+      ? `${baseStyle} text-foreground/70 hover:bg-violet-100/70 dark:hover:bg-violet-500/10 hover:text-violet-700 dark:hover:text-violet-300`
+      : `${baseStyle} text-foreground/70 hover:bg-accent/70 hover:text-foreground`;
   };
 
   const mobileLinkClass = (to: string, exact: boolean) => {
     const active = isActive(to, exact);
-    const baseStyle = "rounded-md px-3 py-2 text-sm font-medium transition-colors";
+    const baseStyle = "rounded-full px-4 py-2.5 text-sm font-medium transition-all";
     if (active) {
       return isWhiteSharks
-        ? `${baseStyle} bg-violet-100 dark:bg-violet-500/20 text-violet-800 dark:text-violet-200`
-        : `${baseStyle} bg-accent text-[#5B7D95]`;
+        ? `${baseStyle} bg-violet-600 dark:bg-violet-500 text-white`
+        : `${baseStyle} bg-[#5B7D95] text-white`;
     }
     return isWhiteSharks
       ? `${baseStyle} hover:bg-violet-100/70 dark:hover:bg-violet-500/10 text-foreground/70`
-      : `${baseStyle} hover:bg-accent/60 text-foreground/70`;
+      : `${baseStyle} hover:bg-accent/70 text-foreground/70`;
   };
 
   return (
@@ -107,7 +113,7 @@ export function Header() {
             : "bg-background/85 border-border/60"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 h-16 grid grid-cols-3 items-center">
           <Link to="/" className="flex items-center gap-3 flex-shrink-0">
             <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-9 w-auto object-contain" />
             {isWhiteSharks && (
@@ -122,24 +128,20 @@ export function Header() {
             )}
           </Link>
 
-          <nav className="hidden md:flex items-center gap-7">
-            {NAV_LINKS.map(({ to, key, exact }) => (
+          <nav className="hidden md:flex items-center justify-center gap-1.5">
+            {NAV_LINKS.map(({ to, key, exact, ...rest }) => (
               <Link key={to} to={to} className={navLinkClass(to, exact)}>
-                {t(key)}
-                {isActive(to, exact) && (
-                  <span
-                    className={`absolute bottom-0 left-0 right-0 h-px ${
-                      isWhiteSharks ? "bg-violet-500" : "bg-[#5B7D95]"
-                    }`}
-                  />
-                )}
+                {"shortLabel" in rest ? rest.shortLabel : t(key)}
               </Link>
             ))}
-            <LanguageSwitcher isWhiteSharks={isWhiteSharks} />
-            <ThemeToggle />
           </nav>
 
-          <div className="md:hidden flex items-center gap-2">
+          <div className="hidden md:flex items-center justify-end gap-2">
+            <LanguageSwitcher isWhiteSharks={isWhiteSharks} />
+            <ThemeToggle />
+          </div>
+
+          <div className="md:hidden col-span-2 flex items-center justify-end gap-2">
             <LanguageSwitcher isWhiteSharks={isWhiteSharks} />
             <ThemeToggle />
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
