@@ -228,9 +228,10 @@ export function AdminPage() {
   }, [activities]);
 
   const recurringOccurrencesCountByTemplate = useMemo(() => {
+    const todayIso = new Date().toISOString().slice(0, 10);
     return activities.reduce<Record<string, number>>((acc, a) => {
       const tid = getRecurringTemplateId(a.id);
-      if (!tid) return acc;
+      if (!tid || a.date < todayIso) return acc;
       acc[tid] = (acc[tid] ?? 0) + 1;
       return acc;
     }, {});
