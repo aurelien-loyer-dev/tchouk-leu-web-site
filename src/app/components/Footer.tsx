@@ -26,12 +26,12 @@ export function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-9 w-auto" />
+              <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-14 w-auto" />
               {isWhiteSharks && (
                 <img
                   src="/images/WhiteSharksLogo.png"
                   alt="Logo White Sharks"
-                  className="h-9 w-auto object-contain rounded-sm"
+                  className="h-14 w-auto object-contain rounded-sm"
                 />
               )}
               <div>
@@ -43,7 +43,6 @@ export function Footer() {
                 )}
               </div>
             </div>
-            <p className="text-sm text-muted-foreground">Zenèss La Réunion</p>
           </div>
 
           {/* Navigation */}
