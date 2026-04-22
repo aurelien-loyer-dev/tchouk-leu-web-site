@@ -116,7 +116,7 @@ export function Footer() {
                 <Phone className={`h-4 w-4 flex-shrink-0 mt-0.5 ${accent}`} />
                 <div className="space-y-0.5">
                   <a href="tel:+33656714037" className={`block text-sm ${hoverLink}`}>
-                    +33 6 56 71 40 37
+                    +33 656 71 40 37
                   </a>
                   {!isWhiteSharks && (
                     <a href="tel:+262692812102" className={`block text-sm ${hoverLink}`}>

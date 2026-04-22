@@ -80,7 +80,7 @@ export function ContactPage() {
       icon: Phone,
       title: t("contact.phone_label"),
       items: [
-        { label: "+33 6 56 71 40 37", href: "tel:+33656714037" },
+        { label: "+33 656 71 40 37", href: "tel:+33656714037" },
         { label: "+262 692 812102", href: "tel:+262692812102" },
       ],
     },
