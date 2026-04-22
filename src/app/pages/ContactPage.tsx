@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { Mail, MapPin, Instagram, Phone, Send } from "lucide-react";
+import { Mail, MapPin, Instagram, Phone, Send, MessageCircle } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
@@ -88,6 +88,11 @@ export function ContactPage() {
       icon: Instagram,
       title: "Instagram",
       items: [{ label: "@tchoukleu", href: "https://instagram.com/tchoukleu" }],
+    },
+    {
+      icon: MessageCircle,
+      title: "WhatsApp",
+      items: [{ label: "Rejoindre la communauté", href: "https://chat.whatsapp.com/Dn7DkSqHQwF9udNhYwQ076" }],
     },
   ];
 
