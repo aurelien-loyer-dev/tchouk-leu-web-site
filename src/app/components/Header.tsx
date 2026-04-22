@@ -113,8 +113,8 @@ export function Header() {
             : "bg-background/85 border-border/60"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 h-16 grid grid-cols-3 items-center">
-          <Link to="/" className="flex items-center gap-3 flex-shrink-0">
+        <div className="max-w-7xl mx-auto px-6 h-16 relative flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3 flex-shrink-0 z-10">
             <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-9 w-auto object-contain" />
             {isWhiteSharks && (
               <>
@@ -128,7 +128,7 @@ export function Header() {
             )}
           </Link>
 
-          <nav className="hidden md:flex items-center justify-center gap-1.5">
+          <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-1.5">
             {NAV_LINKS.map(({ to, key, exact, ...rest }) => (
               <Link key={to} to={to} className={navLinkClass(to, exact)}>
                 {"shortLabel" in rest ? rest.shortLabel : t(key)}
@@ -136,12 +136,12 @@ export function Header() {
             ))}
           </nav>
 
-          <div className="hidden md:flex items-center justify-end gap-2">
+          <div className="hidden md:flex items-center gap-2 z-10">
             <LanguageSwitcher isWhiteSharks={isWhiteSharks} />
             <ThemeToggle />
           </div>
 
-          <div className="md:hidden col-span-2 flex items-center justify-end gap-2">
+          <div className="md:hidden flex items-center gap-2 z-10">
             <LanguageSwitcher isWhiteSharks={isWhiteSharks} />
             <ThemeToggle />
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
