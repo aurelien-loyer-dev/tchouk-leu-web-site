@@ -26,7 +26,13 @@ export function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-14 w-auto" />
+              {!isWhiteSharks && (
+                <img
+                  src="/images/logo.png"
+                  alt="Logo White Sharks"
+                  className="h-14 w-auto object-contain rounded-sm"
+                />
+              )}
               {isWhiteSharks && (
                 <img
                   src="/images/WhiteSharksLogo.png"
