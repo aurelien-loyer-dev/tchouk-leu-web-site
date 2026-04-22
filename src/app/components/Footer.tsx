@@ -38,9 +38,9 @@ export function Footer() {
                 <p className="font-bold leading-tight">
                   {isWhiteSharks ? "White Sharks" : "Tchouk'Leu"}
                 </p>
-                {!isWhiteSharks && (
-                  <p className="text-xs text-muted-foreground">{t("footer.since")}</p>
-                )}
+                <p className="text-xs text-muted-foreground">
+                  {isWhiteSharks ? "Zenèss La Réunion" : t("footer.since")}
+                </p>
               </div>
             </div>
           </div>
