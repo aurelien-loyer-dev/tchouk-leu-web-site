@@ -6,6 +6,13 @@ const BLOB_CONFIG_ERROR = "Le stockage Vercel Blob n'est pas configure. Ajoutez 
 const MAX_DATA_URL_LENGTH = 8_000_000;
 const ALLOWED_FUNCTIONS = new Set(["coach", "joueur", "benevole", "president"]);
 
+// Write-through cache: prevents stale reads after rapid sequential writes
+// (Vercel Blob CDN has an eventual-consistency window between put() and the next fetch)
+let _blobUrlCache = null;
+let _membersCache = null;
+let _membersCacheWrittenAt = 0;
+const MEMBERS_CACHE_TTL_MS = 90_000;
+
 function isBlobConfigured() {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 }
@@ -150,11 +157,16 @@ async function ensureInitialized() {
     throw new Error(BLOB_CONFIG_ERROR);
   }
 
+  if (_blobUrlCache !== null) {
+    return _blobUrlCache;
+  }
+
   const allBlobs = await list({ prefix: "club/", limit: 20 });
   const existingBlob = allBlobs.blobs.find((blob) => blob.pathname === STORE_PATH);
 
   if (existingBlob) {
-    return existingBlob.url;
+    _blobUrlCache = existingBlob.url;
+    return _blobUrlCache;
   }
 
   const createdBlob = await put(STORE_PATH, JSON.stringify(buildPayload([])), {
@@ -164,12 +176,17 @@ async function ensureInitialized() {
     allowOverwrite: true,
   });
 
-  return createdBlob.url;
+  _blobUrlCache = createdBlob.url;
+  return _blobUrlCache;
 }
 
 export async function readWallOfFameMembers() {
   if (!isBlobConfigured()) {
     return [];
+  }
+
+  if (_membersCache !== null && Date.now() - _membersCacheWrittenAt < MEMBERS_CACHE_TTL_MS) {
+    return _membersCache;
   }
 
   try {
@@ -186,7 +203,10 @@ export async function readWallOfFameMembers() {
     }
 
     const parsedPayload = await response.json();
-    return normalizePayload(parsedPayload);
+    const members = normalizePayload(parsedPayload);
+    _membersCache = members;
+    _membersCacheWrittenAt = Date.now();
+    return members;
   } catch (error) {
     console.error("Unable to read Wall of Fame members", error);
     return [];
@@ -289,6 +309,8 @@ async function writeMembers(members) {
     allowOverwrite: true,
   });
 
+  _membersCache = members;
+  _membersCacheWrittenAt = Date.now();
   return members;
 }
 

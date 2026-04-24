@@ -173,6 +173,7 @@ export function AdminPage() {
   const [isWhiteSharksSaving, setIsWhiteSharksSaving] = useState(false);
   const [expandedTemplates, setExpandedTemplates] = useState<Set<string>>(new Set());
   const [showPastActivities, setShowPastActivities] = useState(false);
+  const [activeSection, setActiveSection] = useState<"tchouk-leu" | "white-sharks">("tchouk-leu");
 
   useEffect(() => {
     const init = async () => {
@@ -391,19 +392,17 @@ export function AdminPage() {
     setWallLastName(member.lastName);
     setWallPalmaresByFunction(getWallPalmaresByFunctionFromMember(member));
     setWallMemberSince(member.memberSince);
-    setWallFunctions(member.functions);
+    setWallFunctions([...member.functions]);
     setWallPhotoFile(null);
     setWallFeedbackMessage("Mode modification. Ajoutez une photo uniquement si nécessaire.");
   };
 
   const toggleWallFunction = (fn: WallOfFameFunction) => {
-    setWallFunctions((prev) => {
-      if (prev.includes(fn)) {
-        setWallPalmaresByFunction((p) => { const n = { ...p }; delete n[fn]; return n; });
-        return prev.filter((f) => f !== fn);
-      }
-      return [...prev, fn];
-    });
+    const removing = wallFunctions.includes(fn);
+    setWallFunctions((prev) => removing ? prev.filter((f) => f !== fn) : [...prev, fn]);
+    if (removing) {
+      setWallPalmaresByFunction((p) => { const n = { ...p }; delete n[fn]; return n; });
+    }
   };
 
   const handleSubmitWallOfFameMember = async () => {
@@ -664,31 +663,60 @@ export function AdminPage() {
   return (
     <div className="min-h-screen bg-muted/10">
       {/* Header */}
-      <div className="sticky top-16 z-20 bg-background border-b border-border/40 px-6 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <h1 className="text-lg font-bold tracking-tight">Panel admin</h1>
-          <div className="flex gap-2">
-            <Button type="button" size="sm" variant="outline" onClick={handleCreate}>
-              <Plus className="h-4 w-4" />
-              Nouvelle activité
-            </Button>
-            <Button type="button" size="sm" variant="outline" onClick={handleReset}>
-              <RotateCcw className="h-4 w-4" />
-              Réinitialiser
-            </Button>
+      <div className="sticky top-16 z-20 bg-background border-b border-border/40 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between py-3">
+            <h1 className="text-lg font-bold tracking-tight">Panel admin</h1>
             <Button type="button" size="sm" variant="outline" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
               Déconnexion
             </Button>
+          </div>
+          <div className="flex -mb-px">
+            <button
+              type="button"
+              onClick={() => setActiveSection("tchouk-leu")}
+              className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                activeSection === "tchouk-leu"
+                  ? "border-[#5B7D95] text-[#5B7D95]"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Tchouk&apos;Leu
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSection("white-sharks")}
+              className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                activeSection === "white-sharks"
+                  ? "border-violet-600 text-violet-600"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              White Sharks
+            </button>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
 
+        {activeSection === "tchouk-leu" && <>
         {/* ── Planning ── */}
         <section>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Planning</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Planning</h2>
+            <div className="flex gap-2">
+              <Button type="button" size="sm" variant="outline" onClick={handleCreate}>
+                <Plus className="h-4 w-4" />
+                Nouvelle activité
+              </Button>
+              <Button type="button" size="sm" variant="outline" onClick={handleReset}>
+                <RotateCcw className="h-4 w-4" />
+                Réinitialiser
+              </Button>
+            </div>
+          </div>
           <div className="grid xl:grid-cols-[1fr_1.4fr] gap-6">
             {/* Liste activités */}
             <Card className="border">
@@ -1065,6 +1093,9 @@ export function AdminPage() {
           </Card>
         </section>
 
+        </>}
+
+        {activeSection === "white-sharks" && <>
         {/* ── White Sharks ── */}
         <section>
           <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">White Sharks</h2>
@@ -1130,9 +1161,9 @@ export function AdminPage() {
                   )}
                 </div>
 
-                {/* Joueurs */}
+                {/* Adhérents */}
                 <div className="space-y-4 rounded-xl border border-border/50 p-4">
-                  <h3 className="text-sm font-semibold">Joueurs</h3>
+                  <h3 className="text-sm font-semibold">Adhérent</h3>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label htmlFor="ws-p-fn" className="block text-sm font-medium mb-1.5">Prénom</label>
@@ -1211,6 +1242,7 @@ export function AdminPage() {
             </CardContent>
           </Card>
         </section>
+        </>}
       </div>
     </div>
   );
