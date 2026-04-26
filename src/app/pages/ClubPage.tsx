@@ -179,7 +179,10 @@ export function ClubPage() {
                       <CardContent className="px-6 py-5">
                         <div className="space-y-3 text-sm">
                           <div>
-                            <p className="font-semibold text-base">
+                            <p className="font-bold text-lg">
+                              {member.firstName} {member.lastName}
+                            </p>
+                            <p className="text-sm font-medium text-[#5B7D95] mt-0.5">
                               {member.functions
                                 .map((v) => wallFunctionLabelByValue[v] ?? v)
                                 .join(" · ")}
@@ -200,9 +203,6 @@ export function ClubPage() {
                               )}
                             </div>
                           ) : null}
-                          <p className="text-xs text-muted-foreground/60 pt-1">
-                            {member.firstName} {member.lastName}
-                          </p>
                         </div>
                       </CardContent>
                       <div className="relative h-40 md:h-auto order-first md:order-last">
