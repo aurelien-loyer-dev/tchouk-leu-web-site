@@ -69,12 +69,12 @@
     "teamSpiritDesc": "Cohesion and mutual support are our greatest strengths",
     "performance": "Performance",
     "performanceDesc": "Progress together while keeping the joy of the game",
-    "wofTitle": "Wall of Fame",
-    "wofSubtitle": "People honoured by the club",
-    "wofFunctions": "Roles",
+    "wofTitle": "Our Faithful",
+    "wofSubtitle": "Those who helped bring the club to life",
+    "wofFunctions": "Role",
     "wofPalmares": "Achievements",
     "wofMemberSince": "Member since",
-    "wofEmpty": "No Wall of Fame profiles yet."
+    "wofEmpty": "No profiles yet."
   },
   "planning": {
     "title": "Schedule",

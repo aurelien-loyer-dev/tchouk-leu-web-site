@@ -65,12 +65,12 @@
     "teamSpiritDesc": "La cohésion et l'entraide sont nos forces principales",
     "performance": "Performance",
     "performanceDesc": "Progresser ensemble tout en gardant le plaisir du jeu",
-    "wofTitle": "Wall of Fame",
-    "wofSubtitle": "Les personnes mises à l'honneur par le club",
-    "wofFunctions": "Fonctions",
+    "wofTitle": "Nos fidèles",
+    "wofSubtitle": "Ceux qui ont contribué à faire vivre le club",
+    "wofFunctions": "Rôle",
     "wofPalmares": "Palmarès",
     "wofMemberSince": "Adhérent depuis",
-    "wofEmpty": "Aucun profil Wall of Fame pour le moment."
+    "wofEmpty": "Aucun profil pour le moment."
   },
   "planning": {
     "title": "Planning",

@@ -175,59 +175,43 @@ export function ClubPage() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: index * 0.08 }}
                   >
-                    <Card className="overflow-hidden border grid grid-cols-1 md:grid-cols-[240px_1fr] items-stretch">
-                      <div className="relative h-52 md:h-auto">
+                    <Card className="overflow-hidden border grid grid-cols-1 md:grid-cols-[1fr_160px] items-stretch">
+                      <CardContent className="px-6 py-5">
+                        <div className="space-y-3 text-sm">
+                          <div>
+                            <p className="font-semibold text-base">
+                              {member.functions
+                                .map((v) => wallFunctionLabelByValue[v] ?? v)
+                                .join(" · ")}
+                            </p>
+                            <p className="text-muted-foreground text-xs mt-0.5">
+                              {t("club.wofMemberSince")} {member.memberSince}
+                            </p>
+                          </div>
+                          {palmaresEntries.length > 0 ? (
+                            <div className="space-y-1.5 pt-1">
+                              {palmaresEntries.map(
+                                (entry) =>
+                                  entry && (
+                                    <p key={`${member.id}-${entry.functionLabel}`} className="whitespace-pre-line leading-relaxed text-muted-foreground">
+                                      {entry.value}
+                                    </p>
+                                  ),
+                              )}
+                            </div>
+                          ) : null}
+                          <p className="text-xs text-muted-foreground/60 pt-1">
+                            {member.firstName} {member.lastName}
+                          </p>
+                        </div>
+                      </CardContent>
+                      <div className="relative h-40 md:h-auto order-first md:order-last">
                         <ImageWithFallback
                           src={member.photoSrc}
                           alt={`Photo de ${member.firstName} ${member.lastName}`}
                           className="absolute inset-0 h-full w-full object-cover"
                         />
                       </div>
-                      <CardContent className="px-6 py-5">
-                        <h3 className="text-xl font-bold mb-4">
-                          {member.firstName} {member.lastName}
-                        </h3>
-                        <div className="space-y-3 text-sm">
-                          <div>
-                            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                              {t("club.wofFunctions")}
-                            </p>
-                            <p className="font-medium">
-                              {member.functions
-                                .map((v) => wallFunctionLabelByValue[v] ?? v)
-                                .join(" · ")}
-                            </p>
-                          </div>
-                          {palmaresEntries.length > 0 ? (
-                            <div>
-                              <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-                                {t("club.wofPalmares")}
-                              </p>
-                              <div className="space-y-2">
-                                {palmaresEntries.map(
-                                  (entry) =>
-                                    entry && (
-                                      <div key={`${member.id}-${entry.functionLabel}`}>
-                                        <p className="text-xs text-muted-foreground mb-0.5 uppercase tracking-wide">
-                                          {entry.functionLabel}
-                                        </p>
-                                        <p className="whitespace-pre-line leading-relaxed">
-                                          {entry.value}
-                                        </p>
-                                      </div>
-                                    ),
-                                )}
-                              </div>
-                            </div>
-                          ) : null}
-                          <div>
-                            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                              {t("club.wofMemberSince")}
-                            </p>
-                            <p>{member.memberSince}</p>
-                          </div>
-                        </div>
-                      </CardContent>
                     </Card>
                   </motion.div>
                 );
