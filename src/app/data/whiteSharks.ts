@@ -111,7 +111,6 @@ export async function loadWhiteSharksData() {
   const response = await fetchWithTimeout("/api/white-sharks", {
     method: "GET",
     credentials: "include",
-    cache: "no-store",
   });
 
   await ensureOkApiResponse(response, "Impossible de charger les données White Sharks.");

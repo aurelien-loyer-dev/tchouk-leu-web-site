@@ -98,7 +98,6 @@ export async function loadWallOfFameMembers() {
   const response = await fetchWithTimeout("/api/wall-of-fame", {
     method: "GET",
     credentials: "include",
-    cache: "no-store",
   });
 
   await ensureOkApiResponse(response, "Impossible de charger le Wall of Fame.");

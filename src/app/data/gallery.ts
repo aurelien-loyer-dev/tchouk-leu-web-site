@@ -81,7 +81,6 @@ export async function loadGalleryPhotos() {
   const response = await fetchWithTimeout("/api/gallery", {
     method: "GET",
     credentials: "include",
-    cache: "no-store",
   });
 
   await ensureOkApiResponse(response, "Impossible de charger les photos.");

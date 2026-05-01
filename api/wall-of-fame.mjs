@@ -22,6 +22,7 @@ export default async function handler(request, response) {
   response.setHeader("Cache-Control", "no-store");
 
   if (request.method === "GET") {
+    response.setHeader("Cache-Control", "private, max-age=60, stale-while-revalidate=120");
     const members = await readWallOfFameMembers();
     return sendJson(response, 200, { members });
   }

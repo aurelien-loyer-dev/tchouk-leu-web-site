@@ -6,6 +6,11 @@ const BLOB_CONFIG_ERROR = "Le stockage Vercel Blob n'est pas configure. Ajoutez 
 const ALLOWED_MEMBER_TYPES = new Set(["joueur", "capitaine", "coach", "benevole"]);
 const MEMBER_TYPE_ORDER = ["coach", "benevole", "capitaine", "joueur"];
 
+let _blobUrlCache = null;
+let _dataCache = null;
+let _dataCacheWrittenAt = 0;
+const DATA_CACHE_TTL_MS = 60_000;
+
 function isBlobConfigured() {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 }
@@ -170,11 +175,16 @@ async function ensureInitialized() {
     throw new Error(BLOB_CONFIG_ERROR);
   }
 
+  if (_blobUrlCache !== null) {
+    return _blobUrlCache;
+  }
+
   const allBlobs = await list({ prefix: "club/", limit: 30 });
   const existingBlob = allBlobs.blobs.find((blob) => blob.pathname === STORE_PATH);
 
   if (existingBlob) {
-    return existingBlob.url;
+    _blobUrlCache = existingBlob.url;
+    return _blobUrlCache;
   }
 
   const createdBlob = await put(STORE_PATH, JSON.stringify(buildPayload({ palmares: [], players: [] })), {
@@ -184,7 +194,8 @@ async function ensureInitialized() {
     allowOverwrite: true,
   });
 
-  return createdBlob.url;
+  _blobUrlCache = createdBlob.url;
+  return _blobUrlCache;
 }
 
 async function writeData(data) {
@@ -201,12 +212,18 @@ async function writeData(data) {
     allowOverwrite: true,
   });
 
+  _dataCache = normalizedData;
+  _dataCacheWrittenAt = Date.now();
   return normalizedData;
 }
 
 export async function readWhiteSharksData() {
   if (!isBlobConfigured()) {
     return buildPayload({ palmares: [], players: [] });
+  }
+
+  if (_dataCache !== null && Date.now() - _dataCacheWrittenAt < DATA_CACHE_TTL_MS) {
+    return _dataCache;
   }
 
   try {
@@ -223,7 +240,10 @@ export async function readWhiteSharksData() {
     }
 
     const payload = await response.json();
-    return normalizePayload(payload);
+    const data = normalizePayload(payload);
+    _dataCache = data;
+    _dataCacheWrittenAt = Date.now();
+    return data;
   } catch (error) {
     console.error("Unable to read White Sharks data", error);
     return buildPayload({ palmares: [], players: [] });

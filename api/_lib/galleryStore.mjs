@@ -6,6 +6,11 @@ const BLOB_CONFIG_ERROR = "Le stockage Vercel Blob n'est pas configure. Ajoutez 
 const ALLOWED_CATEGORIES = new Set(["matches", "training", "events"]);
 const MAX_DATA_URL_LENGTH = 8_000_000;
 
+let _blobUrlCache = null;
+let _photosCache = null;
+let _photosCacheWrittenAt = 0;
+const PHOTOS_CACHE_TTL_MS = 60_000;
+
 function isBlobConfigured() {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 }
@@ -62,11 +67,16 @@ async function ensureGalleryInitialized() {
     throw new Error(BLOB_CONFIG_ERROR);
   }
 
+  if (_blobUrlCache !== null) {
+    return _blobUrlCache;
+  }
+
   const allBlobs = await list({ prefix: "gallery/", limit: 20 });
   const existingBlob = allBlobs.blobs.find((blob) => blob.pathname === STORE_PATH);
 
   if (existingBlob) {
-    return existingBlob.url;
+    _blobUrlCache = existingBlob.url;
+    return _blobUrlCache;
   }
 
   const createdBlob = await put(STORE_PATH, JSON.stringify(buildStorePayload([])), {
@@ -76,12 +86,17 @@ async function ensureGalleryInitialized() {
     allowOverwrite: true,
   });
 
-  return createdBlob.url;
+  _blobUrlCache = createdBlob.url;
+  return _blobUrlCache;
 }
 
 export async function readGalleryPhotos() {
   if (!isBlobConfigured()) {
     return [];
+  }
+
+  if (_photosCache !== null && Date.now() - _photosCacheWrittenAt < PHOTOS_CACHE_TTL_MS) {
+    return _photosCache;
   }
 
   try {
@@ -98,7 +113,10 @@ export async function readGalleryPhotos() {
     }
 
     const parsedPayload = await response.json();
-    return normalizeGalleryPayload(parsedPayload);
+    const photos = normalizeGalleryPayload(parsedPayload);
+    _photosCache = photos;
+    _photosCacheWrittenAt = Date.now();
+    return photos;
   } catch (error) {
     console.error("Unable to read gallery photos from Vercel Blob", error);
     return [];
@@ -181,6 +199,8 @@ async function writeGalleryPhotos(photos) {
     allowOverwrite: true,
   });
 
+  _photosCache = photos;
+  _photosCacheWrittenAt = Date.now();
   return photos;
 }
 

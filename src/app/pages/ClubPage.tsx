@@ -209,6 +209,8 @@ export function ClubPage() {
                         <ImageWithFallback
                           src={member.photoSrc}
                           alt={`Photo de ${member.firstName} ${member.lastName}`}
+                          loading="lazy"
+                          decoding="async"
                           className="absolute inset-0 h-full w-full object-cover"
                         />
                       </div>
