@@ -33,7 +33,7 @@ async function dataUrlToBlob(dataUrl, photoId) {
   const buffer = Buffer.from(dataUrl.slice(commaIndex + 1), "base64");
 
   const blob = await put(`gallery/images/${photoId}.${ext}`, buffer, {
-    access: "public",
+    access: "private",
     contentType: mimeType,
     addRandomSuffix: false,
     allowOverwrite: true,
@@ -310,23 +310,30 @@ export async function migrateGalleryPhotos() {
     return { total: photos.length, migrated: 0, errors: [] };
   }
 
+  // Upload all images in parallel — much faster than sequential, avoids timeout
+  const results = await Promise.allSettled(
+    toMigrate.map(async (photo) => {
+      const blobUrl = await dataUrlToBlob(photo.src, photo.id);
+      return { id: photo.id, blobUrl };
+    })
+  );
+
   const updatedPhotos = [...photos];
   let migrated = 0;
   const errors = [];
 
-  for (const photo of toMigrate) {
-    try {
-      const blobUrl = await dataUrlToBlob(photo.src, photo.id);
-      const idx = updatedPhotos.findIndex((p) => p.id === photo.id);
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      const { id, blobUrl } = result.value;
+      const idx = updatedPhotos.findIndex((p) => p.id === id);
       if (idx !== -1) {
         updatedPhotos[idx] = { ...updatedPhotos[idx], src: blobUrl };
         migrated++;
       }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error(`Failed to migrate gallery photo ${photo.id}:`, msg);
-      errors.push({ id: photo.id, error: msg });
-      if (errors.length >= 3) break; // stop collecting after 3 to avoid timeout
+    } else {
+      const msg = result.reason instanceof Error ? result.reason.message : String(result.reason);
+      console.error("Failed to migrate gallery photo:", msg);
+      errors.push({ error: msg });
     }
   }
 

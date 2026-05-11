@@ -20,7 +20,7 @@ async function dataUrlToBlob(dataUrl, memberId) {
   const buffer = Buffer.from(dataUrl.slice(commaIndex + 1), "base64");
 
   const blob = await put(`club/waf-photos/${memberId}.${ext}`, buffer, {
-    access: "public",
+    access: "private",
     contentType: mimeType,
     addRandomSuffix: false,
     allowOverwrite: true,
@@ -430,23 +430,30 @@ export async function migrateWallOfFamePhotos() {
     return { total: members.length, migrated: 0, errors: [] };
   }
 
+  // Upload all photos in parallel — much faster than sequential, avoids timeout
+  const results = await Promise.allSettled(
+    toMigrate.map(async (member) => {
+      const blobUrl = await dataUrlToBlob(member.photoSrc, member.id);
+      return { id: member.id, blobUrl };
+    })
+  );
+
   const updatedMembers = [...members];
   let migrated = 0;
   const errors = [];
 
-  for (const member of toMigrate) {
-    try {
-      const blobUrl = await dataUrlToBlob(member.photoSrc, member.id);
-      const idx = updatedMembers.findIndex((m) => m.id === member.id);
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      const { id, blobUrl } = result.value;
+      const idx = updatedMembers.findIndex((m) => m.id === id);
       if (idx !== -1) {
         updatedMembers[idx] = { ...updatedMembers[idx], photoSrc: blobUrl };
         migrated++;
       }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error(`Failed to migrate WAF photo for member ${member.id}:`, msg);
-      errors.push({ id: member.id, error: msg });
-      if (errors.length >= 3) break;
+    } else {
+      const msg = result.reason instanceof Error ? result.reason.message : String(result.reason);
+      console.error("Failed to migrate WAF photo:", msg);
+      errors.push({ error: msg });
     }
   }
 
