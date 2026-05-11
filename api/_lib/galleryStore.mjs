@@ -301,16 +301,18 @@ export async function removeGalleryPhoto(photoId) {
 
 // Migrate existing data URL entries to separate blob files.
 // Safe to call multiple times (skips already-migrated entries).
+// Returns { total, migrated, errors[] } so callers can surface failures.
 export async function migrateGalleryPhotos() {
   const photos = await readGalleryPhotos();
-  const toMigrate = photos.filter((p) => p.src.startsWith("data:image/"));
+  const toMigrate = photos.filter((p) => p.src.startsWith("data:image/") || p.src.startsWith("data:"));
 
   if (toMigrate.length === 0) {
-    return { total: photos.length, migrated: 0 };
+    return { total: photos.length, migrated: 0, errors: [] };
   }
 
   const updatedPhotos = [...photos];
   let migrated = 0;
+  const errors = [];
 
   for (const photo of toMigrate) {
     try {
@@ -321,7 +323,10 @@ export async function migrateGalleryPhotos() {
         migrated++;
       }
     } catch (err) {
-      console.error(`Failed to migrate photo ${photo.id}:`, err);
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`Failed to migrate gallery photo ${photo.id}:`, msg);
+      errors.push({ id: photo.id, error: msg });
+      if (errors.length >= 3) break; // stop collecting after 3 to avoid timeout
     }
   }
 
@@ -329,5 +334,5 @@ export async function migrateGalleryPhotos() {
     await writeGalleryPhotos(updatedPhotos);
   }
 
-  return { total: photos.length, migrated };
+  return { total: photos.length, migrated, errors };
 }

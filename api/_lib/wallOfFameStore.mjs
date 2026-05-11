@@ -421,16 +421,18 @@ export async function removeWallOfFameMember(memberId) {
 
 // Migrate existing data URL photos to separate blob files.
 // Safe to call multiple times (skips already-migrated entries).
+// Returns { total, migrated, errors[] } so callers can surface failures.
 export async function migrateWallOfFamePhotos() {
   const members = await readWallOfFameMembers();
-  const toMigrate = members.filter((m) => m.photoSrc.startsWith("data:image/"));
+  const toMigrate = members.filter((m) => m.photoSrc.startsWith("data:image/") || m.photoSrc.startsWith("data:"));
 
   if (toMigrate.length === 0) {
-    return { total: members.length, migrated: 0 };
+    return { total: members.length, migrated: 0, errors: [] };
   }
 
   const updatedMembers = [...members];
   let migrated = 0;
+  const errors = [];
 
   for (const member of toMigrate) {
     try {
@@ -441,7 +443,10 @@ export async function migrateWallOfFamePhotos() {
         migrated++;
       }
     } catch (err) {
-      console.error(`Failed to migrate WAF photo for member ${member.id}:`, err);
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`Failed to migrate WAF photo for member ${member.id}:`, msg);
+      errors.push({ id: member.id, error: msg });
+      if (errors.length >= 3) break;
     }
   }
 
@@ -449,5 +454,5 @@ export async function migrateWallOfFamePhotos() {
     await writeMembers(updatedMembers);
   }
 
-  return { total: members.length, migrated };
+  return { total: members.length, migrated, errors };
 }

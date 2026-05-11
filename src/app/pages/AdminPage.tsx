@@ -304,11 +304,20 @@ export function AdminPage() {
     setMigrationResult("");
     try {
       const res = await fetch("/api/migrate-images", { method: "POST", credentials: "include" });
-      const data = await res.json() as { gallery?: { migrated: number; total: number }; wallOfFame?: { migrated: number; total: number }; error?: string };
+      const data = await res.json() as {
+        gallery?: { migrated: number; total: number; errors?: Array<{ id: string; error: string }> };
+        wallOfFame?: { migrated: number; total: number; errors?: Array<{ id: string; error: string }> };
+        error?: string;
+      };
       if (!res.ok) throw new Error(data.error ?? "Erreur inconnue");
       const g = data.gallery;
       const w = data.wallOfFame;
-      setMigrationResult(`Galerie : ${g?.migrated ?? 0}/${g?.total ?? 0} migrées · WAF : ${w?.migrated ?? 0}/${w?.total ?? 0} migrées`);
+      const gErrors = g?.errors ?? [];
+      const wErrors = w?.errors ?? [];
+      let msg = `Galerie : ${g?.migrated ?? 0}/${g?.total ?? 0} migrées · WAF : ${w?.migrated ?? 0}/${w?.total ?? 0} migrées`;
+      if (gErrors.length > 0) msg += ` · Erreur galerie : ${gErrors[0].error}`;
+      if (wErrors.length > 0) msg += ` · Erreur WAF : ${wErrors[0].error}`;
+      setMigrationResult(msg);
     } catch (err) {
       setMigrationResult(err instanceof Error ? err.message : "Erreur de migration");
     } finally {

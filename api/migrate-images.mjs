@@ -84,13 +84,11 @@ export default async function handler(request, response) {
     }
   }
 
-  // POST → run migration
+  // POST → run migration (sequential: gallery first, then WAF to avoid hammering blob in parallel)
   if (request.method === "POST") {
     try {
-      const [gallery, wallOfFame] = await Promise.all([
-        migrateGalleryPhotos(),
-        migrateWallOfFamePhotos(),
-      ]);
+      const gallery = await migrateGalleryPhotos();
+      const wallOfFame = await migrateWallOfFamePhotos();
       return response.status(200).json({ gallery, wallOfFame });
     } catch (error) {
       return response.status(500).json({ error: error instanceof Error ? error.message : "Migration failed" });
