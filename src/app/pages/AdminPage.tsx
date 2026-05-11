@@ -129,6 +129,8 @@ const selectClass =
 export function AdminPage() {
   const [isMigrating, setIsMigrating] = useState(false);
   const [migrationResult, setMigrationResult] = useState("");
+  const [isDiagnosing, setIsDiagnosing] = useState(false);
+  const [diagResult, setDiagResult] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -311,6 +313,27 @@ export function AdminPage() {
       setMigrationResult(err instanceof Error ? err.message : "Erreur de migration");
     } finally {
       setIsMigrating(false);
+    }
+  };
+
+  const handleDiagnoseImages = async () => {
+    setIsDiagnosing(true);
+    setDiagResult("");
+    try {
+      const res = await fetch("/api/migrate-images", { method: "GET", credentials: "include" });
+      const data = await res.json() as {
+        gallery?: { total: number; kinds: Record<string, number> };
+        wallOfFame?: { total: number; kinds: Record<string, number> };
+        error?: string;
+      };
+      if (!res.ok) throw new Error(data.error ?? "Erreur inconnue");
+      const gKinds = Object.entries(data.gallery?.kinds ?? {}).map(([k, v]) => `${k}×${v}`).join(", ");
+      const wKinds = Object.entries(data.wallOfFame?.kinds ?? {}).map(([k, v]) => `${k}×${v}`).join(", ");
+      setDiagResult(`Galerie [${data.gallery?.total ?? 0}] : ${gKinds || "vide"} · WAF [${data.wallOfFame?.total ?? 0}] : ${wKinds || "vide"}`);
+    } catch (err) {
+      setDiagResult(err instanceof Error ? err.message : "Erreur diagnostic");
+    } finally {
+      setIsDiagnosing(false);
     }
   };
 
@@ -724,15 +747,29 @@ export function AdminPage() {
         {/* ── Maintenance ── */}
         <section>
           <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Maintenance</h2>
-          <div className="flex items-center gap-4 rounded-xl border border-border/50 bg-background px-4 py-3">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium">Migrer les images vers le stockage optimisé</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Convertit les photos base64 existantes (galerie + WAF) en fichiers blob séparés. À lancer une seule fois.</p>
-              {migrationResult ? <p className="text-xs text-[#5B7D95] mt-1 font-medium">{migrationResult}</p> : null}
+          <div className="space-y-2">
+            {/* Diagnostic */}
+            <div className="flex items-center gap-4 rounded-xl border border-border/50 bg-background px-4 py-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">Diagnostiquer les formats d'images</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Inspecte le format réel stocké (base64 vs URL CDN) pour la galerie et le WAF.</p>
+                {diagResult ? <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 font-mono break-all">{diagResult}</p> : null}
+              </div>
+              <Button type="button" size="sm" variant="outline" onClick={() => void handleDiagnoseImages()} disabled={isDiagnosing} className="flex-shrink-0">
+                {isDiagnosing ? "Analyse…" : "Diagnostiquer"}
+              </Button>
             </div>
-            <Button type="button" size="sm" variant="outline" onClick={() => void handleMigrateImages()} disabled={isMigrating} className="flex-shrink-0">
-              {isMigrating ? "Migration…" : "Migrer"}
-            </Button>
+            {/* Migration */}
+            <div className="flex items-center gap-4 rounded-xl border border-border/50 bg-background px-4 py-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">Migrer les images vers le stockage optimisé</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Convertit les photos base64 existantes (galerie + WAF) en fichiers blob séparés. À lancer une seule fois.</p>
+                {migrationResult ? <p className="text-xs text-[#5B7D95] mt-1 font-medium">{migrationResult}</p> : null}
+              </div>
+              <Button type="button" size="sm" variant="outline" onClick={() => void handleMigrateImages()} disabled={isMigrating} className="flex-shrink-0">
+                {isMigrating ? "Migration…" : "Migrer"}
+              </Button>
+            </div>
           </div>
         </section>
 
