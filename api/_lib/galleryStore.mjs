@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { list, put } from "@vercel/blob";
+import { del, list, put } from "@vercel/blob";
 
 const STORE_PATH = "gallery/photos.json";
 const BLOB_CONFIG_ERROR = "Le stockage Vercel Blob n'est pas configure. Ajoutez BLOB_READ_WRITE_TOKEN dans le projet Vercel.";
@@ -17,6 +17,29 @@ function isBlobConfigured() {
 
 function isObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+// Upload a base64 data URL as a real image file in Vercel Blob.
+// Returns the public CDN URL.
+async function dataUrlToBlob(dataUrl, photoId) {
+  const commaIndex = dataUrl.indexOf(",");
+  if (commaIndex === -1) throw new Error("data URL invalide.");
+
+  const header = dataUrl.slice(0, commaIndex);
+  const mimeMatch = header.match(/data:([^;]+)/);
+  const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
+  const ext = mimeType === "image/jpeg" ? "jpg" : (mimeType.split("/")[1] || "jpg");
+
+  const buffer = Buffer.from(dataUrl.slice(commaIndex + 1), "base64");
+
+  const blob = await put(`gallery/images/${photoId}.${ext}`, buffer, {
+    access: "public",
+    contentType: mimeType,
+    addRandomSuffix: false,
+    allowOverwrite: true,
+  });
+
+  return blob.url;
 }
 
 function normalizePhoto(photo) {
@@ -57,9 +80,7 @@ function normalizeGalleryPayload(rawPayload) {
 }
 
 function buildStorePayload(photos) {
-  return {
-    photos,
-  };
+  return { photos };
 }
 
 async function ensureGalleryInitialized() {
@@ -181,10 +202,7 @@ function validatePhotoSource(photoSourceInput, fallbackAlt) {
     throw new Error("Une des photos est trop volumineuse.");
   }
 
-  return {
-    src,
-    alt,
-  };
+  return { src, alt };
 }
 
 async function writeGalleryPhotos(photos) {
@@ -206,6 +224,8 @@ async function writeGalleryPhotos(photos) {
 
 export async function addGalleryPhoto(photoInput) {
   const nextPhoto = validateNewPhotoInput(photoInput);
+  // Store image as a separate public blob file — keeps the JSON metadata tiny
+  nextPhoto.src = await dataUrlToBlob(nextPhoto.src, nextPhoto.id);
   const existingPhotos = await readGalleryPhotos();
   const nextPhotos = [nextPhoto, ...existingPhotos].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
   return writeGalleryPhotos(nextPhotos);
@@ -233,18 +253,23 @@ export async function addGalleryAlbum(albumInput) {
   }
 
   const createdAt = new Date().toISOString();
-  const nextAlbumPhotos = photosInput.map((photoInput, index) => {
-    const normalizedPhotoSource = validatePhotoSource(photoInput, `${title} ${index + 1}`);
 
-    return {
-      id: crypto.randomUUID(),
-      src: normalizedPhotoSource.src,
-      alt: normalizedPhotoSource.alt,
-      category,
-      createdAt,
-      albumTitle: title,
-    };
-  });
+  // Upload all album images in parallel to blob storage
+  const nextAlbumPhotos = await Promise.all(
+    photosInput.map(async (photoInput, index) => {
+      const validated = validatePhotoSource(photoInput, `${title} ${index + 1}`);
+      const photoId = crypto.randomUUID();
+      const blobUrl = await dataUrlToBlob(validated.src, photoId);
+      return {
+        id: photoId,
+        src: blobUrl,
+        alt: validated.alt,
+        category,
+        createdAt,
+        albumTitle: title,
+      };
+    })
+  );
 
   const existingPhotos = await readGalleryPhotos();
   const nextPhotos = [...nextAlbumPhotos, ...existingPhotos].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
@@ -258,6 +283,51 @@ export async function removeGalleryPhoto(photoId) {
 
   const normalizedId = typeof photoId === "string" ? photoId : "";
   const existingPhotos = await readGalleryPhotos();
+  const photoToDelete = existingPhotos.find((p) => p.id === normalizedId);
   const nextPhotos = existingPhotos.filter((photo) => photo.id !== normalizedId);
+
+  // Delete the actual image file from blob storage if it was stored as a URL
+  if (photoToDelete && photoToDelete.src.startsWith("https://")) {
+    try {
+      await del(photoToDelete.src);
+    } catch {
+      // Non-blocking: log but don't fail the delete operation
+      console.warn("Could not delete image blob:", photoToDelete.src);
+    }
+  }
+
   return writeGalleryPhotos(nextPhotos);
+}
+
+// Migrate existing data URL entries to separate blob files.
+// Safe to call multiple times (skips already-migrated entries).
+export async function migrateGalleryPhotos() {
+  const photos = await readGalleryPhotos();
+  const toMigrate = photos.filter((p) => p.src.startsWith("data:image/"));
+
+  if (toMigrate.length === 0) {
+    return { total: photos.length, migrated: 0 };
+  }
+
+  const updatedPhotos = [...photos];
+  let migrated = 0;
+
+  for (const photo of toMigrate) {
+    try {
+      const blobUrl = await dataUrlToBlob(photo.src, photo.id);
+      const idx = updatedPhotos.findIndex((p) => p.id === photo.id);
+      if (idx !== -1) {
+        updatedPhotos[idx] = { ...updatedPhotos[idx], src: blobUrl };
+        migrated++;
+      }
+    } catch (err) {
+      console.error(`Failed to migrate photo ${photo.id}:`, err);
+    }
+  }
+
+  if (migrated > 0) {
+    await writeGalleryPhotos(updatedPhotos);
+  }
+
+  return { total: photos.length, migrated };
 }

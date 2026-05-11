@@ -127,6 +127,8 @@ const selectClass =
   "dark:bg-input/30 border-input focus-visible:border-ring focus-visible:ring-ring/50 h-10 w-full rounded-md border bg-input-background px-3 outline-none focus-visible:ring-[3px]";
 
 export function AdminPage() {
+  const [isMigrating, setIsMigrating] = useState(false);
+  const [migrationResult, setMigrationResult] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -293,6 +295,23 @@ export function AdminPage() {
     setIsAuthenticated(false);
     setSelectedId(null);
     setDraft(createEmptyActivity());
+  };
+
+  const handleMigrateImages = async () => {
+    setIsMigrating(true);
+    setMigrationResult("");
+    try {
+      const res = await fetch("/api/migrate-images", { method: "POST", credentials: "include" });
+      const data = await res.json() as { gallery?: { migrated: number; total: number }; wallOfFame?: { migrated: number; total: number }; error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Erreur inconnue");
+      const g = data.gallery;
+      const w = data.wallOfFame;
+      setMigrationResult(`Galerie : ${g?.migrated ?? 0}/${g?.total ?? 0} migrées · WAF : ${w?.migrated ?? 0}/${w?.total ?? 0} migrées`);
+    } catch (err) {
+      setMigrationResult(err instanceof Error ? err.message : "Erreur de migration");
+    } finally {
+      setIsMigrating(false);
+    }
   };
 
   const handleSelectActivity = (activity: Activity) => {
@@ -702,6 +721,21 @@ export function AdminPage() {
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
 
         {activeSection === "tchouk-leu" && <>
+        {/* ── Maintenance ── */}
+        <section>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Maintenance</h2>
+          <div className="flex items-center gap-4 rounded-xl border border-border/50 bg-background px-4 py-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium">Migrer les images vers le stockage optimisé</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Convertit les photos base64 existantes (galerie + WAF) en fichiers blob séparés. À lancer une seule fois.</p>
+              {migrationResult ? <p className="text-xs text-[#5B7D95] mt-1 font-medium">{migrationResult}</p> : null}
+            </div>
+            <Button type="button" size="sm" variant="outline" onClick={() => void handleMigrateImages()} disabled={isMigrating} className="flex-shrink-0">
+              {isMigrating ? "Migration…" : "Migrer"}
+            </Button>
+          </div>
+        </section>
+
         {/* ── Planning ── */}
         <section>
           <div className="flex items-center justify-between mb-4">

@@ -1,10 +1,33 @@
 import crypto from "node:crypto";
-import { list, put } from "@vercel/blob";
+import { del, list, put } from "@vercel/blob";
 
 const STORE_PATH = "club/wall-of-fame.json";
 const BLOB_CONFIG_ERROR = "Le stockage Vercel Blob n'est pas configure. Ajoutez BLOB_READ_WRITE_TOKEN dans le projet Vercel.";
 const MAX_DATA_URL_LENGTH = 8_000_000;
 const ALLOWED_FUNCTIONS = new Set(["coach", "joueur", "benevole", "president"]);
+
+// Upload a base64 data URL as a real image file in Vercel Blob.
+// Returns the public CDN URL.
+async function dataUrlToBlob(dataUrl, memberId) {
+  const commaIndex = dataUrl.indexOf(",");
+  if (commaIndex === -1) throw new Error("data URL invalide.");
+
+  const header = dataUrl.slice(0, commaIndex);
+  const mimeMatch = header.match(/data:([^;]+)/);
+  const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
+  const ext = mimeType === "image/jpeg" ? "jpg" : (mimeType.split("/")[1] || "jpg");
+
+  const buffer = Buffer.from(dataUrl.slice(commaIndex + 1), "base64");
+
+  const blob = await put(`club/waf-photos/${memberId}.${ext}`, buffer, {
+    access: "public",
+    contentType: mimeType,
+    addRandomSuffix: false,
+    allowOverwrite: true,
+  });
+
+  return blob.url;
+}
 
 // Write-through cache: prevents stale reads after rapid sequential writes
 // (Vercel Blob CDN has an eventual-consistency window between put() and the next fetch)
@@ -316,6 +339,8 @@ async function writeMembers(members) {
 
 export async function addWallOfFameMember(memberInput) {
   const nextMember = validateNewMember(memberInput);
+  // Store photo as a separate public blob file — keeps the JSON metadata tiny
+  nextMember.photoSrc = await dataUrlToBlob(nextMember.photoSrc, nextMember.id);
   const existingMembers = await readWallOfFameMembers();
   const nextMembers = [nextMember, ...existingMembers].sort(compareMembersBySeniority);
   return writeMembers(nextMembers);
@@ -350,6 +375,12 @@ export async function updateWallOfFameMember(memberInput) {
     throw new Error("Profil introuvable.");
   }
 
+  // Convert new photo data URL to a real blob file if provided
+  let resolvedPhotoSrc = existingMember.photoSrc;
+  if (nextPhotoSrc) {
+    resolvedPhotoSrc = await dataUrlToBlob(nextPhotoSrc, memberId);
+  }
+
   const updatedMembers = existingMembers
     .map((member) => {
       if (member.id !== memberId) {
@@ -359,7 +390,7 @@ export async function updateWallOfFameMember(memberInput) {
       return {
         ...member,
         ...validatedFields,
-        photoSrc: nextPhotoSrc || member.photoSrc,
+        photoSrc: resolvedPhotoSrc,
       };
     })
     .sort(compareMembersBySeniority);
@@ -374,6 +405,49 @@ export async function removeWallOfFameMember(memberId) {
 
   const normalizedId = typeof memberId === "string" ? memberId : "";
   const existingMembers = await readWallOfFameMembers();
+  const memberToDelete = existingMembers.find((m) => m.id === normalizedId);
   const nextMembers = existingMembers.filter((member) => member.id !== normalizedId);
+
+  if (memberToDelete && memberToDelete.photoSrc.startsWith("https://")) {
+    try {
+      await del(memberToDelete.photoSrc);
+    } catch {
+      console.warn("Could not delete member photo blob:", memberToDelete.photoSrc);
+    }
+  }
+
   return writeMembers(nextMembers);
+}
+
+// Migrate existing data URL photos to separate blob files.
+// Safe to call multiple times (skips already-migrated entries).
+export async function migrateWallOfFamePhotos() {
+  const members = await readWallOfFameMembers();
+  const toMigrate = members.filter((m) => m.photoSrc.startsWith("data:image/"));
+
+  if (toMigrate.length === 0) {
+    return { total: members.length, migrated: 0 };
+  }
+
+  const updatedMembers = [...members];
+  let migrated = 0;
+
+  for (const member of toMigrate) {
+    try {
+      const blobUrl = await dataUrlToBlob(member.photoSrc, member.id);
+      const idx = updatedMembers.findIndex((m) => m.id === member.id);
+      if (idx !== -1) {
+        updatedMembers[idx] = { ...updatedMembers[idx], photoSrc: blobUrl };
+        migrated++;
+      }
+    } catch (err) {
+      console.error(`Failed to migrate WAF photo for member ${member.id}:`, err);
+    }
+  }
+
+  if (migrated > 0) {
+    await writeMembers(updatedMembers);
+  }
+
+  return { total: members.length, migrated };
 }
