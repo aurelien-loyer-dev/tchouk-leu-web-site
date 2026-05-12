@@ -1,23 +1,19 @@
 import { useEffect, useState } from "react";
-import { ThemeToggle } from "./ThemeToggle";
 import { Link, useLocation } from "react-router";
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { useTranslation } from "react-i18next";
 
 const LANGUAGES = [
-  { code: "fr", label: "Français" },
-  { code: "en", label: "English" },
-  { code: "zh", label: "中文" },
+  { code: "fr", label: "FR" },
+  { code: "en", label: "EN" },
+  { code: "zh", label: "中" },
 ] as const;
 
 function LanguageSwitcher({ isWhiteSharks }: { isWhiteSharks: boolean }) {
   const { i18n: i18nInstance } = useTranslation();
   const currentLang = (i18nInstance.language ?? "fr").split("-")[0];
-  const activeColor = isWhiteSharks
-    ? "bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300"
-    : "bg-[#5B7D95]/12 text-[#5B7D95]";
 
   return (
     <div className="flex items-center gap-0.5">
@@ -26,11 +22,15 @@ function LanguageSwitcher({ isWhiteSharks }: { isWhiteSharks: boolean }) {
           key={lang.code}
           type="button"
           onClick={() => void i18nInstance.changeLanguage(lang.code)}
-          className={`px-2 py-0.5 text-xs font-semibold rounded-full transition-colors ${
-            currentLang === lang.code ? activeColor : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
+          className={`px-2 py-1 text-xs font-semibold rounded transition-colors ${
+            currentLang === lang.code
+              ? isWhiteSharks
+                ? "text-violet-400 bg-violet-500/15"
+                : "text-[#7BAEC8] bg-[#5B7D95]/20"
+              : "text-slate-500 hover:text-slate-300"
           }`}
         >
-          {lang.code === "zh" ? "中文" : lang.code.toUpperCase()}
+          {lang.label}
         </button>
       ))}
     </div>
@@ -60,7 +60,7 @@ export function Header() {
 
   useEffect(() => {
     if (isHomePage) {
-      const handleScroll = () => setIsVisible(window.scrollY > 10);
+      const handleScroll = () => setIsVisible(window.scrollY > 60);
       window.addEventListener("scroll", handleScroll);
       handleScroll();
       return () => window.removeEventListener("scroll", handleScroll);
@@ -73,32 +73,29 @@ export function Header() {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
-  const navLinkClass = (to: string, exact: boolean) => {
-    const active = isActive(to, exact);
-    const sizeStyle = isChinese ? "text-sm font-semibold px-3.5 py-1.5" : "text-base font-semibold px-5 py-2";
-    const baseStyle = `${sizeStyle} transition-all rounded-full`;
-    if (active) {
-      return isWhiteSharks
-        ? `${baseStyle} bg-violet-600 dark:bg-violet-500 text-white`
-        : `${baseStyle} bg-[#5B7D95] text-white`;
-    }
-    return isWhiteSharks
-      ? `${baseStyle} text-foreground/70 hover:bg-violet-100/70 dark:hover:bg-violet-500/10 hover:text-violet-700 dark:hover:text-violet-300`
-      : `${baseStyle} text-foreground/70 hover:bg-accent/70 hover:text-foreground`;
-  };
+  const activePill = isWhiteSharks
+    ? "bg-violet-500/20 text-violet-300 border border-violet-500/30"
+    : "bg-[#5B7D95]/20 text-[#7BAEC8] border border-[#5B7D95]/30";
 
-  const mobileLinkClass = (to: string, exact: boolean) => {
-    const active = isActive(to, exact);
-    const baseStyle = "rounded-full px-4 py-2.5 text-sm font-medium transition-all";
-    if (active) {
-      return isWhiteSharks
-        ? `${baseStyle} bg-violet-600 dark:bg-violet-500 text-white`
-        : `${baseStyle} bg-[#5B7D95] text-white`;
-    }
-    return isWhiteSharks
-      ? `${baseStyle} hover:bg-violet-100/70 dark:hover:bg-violet-500/10 text-foreground/70`
-      : `${baseStyle} hover:bg-accent/70 text-foreground/70`;
-  };
+  const hoverClass = isWhiteSharks
+    ? "hover:text-violet-300 hover:bg-violet-500/10"
+    : "hover:text-[#7BAEC8] hover:bg-[#5B7D95]/10";
+
+  const sizeClass = isChinese ? "text-sm px-3 py-1.5" : "text-sm px-4 py-1.5";
+
+  const navLinkClass = (to: string, exact: boolean) =>
+    `${sizeClass} font-medium rounded-full transition-all ${
+      isActive(to, exact) ? activePill : `text-slate-400 ${hoverClass}`
+    }`;
+
+  const mobileLinkClass = (to: string, exact: boolean) =>
+    `px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+      isActive(to, exact)
+        ? isWhiteSharks
+          ? "bg-violet-500/20 text-violet-300"
+          : "bg-[#5B7D95]/20 text-[#7BAEC8]"
+        : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+    }`;
 
   return (
     <header
@@ -106,29 +103,23 @@ export function Header() {
         isVisible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
       }`}
     >
-      <div
-        className={`backdrop-blur-md border-b ${
-          isWhiteSharks
-            ? "bg-violet-50/85 dark:bg-background/90 border-violet-200/60 dark:border-violet-400/25"
-            : "bg-background/85 border-border/60"
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-6 h-16 relative flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 flex-shrink-0 z-10">
-            <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-9 w-auto object-contain" />
+      <div className="bg-[#070b12]/90 backdrop-blur-xl border-b border-white/[0.06]">
+        <div className="max-w-7xl mx-auto px-5 h-14 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
+            <img src="/images/logo.png" alt="Tchouk'Leu" className="h-8 w-auto object-contain" />
             {isWhiteSharks && (
               <>
-                <span className="text-sm font-medium text-muted-foreground">×</span>
+                <span className="text-slate-700 text-xs">×</span>
                 <img
                   src="/images/WhiteSharksLogo.png"
-                  alt="Logo White Sharks"
-                  className="h-9 w-auto object-contain rounded-sm"
+                  alt="White Sharks"
+                  className="h-8 w-auto object-contain rounded"
                 />
               </>
             )}
           </Link>
 
-          <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-1.5">
+          <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-1">
             {NAV_LINKS.map(({ to, key, exact, ...rest }) => (
               <Link key={to} to={to} className={navLinkClass(to, exact)}>
                 {"shortLabel" in rest ? rest.shortLabel : t(key)}
@@ -136,40 +127,38 @@ export function Header() {
             ))}
           </nav>
 
-          <div className="hidden md:flex items-center gap-2 z-10">
+          <div className="flex items-center gap-3">
             <LanguageSwitcher isWhiteSharks={isWhiteSharks} />
-            <ThemeToggle />
-          </div>
-
-          <div className="md:hidden flex items-center gap-2 z-10">
-            <LanguageSwitcher isWhiteSharks={isWhiteSharks} />
-            <ThemeToggle />
-            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button type="button" variant="ghost" size="icon" aria-label={t("nav.openMenu")}>
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent
-                side="right"
-                className={`pt-10 ${
-                  isWhiteSharks
-                    ? "bg-violet-50/95 dark:bg-background border-violet-200/60 dark:border-violet-400/25"
-                    : "bg-background"
-                }`}
-              >
-                <SheetTitle className="sr-only">{t("nav.mainMenu")}</SheetTitle>
-                <nav className="flex flex-col gap-1 px-1">
-                  {NAV_LINKS.map(({ to, key, exact }) => (
-                    <SheetClose key={to} asChild>
-                      <Link to={to} className={mobileLinkClass(to, exact)}>
-                        {t(key)}
-                      </Link>
-                    </SheetClose>
-                  ))}
-                </nav>
-              </SheetContent>
-            </Sheet>
+            <div className="md:hidden">
+              <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                    aria-label={t("nav.openMenu")}
+                  >
+                    {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="bg-[#0d1520] border-white/[0.07] pt-12 w-64">
+                  <SheetTitle className="sr-only">{t("nav.mainMenu")}</SheetTitle>
+                  <nav className="flex flex-col gap-1 px-2">
+                    {NAV_LINKS.map(({ to, key, exact }) => (
+                      <SheetClose key={to} asChild>
+                        <Link to={to} className={mobileLinkClass(to, exact)}>
+                          {t(key)}
+                        </Link>
+                      </SheetClose>
+                    ))}
+                  </nav>
+                  <div className="px-4 mt-6 pt-4 border-t border-white/[0.07]">
+                    <LanguageSwitcher isWhiteSharks={isWhiteSharks} />
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
       </div>

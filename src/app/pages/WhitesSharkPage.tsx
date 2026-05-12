@@ -4,6 +4,7 @@ import { Shield } from "lucide-react";
 import { Badge } from "../components/ui/badge";
 import { Card, CardContent } from "../components/ui/card";
 import { Skeleton } from "../components/ui/skeleton";
+import { Separator } from "../components/ui/separator";
 import { loadWhiteSharksData, type WhiteSharksPalmaresEntry, type WhiteSharksPlayer } from "../data/whiteSharks";
 import { useTranslation } from "react-i18next";
 
@@ -12,53 +13,28 @@ export function WhitesSharkPage() {
   const currentLang = (i18n.language ?? "fr").split("-")[0] as "fr" | "en" | "zh";
 
   const getTranslatedPosition = (position: string) => {
-    const directKey = position.trim();
-    const directTranslationKey = `whiteSharks.positions.${directKey}`;
-
-    if (i18n.exists(directTranslationKey)) {
-      return t(directTranslationKey);
-    }
-
+    const directKey = `whiteSharks.positions.${position.trim()}`;
+    if (i18n.exists(directKey)) return t(directKey);
     const normalized = position.trim().toLowerCase();
     const compact = normalized.replace(/[\s/-]+/g, "");
-    const aliasesByCompactValue: Record<string, string> = {
-      ailierdroit: "ailierDroit",
-      ailiergauche: "ailierGauche",
-      centrecadre: "centreCadre",
-      ailiercentrecadre: "centreCadre",
-      milieu: "milieu",
+    const aliasesByCompact: Record<string, string> = {
+      ailierdroit: "ailierDroit", ailiergauche: "ailierGauche",
+      centrecadre: "centreCadre", ailiercentrecadre: "centreCadre", milieu: "milieu",
     };
-    const normalizedKey = aliasesByCompactValue[compact] ?? normalized;
-    const translationKey = `whiteSharks.positions.${normalizedKey}`;
-
-    if (i18n.exists(translationKey)) {
-      return t(translationKey);
-    }
-
-    return position;
+    const key = `whiteSharks.positions.${aliasesByCompact[compact] ?? normalized}`;
+    return i18n.exists(key) ? t(key) : position;
   };
 
-  const getPlayerPositions = (player: WhiteSharksPlayer) => {
-    if (Array.isArray(player.positions) && player.positions.length > 0) {
-      return player.positions;
-    }
-    return player.position ? [player.position] : [];
-  };
+  const getPlayerPositions = (player: WhiteSharksPlayer) =>
+    Array.isArray(player.positions) && player.positions.length > 0 ? player.positions : player.position ? [player.position] : [];
 
-  const getLocalizedPalmaresText = (
-    baseText: string,
-    translations?: Partial<Record<"en" | "zh", string>>,
-  ) => {
+  const getLocalizedText = (base: string, translations?: Partial<Record<"en" | "zh", string>>) => {
     if (currentLang === "en" && translations?.en?.trim()) return translations.en;
     if (currentLang === "zh" && translations?.zh?.trim()) return translations.zh;
-    return baseText;
+    return base;
   };
 
-  const whiteSharksMemberTypeSections: Array<{
-    key: string;
-    title: string;
-    memberTypes: WhiteSharksPlayer["memberType"][];
-  }> = [
+  const sections: Array<{ key: string; title: string; memberTypes: WhiteSharksPlayer["memberType"][] }> = [
     { key: "coach", title: t("whiteSharks.coaches"), memberTypes: ["coach"] },
     { key: "benevole", title: t("whiteSharks.volunteers"), memberTypes: ["benevole"] },
     { key: "joueur", title: t("whiteSharks.players"), memberTypes: ["capitaine", "joueur"] },
@@ -69,69 +45,47 @@ export function WhitesSharkPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const initializeWhiteSharks = async () => {
-      try {
-        const data = await loadWhiteSharksData();
-        setPalmares(data.palmares);
-        setPlayers(data.players);
-      } catch {
-        setPalmares([]);
-        setPlayers([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void initializeWhiteSharks();
+    loadWhiteSharksData()
+      .then((data) => { setPalmares(data.palmares); setPlayers(data.players); })
+      .catch(() => { setPalmares([]); setPlayers([]); })
+      .finally(() => setIsLoading(false));
   }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       {/* Hero */}
-      <section className="pt-24 pb-14 px-6 bg-gradient-to-b from-violet-200/50 via-violet-50/30 to-background dark:from-violet-950/30 dark:via-background dark:to-background">
-        <div className="max-w-3xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
+      <section className="pt-28 pb-16 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-violet-950/50 to-background" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-48 bg-violet-600/10 blur-3xl rounded-full" />
+        <div className="max-w-4xl mx-auto relative text-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <img
               src="/images/WhiteSharksLogo.png"
-              alt="Logo White Sharks"
-              className="h-16 w-auto mx-auto mb-6 rounded-md"
+              alt="White Sharks"
+              className="h-16 w-auto mx-auto mb-6"
             />
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">White Sharks</h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight text-foreground">White Sharks</h1>
+            <p className="text-slate-400 max-w-2xl mx-auto leading-relaxed">
               {t("whiteSharks.description")}
             </p>
           </motion.div>
         </div>
       </section>
 
+      <Separator className="bg-white/[0.06]" />
+
       {/* Palmares */}
-      <section className="py-16 px-6 bg-background border-t border-border/40">
+      <section className="py-16 px-6">
         <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="mb-10"
-          >
-            <h2 className="text-3xl font-bold tracking-tight">{t("whiteSharks.palmares")}</h2>
+          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="mb-10">
+            <p className="text-xs font-semibold uppercase tracking-widest text-violet-400 mb-2">Palmarès</p>
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">{t("whiteSharks.palmares")}</h2>
           </motion.div>
 
           {isLoading ? (
             <div className="grid md:grid-cols-2 gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
-                <Card key={i} className="border">
-                  <CardContent className="p-5 space-y-2">
-                    <Skeleton className="h-5 w-3/4" />
-                    <Skeleton className="h-4 w-16" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-2/3" />
-                  </CardContent>
-                </Card>
+                <Skeleton key={i} className="h-28 rounded-xl bg-white/5" />
               ))}
             </div>
           ) : palmares.length > 0 ? (
@@ -142,59 +96,50 @@ export function WhitesSharkPage() {
                   initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
+                  transition={{ duration: 0.4, delay: Math.min(index * 0.05, 0.3) }}
                 >
-                  <Card className="h-full border hover:border-violet-300 dark:hover:border-violet-700 transition-colors">
-                    <CardContent className="p-5 space-y-1.5">
-                      <p className="font-semibold leading-snug">
-                        {getLocalizedPalmaresText(entry.title, entry.titleTranslations)}
+                  <Card className="h-full bg-card border-violet-500/10 hover:border-violet-500/25 transition-colors">
+                    <CardContent className="p-5">
+                      <p className="font-semibold text-foreground leading-snug mb-1.5">
+                        {getLocalizedText(entry.title, entry.titleTranslations)}
                       </p>
-                      <p className="text-xs font-medium text-violet-600 dark:text-violet-400 uppercase tracking-wide">
+                      <Badge className="bg-violet-500/15 text-violet-300 border-0 text-xs mb-2">
                         {entry.year}
-                      </p>
-                      {entry.description ? (
-                        <p className="text-sm text-muted-foreground pt-1">
-                          {getLocalizedPalmaresText(entry.description, entry.descriptionTranslations)}
+                      </Badge>
+                      {entry.description && (
+                        <p className="text-sm text-slate-500 mt-1">
+                          {getLocalizedText(entry.description, entry.descriptionTranslations)}
                         </p>
-                      ) : null}
+                      )}
                     </CardContent>
                   </Card>
                 </motion.div>
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">{t("whiteSharks.palmaresEmpty")}</p>
+            <p className="text-slate-500">{t("whiteSharks.palmaresEmpty")}</p>
           )}
         </div>
       </section>
 
+      <Separator className="bg-white/[0.06]" />
+
       {/* Roster */}
-      <section className="py-16 px-6 bg-background border-t border-border/40">
+      <section className="py-16 px-6 bg-[#0a0f18]">
         <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="mb-10"
-          >
-            <h2 className="text-3xl font-bold tracking-tight">{t("whiteSharks.roster")}</h2>
+          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="mb-10">
+            <p className="text-xs font-semibold uppercase tracking-widest text-violet-400 mb-2">Équipe</p>
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">{t("whiteSharks.roster")}</h2>
           </motion.div>
 
           {isLoading ? (
             <div className="space-y-8">
               {Array.from({ length: 2 }).map((_, si) => (
                 <div key={si} className="space-y-3">
-                  <Skeleton className="h-6 w-32" />
+                  <Skeleton className="h-5 w-28 bg-white/5" />
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {Array.from({ length: 3 }).map((_, pi) => (
-                      <Card key={pi} className="border">
-                        <CardContent className="p-4 space-y-2">
-                          <Skeleton className="h-5 w-40" />
-                          <Skeleton className="h-4 w-28" />
-                          <Skeleton className="h-4 w-24" />
-                        </CardContent>
-                      </Card>
+                      <Skeleton key={pi} className="h-24 rounded-xl bg-white/5" />
                     ))}
                   </div>
                 </div>
@@ -202,57 +147,47 @@ export function WhitesSharkPage() {
             </div>
           ) : players.length > 0 ? (
             <div className="space-y-10">
-              {whiteSharksMemberTypeSections.map((section) => {
-                const sectionPlayers = players.filter((p) =>
-                  section.memberTypes.includes(p.memberType),
-                );
+              {sections.map((section) => {
+                const sectionPlayers = players.filter((p) => section.memberTypes.includes(p.memberType));
                 if (sectionPlayers.length === 0) return null;
-
                 return (
                   <div key={section.key}>
-                    <h3 className="text-lg font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                    <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-600 mb-4">
                       {section.title}
                     </h3>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                       {sectionPlayers.map((player, index) => (
                         <motion.div
                           key={player.id}
-                          initial={{ opacity: 0, y: 16 }}
+                          initial={{ opacity: 0, y: 12 }}
                           whileInView={{ opacity: 1, y: 0 }}
                           viewport={{ once: true }}
-                          transition={{ duration: 0.4, delay: index * 0.04 }}
+                          transition={{ duration: 0.4, delay: Math.min(index * 0.04, 0.3) }}
                         >
-                          <Card className="h-full border hover:border-violet-300 dark:hover:border-violet-700 transition-colors">
+                          <Card className="h-full bg-card border-violet-500/10 hover:border-violet-500/25 transition-colors">
                             <CardContent className="p-4 space-y-2">
                               <div className="flex items-center gap-2">
-                                <p className="font-semibold leading-tight">
+                                <p className="font-semibold text-foreground leading-tight">
                                   {player.firstName} {player.lastName}
                                 </p>
-                                {player.memberType === "capitaine" ? (
-                                  <Badge
-                                    variant="secondary"
-                                    className="text-xs px-1.5 py-0 bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 border-0"
-                                  >
+                                {player.memberType === "capitaine" && (
+                                  <Badge className="text-xs px-1.5 py-0 bg-violet-500/20 text-violet-300 border-0">
                                     {t("whiteSharks.captain")}
                                   </Badge>
-                                ) : null}
+                                )}
                               </div>
-                              {getPlayerPositions(player).length > 0 ? (
-                                <div className="flex items-center gap-1.5 text-xs text-violet-600 dark:text-violet-400">
-                                  <Shield className="h-3.5 w-3.5 flex-shrink-0" />
-                                  <span>
-                                    {getPlayerPositions(player)
-                                      .map((pos) => getTranslatedPosition(pos))
-                                      .join(" · ")}
-                                  </span>
+                              {getPlayerPositions(player).length > 0 && (
+                                <div className="flex items-center gap-1.5 text-xs text-violet-400">
+                                  <Shield className="h-3 w-3 flex-shrink-0" />
+                                  <span>{getPlayerPositions(player).map(getTranslatedPosition).join(" · ")}</span>
                                 </div>
-                              ) : null}
-                              <p className="text-xs text-muted-foreground">
+                              )}
+                              <p className="text-xs text-slate-600">
                                 {t("whiteSharks.originClub")} {player.club}
                               </p>
-                              {player.birthYear ? (
-                                <p className="text-xs text-muted-foreground">{player.birthYear}</p>
-                              ) : null}
+                              {player.birthYear && (
+                                <p className="text-xs text-slate-600">{player.birthYear}</p>
+                              )}
                             </CardContent>
                           </Card>
                         </motion.div>
@@ -263,7 +198,7 @@ export function WhitesSharkPage() {
               })}
             </div>
           ) : (
-            <p className="text-muted-foreground">{t("whiteSharks.rosterEmpty")}</p>
+            <p className="text-slate-500">{t("whiteSharks.rosterEmpty")}</p>
           )}
         </div>
       </section>

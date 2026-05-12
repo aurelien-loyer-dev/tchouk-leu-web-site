@@ -1,5 +1,4 @@
 import { ChevronDown } from "lucide-react";
-import { Button } from "./ui/button";
 import { motion } from "motion/react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { useNavigate } from "react-router";
@@ -10,89 +9,82 @@ export function Hero() {
   const navigate = useNavigate();
 
   const scrollToContent = () => {
-    window.scrollTo({
-      top: window.innerHeight,
-      behavior: "smooth",
-    });
+    window.scrollTo({ top: window.innerHeight, behavior: "smooth" });
   };
 
   return (
     <section id="accueil" className="relative h-screen flex items-center justify-center overflow-hidden">
-      {/* Background Image */}
+      {/* Background */}
       <div className="absolute inset-0">
         <ImageWithFallback
           src="images/OIBOI.png"
           alt="OIBOI"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#F6FBFF]/72 via-[#EAF2F6]/38 to-background/72 dark:from-[#0f1d2a]/55 dark:via-[#17242C]/35 dark:to-background/80" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#070b12]/75 via-[#070b12]/55 to-[#070b12]/90" />
+        <div className="absolute inset-0 bg-[#070b12]/30" />
       </div>
 
       {/* Content */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, delay: 0.2 }}
+        transition={{ duration: 0.9, delay: 0.1 }}
         className="relative z-10 text-center px-6 max-w-4xl"
       >
-        {/* Logo */}
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
+          initial={{ scale: 0.85, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.8 }}
           className="mb-8 flex justify-center"
         >
-          <img src="/images/logo.png" alt="Logo Tchouk'Leu" className="h-72 md:h-88 w-auto object-contain" />
+          <img
+            src="/images/logo.png"
+            alt="Logo Tchouk'Leu"
+            className="h-64 md:h-80 w-auto object-contain drop-shadow-2xl"
+          />
         </motion.div>
 
-        {/* Subtitle */}
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="mb-3 text-2xl md:text-3xl font-semibold text-[#0F172A] dark:text-white"
+          transition={{ duration: 0.7, delay: 0.5 }}
+          className="mb-8 text-xl md:text-2xl font-medium text-slate-300 tracking-wide"
         >
           {t("hero.subtitle")}
         </motion.p>
 
-        {/* Buttons */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center"
+          transition={{ duration: 0.7, delay: 0.8 }}
+          className="flex flex-col sm:flex-row gap-3 justify-center"
         >
-          <Button
-            size="lg"
-            className="bg-[#0F172A] hover:bg-[#1e293b] text-white px-8 py-6 text-lg"
+          <button
             onClick={scrollToContent}
+            className="px-8 py-3 rounded-full bg-[#5B7D95] hover:bg-[#4E6C83] text-white font-semibold text-base transition-all hover:scale-105 shadow-lg shadow-[#5B7D95]/30"
           >
             {t("hero.discover")}
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="border-2 border-[#0F172A] bg-[#F6FBFF]/80 text-[#0F172A] backdrop-blur-sm hover:bg-[#EAF2F6] px-8 py-6 text-lg dark:border-white/70 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
+          </button>
+          <button
             onClick={() => navigate("/contact")}
+            className="px-8 py-3 rounded-full border border-white/20 text-white/80 hover:text-white hover:border-white/40 hover:bg-white/5 font-semibold text-base transition-all backdrop-blur-sm"
           >
             {t("hero.contactUs")}
-          </Button>
+          </button>
         </motion.div>
       </motion.div>
 
-      {/* Scroll Indicator */}
+      {/* Scroll indicator */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 1, delay: 1.5 }}
+        transition={{ duration: 1, delay: 1.4 }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 cursor-pointer"
         onClick={scrollToContent}
       >
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <ChevronDown className="h-10 w-10 text-[#0F172A] dark:text-white" />
+        <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+          <ChevronDown className="h-8 w-8 text-white/30" />
         </motion.div>
       </motion.div>
     </section>

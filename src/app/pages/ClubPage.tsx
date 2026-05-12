@@ -1,10 +1,12 @@
 import { motion } from "motion/react";
 import { Heart, Users, Target } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { useEffect, useState } from "react";
 import { loadWallOfFameMembers, type WallOfFameMember } from "../data/wallOfFame";
 import { Skeleton } from "../components/ui/skeleton";
+import { Separator } from "../components/ui/separator";
 import { useTranslation } from "react-i18next";
 
 const wallFunctionLabelByValue = {
@@ -16,21 +18,15 @@ const wallFunctionLabelByValue = {
 
 function getPalmaresEntries(member: WallOfFameMember) {
   const palmaresByFunction = member.palmaresByFunction ?? {};
-
   const entries = member.functions
-    .map((functionValue) => {
-      const value = palmaresByFunction[functionValue]?.trim() ?? "";
+    .map((fn) => {
+      const value = palmaresByFunction[fn]?.trim() ?? "";
       if (!value) return null;
-      return { functionLabel: wallFunctionLabelByValue[functionValue] ?? functionValue, value };
+      return { functionLabel: wallFunctionLabelByValue[fn] ?? fn, value };
     })
-    .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
-
+    .filter((e): e is NonNullable<typeof e> => Boolean(e));
   if (entries.length > 0) return entries;
-
-  if (member.palmares?.trim()) {
-    return [{ functionLabel: "Général", value: member.palmares.trim() }];
-  }
-
+  if (member.palmares?.trim()) return [{ functionLabel: "Général", value: member.palmares.trim() }];
   return [];
 }
 
@@ -40,18 +36,10 @@ export function ClubPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const initializeWallOfFame = async () => {
-      try {
-        const loadedMembers = await loadWallOfFameMembers();
-        setWallOfFameMembers(loadedMembers);
-      } catch {
-        setWallOfFameMembers([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void initializeWallOfFame();
+    loadWallOfFameMembers()
+      .then(setWallOfFameMembers)
+      .catch(() => setWallOfFameMembers([]))
+      .finally(() => setIsLoading(false));
   }, []);
 
   const values = [
@@ -61,25 +49,28 @@ export function ClubPage() {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       {/* Hero */}
-      <section className="pt-24 pb-14 px-6 bg-gradient-to-b from-[#EAF2F6] to-background dark:from-[#1E2D36] dark:to-background">
-        <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">{t("club.heroTitle")}</h1>
-            <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
+      <section className="pt-28 pb-16 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0d1a26] to-background" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-48 bg-[#5B7D95]/10 blur-3xl rounded-full" />
+        <div className="max-w-5xl mx-auto relative">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#5B7D95] mb-3">Le club</p>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight text-foreground">
+              {t("club.heroTitle")}
+            </h1>
+            <p className="text-lg text-slate-400 max-w-2xl leading-relaxed">
               {t("club.heroSubtitle")}
             </p>
           </motion.div>
         </div>
       </section>
 
+      <Separator className="bg-white/[0.06]" />
+
       {/* Histoire */}
-      <section className="py-16 px-6 bg-background border-t border-border/40">
+      <section className="py-16 px-6">
         <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -87,8 +78,10 @@ export function ClubPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-3xl font-bold mb-8 tracking-tight">{t("club.historyTitle")}</h2>
-            <div className="space-y-5 text-muted-foreground text-base leading-relaxed">
+            <h2 className="text-2xl font-bold mb-8 tracking-tight text-foreground">
+              {t("club.historyTitle")}
+            </h2>
+            <div className="space-y-4 text-slate-400 leading-relaxed max-w-3xl">
               <p>{t("club.historyP1")}</p>
               <p>{t("club.historyP2")}</p>
               <p>{t("club.historyP3")}</p>
@@ -97,8 +90,10 @@ export function ClubPage() {
         </div>
       </section>
 
+      <Separator className="bg-white/[0.06]" />
+
       {/* Valeurs */}
-      <section className="py-16 px-6 bg-muted/20 dark:bg-muted/5 border-t border-border/40">
+      <section className="py-16 px-6 bg-[#0a0f18]">
         <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -107,11 +102,15 @@ export function ClubPage() {
             transition={{ duration: 0.5 }}
             className="mb-10"
           >
-            <h2 className="text-3xl font-bold mb-2 tracking-tight">{t("club.valuesTitle")}</h2>
-            <p className="text-muted-foreground">{t("club.valuesSubtitle")}</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#5B7D95] mb-2">
+              {t("club.valuesTitle")}
+            </p>
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">
+              {t("club.valuesSubtitle")}
+            </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-4">
             {values.map((value, index) => (
               <motion.div
                 key={value.title}
@@ -120,23 +119,25 @@ export function ClubPage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 mt-0.5">
-                    <value.icon className="h-5 w-5 text-[#5B7D95]" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-1.5">{value.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{value.description}</p>
-                  </div>
-                </div>
+                <Card className="bg-card border-white/[0.07] h-full">
+                  <CardContent className="p-6">
+                    <div className="w-9 h-9 rounded-lg bg-[#5B7D95]/15 flex items-center justify-center mb-4">
+                      <value.icon className="h-4.5 w-4.5 text-[#5B7D95]" />
+                    </div>
+                    <h3 className="font-semibold text-foreground mb-2">{value.title}</h3>
+                    <p className="text-sm text-slate-500 leading-relaxed">{value.description}</p>
+                  </CardContent>
+                </Card>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
+      <Separator className="bg-white/[0.06]" />
+
       {/* Wall of Fame */}
-      <section className="py-16 px-6 bg-background border-t border-border/40">
+      <section className="py-16 px-6">
         <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -145,74 +146,83 @@ export function ClubPage() {
             transition={{ duration: 0.5 }}
             className="mb-10"
           >
-            <h2 className="text-3xl font-bold mb-2 tracking-tight">{t("club.wofTitle")}</h2>
-            <p className="text-muted-foreground">{t("club.wofSubtitle")}</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#5B7D95] mb-2">
+              Wall of Fame
+            </p>
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">{t("club.wofTitle")}</h2>
+            <p className="text-slate-500 mt-1">{t("club.wofSubtitle")}</p>
           </motion.div>
 
           {isLoading ? (
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4">
               {Array.from({ length: 3 }).map((_, i) => (
-                <Card key={i} className="overflow-hidden border grid grid-cols-1 md:grid-cols-[240px_1fr]">
-                  <Skeleton className="h-52 md:h-full rounded-none" />
-                  <CardContent className="px-6 py-6 space-y-3">
-                    <Skeleton className="h-6 w-48" />
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
-                  </CardContent>
-                </Card>
+                <div key={i} className="rounded-xl border border-white/[0.07] overflow-hidden grid grid-cols-1 md:grid-cols-[1fr_140px]">
+                  <div className="p-6 space-y-3">
+                    <Skeleton className="h-5 w-40 bg-white/5" />
+                    <Skeleton className="h-4 w-28 bg-white/5" />
+                    <Skeleton className="h-4 w-full bg-white/5" />
+                  </div>
+                  <Skeleton className="h-36 md:h-full rounded-none bg-white/5" />
+                </div>
               ))}
             </div>
           ) : wallOfFameMembers.length > 0 ? (
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4">
               {wallOfFameMembers.map((member, index) => {
                 const palmaresEntries = getPalmaresEntries(member);
                 return (
                   <motion.div
                     key={member.id}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: index * 0.08 }}
+                    transition={{ duration: 0.4, delay: Math.min(index * 0.06, 0.3) }}
                   >
-                    <Card className="overflow-hidden border grid grid-cols-1 md:grid-cols-[1fr_160px] items-stretch">
+                    <Card className="bg-card border-white/[0.07] overflow-hidden grid grid-cols-1 md:grid-cols-[1fr_140px] items-stretch">
                       <CardContent className="px-6 py-5">
-                        <div className="space-y-3 text-sm">
+                        <div className="space-y-3">
                           <div>
-                            <p className="font-bold text-lg">
+                            <p className="font-bold text-lg text-foreground">
                               {member.firstName} {member.lastName}
                             </p>
-                            <p className="text-sm font-medium text-[#5B7D95] mt-0.5">
-                              {member.functions
-                                .map((v) => wallFunctionLabelByValue[v] ?? v)
-                                .join(" · ")}
-                            </p>
-                            <p className="text-muted-foreground text-xs mt-0.5">
+                            <div className="flex flex-wrap gap-1.5 mt-1.5">
+                              {member.functions.map((fn) => (
+                                <Badge
+                                  key={fn}
+                                  variant="secondary"
+                                  className="bg-[#5B7D95]/15 text-[#7BAEC8] border-0 text-xs px-2 py-0"
+                                >
+                                  {wallFunctionLabelByValue[fn] ?? fn}
+                                </Badge>
+                              ))}
+                            </div>
+                            <p className="text-slate-600 text-xs mt-1">
                               {t("club.wofMemberSince")} {member.memberSince}
                             </p>
                           </div>
-                          {palmaresEntries.length > 0 ? (
-                            <div className="space-y-1.5 pt-1">
-                              {palmaresEntries.map(
-                                (entry) =>
-                                  entry && (
-                                    <p key={`${member.id}-${entry.functionLabel}`} className="whitespace-pre-line leading-relaxed text-muted-foreground">
-                                      {entry.value}
-                                    </p>
-                                  ),
-                              )}
+                          {palmaresEntries.length > 0 && (
+                            <div className="space-y-1 pt-1 border-t border-white/[0.05]">
+                              {palmaresEntries.map((entry) => (
+                                <p
+                                  key={`${member.id}-${entry.functionLabel}`}
+                                  className="text-sm text-slate-500 leading-relaxed whitespace-pre-line"
+                                >
+                                  {entry.value}
+                                </p>
+                              ))}
                             </div>
-                          ) : null}
+                          )}
                         </div>
                       </CardContent>
-                      <div className="relative h-40 md:h-auto order-first md:order-last">
+                      <div className="relative h-36 md:h-auto order-first md:order-last">
                         <ImageWithFallback
                           src={member.photoSrc}
-                          alt={`Photo de ${member.firstName} ${member.lastName}`}
+                          alt={`${member.firstName} ${member.lastName}`}
                           loading="lazy"
                           decoding="async"
                           className="absolute inset-0 h-full w-full object-cover"
                         />
+                        <div className="absolute inset-0 bg-gradient-to-r from-card/40 to-transparent md:bg-gradient-to-l" />
                       </div>
                     </Card>
                   </motion.div>
@@ -220,7 +230,7 @@ export function ClubPage() {
               })}
             </div>
           ) : (
-            <p className="text-muted-foreground">{t("club.wofEmpty")}</p>
+            <p className="text-slate-500">{t("club.wofEmpty")}</p>
           )}
         </div>
       </section>

@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, MapPin, Clock3, Trophy, Dumbbell } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, MapPin, Clock3, Trophy, Dumbbell, CalendarCheck } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Skeleton } from "../components/ui/skeleton";
+import { Badge } from "../components/ui/badge";
+import { Card, CardContent } from "../components/ui/card";
+import { Separator } from "../components/ui/separator";
 import { ActivityCategory, loadActivities, type Activity } from "../data/activities";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n/i18n";
@@ -10,151 +13,103 @@ import i18n from "../../i18n/i18n";
 const LOCALE_MAP: Record<string, string> = { fr: "fr-FR", en: "en-GB", zh: "zh-CN" };
 
 const CATEGORY_STYLES: Record<ActivityCategory, { label: string; dot: string; badge: string }> = {
-  entrainement: {
-    label: "Entraînement",
-    dot: "bg-[#5B7D95]",
-    badge: "bg-[#5B7D95]/10 text-[#5B7D95]",
-  },
-  tournoi: {
-    label: "Tournoi",
-    dot: "bg-violet-500",
-    badge: "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300",
-  },
-  evenement: {
-    label: "Événement",
-    dot: "bg-emerald-500",
-    badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
-  },
+  entrainement: { label: "Entraînement", dot: "bg-[#5B7D95]", badge: "bg-[#5B7D95]/15 text-[#7BAEC8]" },
+  tournoi: { label: "Tournoi", dot: "bg-violet-500", badge: "bg-violet-500/15 text-violet-300" },
+  evenement: { label: "Événement", dot: "bg-emerald-500", badge: "bg-emerald-500/15 text-emerald-300" },
 };
 
 function toIsoDate(date: Date) {
-  const y = date.getFullYear();
-  const m = `${date.getMonth() + 1}`.padStart(2, "0");
-  const d = `${date.getDate()}`.padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  return `${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, "0")}-${`${date.getDate()}`.padStart(2, "0")}`;
 }
 
-function getRecurringTemplateId(activityId: string) {
-  if (!activityId.startsWith("recurring:")) return null;
-  const segments = activityId.split(":");
-  return segments.length >= 3 ? segments[1] : null;
+function getRecurringTemplateId(id: string) {
+  if (!id.startsWith("recurring:")) return null;
+  const s = id.split(":");
+  return s.length >= 3 ? s[1] : null;
 }
 
-function compareActivitiesByDate(left: Activity, right: Activity) {
-  return `${left.date}T${left.startTime}`.localeCompare(`${right.date}T${right.startTime}`);
+function compareByDate(l: Activity, r: Activity) {
+  return `${l.date}T${l.startTime}`.localeCompare(`${r.date}T${r.startTime}`);
 }
 
-function normalizeLocationForMaps(location: string) {
-  const trimmed = (location || "").trim();
-  if (!trimmed) return "Saint-Leu, La Réunion";
-  const lower = trimmed.toLowerCase();
-  if (lower.includes("reunion") || lower.includes("réunion") || lower.includes("974") || lower.includes("saint-leu")) {
-    return trimmed;
-  }
-  return `${trimmed}, Saint-Leu, La Réunion`;
-}
-
-function toMapEmbedUrl(location: string) {
-  return `https://maps.google.com/maps?q=${encodeURIComponent(normalizeLocationForMaps(location))}&z=14&output=embed`;
-}
-
-function toGoogleMapsUrl(location: string) {
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(normalizeLocationForMaps(location))}`;
+function normalizeLocation(loc: string) {
+  const t = (loc || "").trim();
+  if (!t) return "Saint-Leu, La Réunion";
+  const l = t.toLowerCase();
+  if (l.includes("reunion") || l.includes("réunion") || l.includes("974") || l.includes("saint-leu")) return t;
+  return `${t}, Saint-Leu, La Réunion`;
 }
 
 export function PlanningPage() {
   const { t } = useTranslation();
-  const currentLocale = LOCALE_MAP[(i18n.language ?? "fr").split("-")[0]] ?? "fr-FR";
+  const locale = LOCALE_MAP[(i18n.language ?? "fr").split("-")[0]] ?? "fr-FR";
 
-  const dateFormatter = useMemo(
-    () => new Intl.DateTimeFormat(currentLocale, { day: "numeric", month: "long", year: "numeric" }),
-    [currentLocale],
-  );
-  const shortDateFormatter = useMemo(
-    () => new Intl.DateTimeFormat(currentLocale, { day: "numeric", month: "short" }),
-    [currentLocale],
-  );
-  const weekdayLabels = t("planning.weekdays", { returnObjects: true }) as string[];
+  const dateFmt = useMemo(() => new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" }), [locale]);
+  const shortDateFmt = useMemo(() => new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" }), [locale]);
+  const weekdays = t("planning.weekdays", { returnObjects: true }) as string[];
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<ActivityCategory | "all">("all");
   const [loadingError, setLoadingError] = useState("");
-  const [currentMonth, setCurrentMonth] = useState(() => {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
-  });
+  const [currentMonth, setCurrentMonth] = useState(() => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1); });
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
 
   useEffect(() => {
-    const fetchActivities = async () => {
-      try {
-        const next = await loadActivities();
-        setActivities(next);
-        setLoadingError("");
-      } catch {
-        setLoadingError(t("planning.loadingError"));
-      } finally {
-        setIsLoading(false);
-      }
+    const load = async () => {
+      try { setActivities(await loadActivities()); setLoadingError(""); }
+      catch { setLoadingError(t("planning.loadingError")); }
+      finally { setIsLoading(false); }
     };
+    load();
+    window.addEventListener("storage", load);
+    window.addEventListener("focus", load);
+    return () => { window.removeEventListener("storage", load); window.removeEventListener("focus", load); };
+  }, [t]);
 
-    fetchActivities();
-    window.addEventListener("storage", fetchActivities);
-    window.addEventListener("focus", fetchActivities);
-    return () => {
-      window.removeEventListener("storage", fetchActivities);
-      window.removeEventListener("focus", fetchActivities);
-    };
-  }, []);
+  const filtered = useMemo(() =>
+    activeFilter === "all" ? activities : activities.filter((a) => a.category === activeFilter),
+    [activities, activeFilter]);
 
-  const filteredActivities = useMemo(() => {
-    if (activeFilter === "all") return activities;
-    return activities.filter((a) => a.category === activeFilter);
-  }, [activities, activeFilter]);
+  const todayIso = toIsoDate(new Date());
 
   const listedActivities = useMemo(() => {
-    const todayIso = toIsoDate(new Date());
-    const recurringByTemplate = new Map<string, Activity[]>();
+    const byTemplate = new Map<string, Activity[]>();
     const nonRecurring: Activity[] = [];
-
-    for (const activity of filteredActivities) {
-      const tid = getRecurringTemplateId(activity.id);
-      if (!tid) { if (activity.date >= todayIso) nonRecurring.push(activity); continue; }
-      const arr = recurringByTemplate.get(tid) ?? [];
-      arr.push(activity);
-      recurringByTemplate.set(tid, arr);
+    for (const a of filtered) {
+      const tid = getRecurringTemplateId(a.id);
+      if (!tid) { if (a.date >= todayIso) nonRecurring.push(a); continue; }
+      const arr = byTemplate.get(tid) ?? [];
+      arr.push(a);
+      byTemplate.set(tid, arr);
     }
-
-    const recurringReps = Array.from(recurringByTemplate.values()).map((arr) => {
-      const sorted = [...arr].sort(compareActivitiesByDate);
+    const reps = Array.from(byTemplate.values()).map((arr) => {
+      const sorted = [...arr].sort(compareByDate);
       return sorted.find((a) => a.date >= todayIso) ?? sorted[0];
     });
+    return [...nonRecurring, ...reps].sort(compareByDate);
+  }, [filtered, todayIso]);
 
-    return [...nonRecurring, ...recurringReps].sort(compareActivitiesByDate);
-  }, [filteredActivities]);
-
-  const recurringCountByTemplate = useMemo(() => {
-    return filteredActivities.reduce<Record<string, number>>((acc, a) => {
+  const recurringCountByTemplate = useMemo(() =>
+    filtered.reduce<Record<string, number>>((acc, a) => {
       const tid = getRecurringTemplateId(a.id);
       if (!tid) return acc;
       acc[tid] = (acc[tid] ?? 0) + 1;
       return acc;
-    }, {});
-  }, [filteredActivities]);
+    }, {}),
+    [filtered]);
 
-  const activitiesByDate = useMemo(() => {
-    return filteredActivities.reduce<Record<string, Activity[]>>((acc, a) => {
+  const activitiesByDate = useMemo(() =>
+    filtered.reduce<Record<string, Activity[]>>((acc, a) => {
       acc[a.date] = [...(acc[a.date] ?? []), a];
       return acc;
-    }, {});
-  }, [filteredActivities]);
+    }, {}),
+    [filtered]);
 
-  const monthLabel = useMemo(
-    () => new Intl.DateTimeFormat(currentLocale, { month: "long", year: "numeric" }).format(currentMonth),
-    [currentMonth, currentLocale],
-  );
+  const monthLabel = useMemo(() =>
+    new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(currentMonth),
+    [currentMonth, locale]);
 
   const calendarCells = useMemo(() => {
     const year = currentMonth.getFullYear();
@@ -163,38 +118,14 @@ export function PlanningPage() {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const cells: Array<{ date: string; day: number } | null> = [];
     for (let i = 0; i < firstWeekday; i++) cells.push(null);
-    for (let d = 1; d <= daysInMonth; d++) {
-      cells.push({ date: toIsoDate(new Date(year, month, d)), day: d });
-    }
+    for (let d = 1; d <= daysInMonth; d++) cells.push({ date: toIsoDate(new Date(year, month, d)), day: d });
     while (cells.length % 7 !== 0) cells.push(null);
     return cells;
   }, [currentMonth]);
 
-  const todayIso = toIsoDate(new Date());
-
-  const upcomingActivities = useMemo(
-    () => listedActivities.filter((a) => a.date >= todayIso),
-    [listedActivities, todayIso],
-  );
-
-  const nextActivity = upcomingActivities[0] ?? null;
+  const nextActivity = listedActivities.find((a) => a.date >= todayIso) ?? null;
   const trainingCount = activities.filter((a) => a.category === "entrainement" && a.date >= todayIso).length;
   const tournamentCount = activities.filter((a) => a.category === "tournoi" && a.date >= todayIso).length;
-
-  const changeMonth = (delta: number) => {
-    setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
-    setSelectedDate(null);
-  };
-
-  const handleSelectDate = (date: string) => {
-    setSelectedDate(date === selectedDate ? null : date);
-    const dayActivities = activitiesByDate[date];
-    if (dayActivities?.length) setSelectedActivity(dayActivities[0]);
-  };
-
-  const handleSelectActivity = (activity: Activity) => {
-    setSelectedActivity(activity === selectedActivity ? null : activity);
-  };
 
   const filterOptions: Array<{ value: ActivityCategory | "all"; label: string }> = [
     { value: "all", label: t("planning.showAll") },
@@ -204,75 +135,56 @@ export function PlanningPage() {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       {/* Hero */}
-      <section className="pt-24 pb-12 px-6 bg-gradient-to-b from-[#EAF2F6] to-background dark:from-[#1E2D36] dark:to-background">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-4xl md:text-5xl font-bold mb-3 tracking-tight">{t("planning.title")}</h1>
-            <p className="text-lg text-muted-foreground mb-8">{t("planning.subtitle")}</p>
+      <section className="pt-28 pb-12 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0d1a26] to-background" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-40 bg-[#5B7D95]/10 blur-3xl rounded-full" />
+        <div className="max-w-7xl mx-auto relative">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#5B7D95] mb-3">Agenda</p>
+            <h1 className="text-4xl md:text-5xl font-bold mb-2 tracking-tight text-foreground">{t("planning.title")}</h1>
+            <p className="text-slate-400 mb-8">{t("planning.subtitle")}</p>
 
-            <div className="flex flex-wrap gap-4">
-              {/* Prochaine séance */}
-              <div className="flex-1 min-w-[220px] max-w-sm rounded-xl border border-[#5B7D95]/25 bg-background px-5 py-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                  {t("planning.nextEvent")}
-                </p>
-                {isLoading ? (
-                  <div className="space-y-1.5">
-                    <Skeleton className="h-5 w-36" />
-                    <Skeleton className="h-4 w-28" />
-                  </div>
-                ) : nextActivity ? (
-                  <>
-                    <p className="font-semibold">{nextActivity.title}</p>
-                    <p className="text-sm text-muted-foreground mt-0.5">
-                      {dateFormatter.format(new Date(`${nextActivity.date}T00:00:00`))}
-                      {" · "}
-                      {nextActivity.startTime}
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">{t("planning.noActivity")}</p>
-                )}
-              </div>
-
-              {/* Stats */}
-              <div className="flex gap-4">
-                <div className="rounded-xl border border-[#5B7D95]/25 bg-background px-5 py-4 text-center min-w-[100px]">
-                  <div className="flex items-center justify-center mb-1">
-                    <Dumbbell className="h-4 w-4 text-[#5B7D95]" />
-                  </div>
+            <div className="flex flex-wrap gap-3">
+              <Card className="flex-1 min-w-[200px] max-w-sm bg-card border-white/[0.07]">
+                <CardContent className="px-5 py-4">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 mb-2">{t("planning.nextEvent")}</p>
                   {isLoading ? (
-                    <Skeleton className="h-7 w-8 mx-auto" />
-                  ) : (
-                    <p className="text-2xl font-bold text-[#5B7D95]">{trainingCount}</p>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-0.5">{t("planning.categories.entrainement")}</p>
-                </div>
-                <div className="rounded-xl border border-violet-200 dark:border-violet-800/50 bg-background px-5 py-4 text-center min-w-[100px]">
-                  <div className="flex items-center justify-center mb-1">
-                    <Trophy className="h-4 w-4 text-violet-500" />
-                  </div>
-                  {isLoading ? (
-                    <Skeleton className="h-7 w-8 mx-auto" />
-                  ) : (
-                    <p className="text-2xl font-bold text-violet-500">{tournamentCount}</p>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-0.5">{t("planning.categories.tournoi")}</p>
-                </div>
+                    <div className="space-y-1.5"><Skeleton className="h-4 w-32 bg-white/5" /><Skeleton className="h-3 w-24 bg-white/5" /></div>
+                  ) : nextActivity ? (
+                    <>
+                      <p className="font-semibold text-foreground text-sm">{nextActivity.title}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{dateFmt.format(new Date(`${nextActivity.date}T00:00:00`))} · {nextActivity.startTime}</p>
+                    </>
+                  ) : <p className="text-sm text-slate-500">{t("planning.noActivity")}</p>}
+                </CardContent>
+              </Card>
+              <div className="flex gap-3">
+                <Card className="bg-card border-white/[0.07] min-w-[90px] text-center">
+                  <CardContent className="px-4 py-4">
+                    <Dumbbell className="h-4 w-4 text-[#5B7D95] mx-auto mb-1" />
+                    {isLoading ? <Skeleton className="h-6 w-8 mx-auto bg-white/5" /> : <p className="text-2xl font-bold text-[#5B7D95]">{trainingCount}</p>}
+                    <p className="text-xs text-slate-600 mt-0.5">{t("planning.categories.entrainement")}</p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-card border-violet-500/10 min-w-[90px] text-center">
+                  <CardContent className="px-4 py-4">
+                    <Trophy className="h-4 w-4 text-violet-400 mx-auto mb-1" />
+                    {isLoading ? <Skeleton className="h-6 w-8 mx-auto bg-white/5" /> : <p className="text-2xl font-bold text-violet-400">{tournamentCount}</p>}
+                    <p className="text-xs text-slate-600 mt-0.5">{t("planning.categories.tournoi")}</p>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </motion.div>
         </div>
       </section>
 
+      <Separator className="bg-white/[0.06]" />
+
       {/* Filters */}
-      <section className="px-6 py-4 bg-background border-y border-border/40 sticky top-16 z-30">
+      <section className="px-6 py-3 bg-background sticky top-14 z-30 border-b border-white/[0.06]">
         <div className="max-w-7xl mx-auto flex items-center gap-2 flex-wrap">
           {filterOptions.map(({ value, label }) => (
             <button
@@ -281,12 +193,10 @@ export function PlanningPage() {
               onClick={() => setActiveFilter(value)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                 activeFilter === value
-                  ? value === "tournoi"
-                    ? "bg-violet-500 text-white"
-                    : value === "evenement"
-                    ? "bg-emerald-500 text-white"
+                  ? value === "tournoi" ? "bg-violet-500 text-white"
+                    : value === "evenement" ? "bg-emerald-500 text-white"
                     : "bg-[#5B7D95] text-white"
-                  : "bg-muted/60 hover:bg-muted text-foreground"
+                  : "bg-white/5 hover:bg-white/10 text-slate-400 hover:text-slate-200 border border-white/[0.06]"
               }`}
             >
               {label}
@@ -295,93 +205,61 @@ export function PlanningPage() {
         </div>
       </section>
 
-      {/* Main content */}
-      <section className="py-10 px-6 bg-background">
-        <div className="max-w-7xl mx-auto grid xl:grid-cols-[1fr_380px] gap-8">
-
+      {/* Content */}
+      <section className="py-10 px-6">
+        <div className="max-w-7xl mx-auto grid xl:grid-cols-[1fr_360px] gap-8">
           {/* Activity list */}
           <div>
-            {loadingError ? (
-              <p className="text-red-600 text-sm mb-4">{loadingError}</p>
-            ) : null}
-
+            {loadingError && <p className="text-red-400 text-sm mb-4">{loadingError}</p>}
             {isLoading ? (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="flex gap-4 rounded-xl border border-border/40 p-4">
-                    <Skeleton className="h-12 w-12 rounded-lg flex-shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-5 w-48" />
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-4 w-full" />
-                    </div>
+                  <div key={i} className="flex gap-4 rounded-xl border border-white/[0.06] p-4 bg-card">
+                    <Skeleton className="h-12 w-12 rounded-xl flex-shrink-0 bg-white/5" />
+                    <div className="flex-1 space-y-2"><Skeleton className="h-4 w-44 bg-white/5" /><Skeleton className="h-3 w-32 bg-white/5" /></div>
                   </div>
                 ))}
               </div>
             ) : listedActivities.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {listedActivities.map((activity, index) => {
-                  const recurringTid = getRecurringTemplateId(activity.id);
-                  const recurringCount = recurringTid ? (recurringCountByTemplate[recurringTid] ?? 1) : null;
+                  const tid = getRecurringTemplateId(activity.id);
+                  const recurringCount = tid ? (recurringCountByTemplate[tid] ?? 1) : null;
                   const style = CATEGORY_STYLES[activity.category];
                   const isSelected = selectedActivity?.id === activity.id;
-
                   return (
                     <motion.button
                       key={activity.id}
                       type="button"
-                      initial={{ opacity: 0, y: 12 }}
+                      initial={{ opacity: 0, y: 10 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.4, delay: index * 0.04 }}
-                      onClick={() => handleSelectActivity(activity)}
+                      transition={{ duration: 0.35, delay: Math.min(index * 0.04, 0.3) }}
+                      onClick={() => setSelectedActivity(activity === selectedActivity ? null : activity)}
                       className={`w-full text-left rounded-xl border transition-all ${
-                        isSelected
-                          ? "border-[#5B7D95] bg-[#5B7D95]/5 dark:bg-[#5B7D95]/10"
-                          : "border-border/40 hover:border-[#5B7D95]/40 bg-background"
+                        isSelected ? "border-[#5B7D95]/40 bg-[#5B7D95]/5" : "border-white/[0.06] hover:border-white/[0.12] bg-card"
                       }`}
                     >
                       <div className="flex gap-4 p-4">
-                        {/* Date badge */}
-                        <div
-                          className={`flex-shrink-0 w-12 h-12 rounded-lg flex flex-col items-center justify-center text-center ${style.badge}`}
-                        >
+                        <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex flex-col items-center justify-center text-center ${style.badge}`}>
                           <span className="text-[10px] font-bold uppercase leading-none">
-                            {new Intl.DateTimeFormat(currentLocale, { month: "short" })
-                              .format(new Date(`${activity.date}T00:00:00`))
-                              .replace(".", "")}
+                            {new Intl.DateTimeFormat(locale, { month: "short" }).format(new Date(`${activity.date}T00:00:00`)).replace(".", "")}
                           </span>
-                          <span className="text-lg font-bold leading-tight">
-                            {new Date(`${activity.date}T00:00:00`).getDate()}
-                          </span>
+                          <span className="text-lg font-bold leading-tight">{new Date(`${activity.date}T00:00:00`).getDate()}</span>
                         </div>
-
-                        {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 mb-1">
-                            <p className="font-semibold leading-tight truncate">{activity.title}</p>
-                            <span className={`flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${style.badge}`}>
-                              {style.label}
-                            </span>
+                            <p className="font-semibold text-foreground leading-tight truncate">{activity.title}</p>
+                            <Badge className={`flex-shrink-0 text-xs border-0 ${style.badge}`}>{style.label}</Badge>
                           </div>
-                          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Clock3 className="h-3.5 w-3.5" />
-                              {activity.startTime} – {activity.endTime}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <MapPin className="h-3.5 w-3.5" />
-                              {activity.location}
-                            </span>
+                          <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-slate-500">
+                            <span className="flex items-center gap-1"><Clock3 className="h-3 w-3" />{activity.startTime} – {activity.endTime}</span>
+                            <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{activity.location}</span>
                           </div>
-                          {activity.description ? (
-                            <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2">{activity.description}</p>
-                          ) : null}
-                          {recurringCount && recurringCount > 1 ? (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {t("planning.recurring")} · {recurringCount} {t("planning.sessions")}
-                            </p>
-                          ) : null}
+                          {activity.description && <p className="text-xs text-slate-500 mt-1 line-clamp-2">{activity.description}</p>}
+                          {recurringCount && recurringCount > 1 && (
+                            <p className="text-xs text-slate-600 mt-1">{t("planning.recurring")} · {recurringCount} {t("planning.sessions")}</p>
+                          )}
                         </div>
                       </div>
                     </motion.button>
@@ -389,148 +267,118 @@ export function PlanningPage() {
                 })}
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-border/60 py-12 text-center text-muted-foreground">
+              <div className="rounded-xl border border-dashed border-white/[0.08] py-16 text-center text-slate-500">
+                <CalendarCheck className="h-8 w-8 mx-auto mb-3 opacity-30" />
                 {t("planning.noMatchFilter")}
               </div>
             )}
           </div>
 
-          {/* Right: Calendar + Map */}
-          <div className="space-y-6">
-            {/* Calendar */}
-            <div className="rounded-xl border border-border/40 bg-background overflow-hidden">
-              {/* Month nav */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
-                <p className="font-semibold capitalize text-sm">{monthLabel}</p>
+          {/* Calendar + Map */}
+          <div className="space-y-4">
+            <Card className="bg-card border-white/[0.07] overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
+                <p className="font-semibold capitalize text-sm text-foreground">{monthLabel}</p>
                 <div className="flex gap-1">
-                  <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => changeMonth(-1)}>
+                  <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-slate-500 hover:text-slate-200 hover:bg-white/5" onClick={() => changeMonth(-1)}>
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => changeMonth(1)}>
+                  <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-slate-500 hover:text-slate-200 hover:bg-white/5" onClick={() => changeMonth(1)}>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-
               <div className="p-3">
-                {/* Weekday headers */}
                 <div className="grid grid-cols-7 mb-1">
-                  {weekdayLabels.map((label) => (
-                    <div key={label} className="text-center text-[10px] font-semibold text-muted-foreground uppercase py-1">
-                      {label}
-                    </div>
+                  {weekdays.map((label) => (
+                    <div key={label} className="text-center text-[10px] font-semibold text-slate-600 uppercase py-1">{label}</div>
                   ))}
                 </div>
-
-                {/* Days */}
-                <div className="grid grid-cols-7 gap-1">
+                <div className="grid grid-cols-7 gap-0.5">
                   {calendarCells.map((cell, index) => {
                     if (!cell) return <div key={`e-${index}`} />;
                     const dayActivities = activitiesByDate[cell.date] ?? [];
                     const isToday = cell.date === todayIso;
                     const isSelected = selectedDate === cell.date;
-
                     return (
                       <button
                         key={cell.date}
                         type="button"
-                        onClick={() => handleSelectDate(cell.date)}
-                        className={`relative flex flex-col items-center py-1.5 rounded-lg text-sm transition-colors ${
-                          isSelected
-                            ? "bg-[#5B7D95] text-white"
-                            : isToday
-                            ? "bg-[#5B7D95]/10 font-bold text-[#5B7D95]"
-                            : "hover:bg-muted/60"
+                        onClick={() => {
+                          setSelectedDate(cell.date === selectedDate ? null : cell.date);
+                          const d = activitiesByDate[cell.date];
+                          if (d?.length) setSelectedActivity(d[0]);
+                        }}
+                        className={`relative flex flex-col items-center py-1.5 rounded-lg text-xs transition-colors ${
+                          isSelected ? "bg-[#5B7D95] text-white" : isToday ? "bg-[#5B7D95]/15 font-bold text-[#7BAEC8]" : "hover:bg-white/5 text-slate-400"
                         }`}
                       >
-                        <span className={`font-medium leading-none ${isSelected ? "text-white" : ""}`}>
-                          {cell.day}
-                        </span>
+                        <span className="font-medium leading-none">{cell.day}</span>
                         {dayActivities.length > 0 ? (
                           <div className="flex gap-0.5 mt-1">
                             {dayActivities.slice(0, 3).map((a) => (
-                              <span
-                                key={a.id}
-                                className={`h-1 w-1 rounded-full ${isSelected ? "bg-white/70" : CATEGORY_STYLES[a.category].dot}`}
-                              />
+                              <span key={a.id} className={`h-1 w-1 rounded-full ${isSelected ? "bg-white/70" : CATEGORY_STYLES[a.category].dot}`} />
                             ))}
                           </div>
-                        ) : (
-                          <div className="h-2" />
-                        )}
+                        ) : <div className="h-2" />}
                       </button>
                     );
                   })}
                 </div>
               </div>
-
-              {/* Selected day activities */}
-              {selectedDate ? (
-                <div className="border-t border-border/40 px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                    {shortDateFormatter.format(new Date(`${selectedDate}T00:00:00`))}
+              {selectedDate && (
+                <div className="border-t border-white/[0.06] px-4 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 mb-2">
+                    {shortDateFmt.format(new Date(`${selectedDate}T00:00:00`))}
                   </p>
                   {(activitiesByDate[selectedDate] ?? []).length > 0 ? (
-                    <div className="space-y-1.5">
+                    <div className="space-y-1">
                       {(activitiesByDate[selectedDate] ?? []).map((a) => (
-                        <button
-                          key={a.id}
-                          type="button"
-                          onClick={() => handleSelectActivity(a)}
-                          className="w-full text-left text-sm px-2 py-1.5 rounded-md hover:bg-muted/60 transition-colors"
-                        >
+                        <button key={a.id} type="button" onClick={() => setSelectedActivity(a)}
+                          className="w-full text-left text-xs px-2 py-1.5 rounded-lg hover:bg-white/5 transition-colors">
                           <div className="flex items-center gap-2">
                             <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${CATEGORY_STYLES[a.category].dot}`} />
-                            <span className="font-medium truncate">{a.title}</span>
+                            <span className="font-medium text-foreground truncate">{a.title}</span>
                           </div>
-                          <p className="text-xs text-muted-foreground pl-3.5">{a.startTime} – {a.endTime}</p>
+                          <p className="text-slate-600 pl-3.5">{a.startTime} – {a.endTime}</p>
                         </button>
                       ))}
                     </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">{t("planning.noActivityThisDay")}</p>
-                  )}
+                  ) : <p className="text-xs text-slate-500">{t("planning.noActivityThisDay")}</p>}
                 </div>
-              ) : null}
-            </div>
+              )}
+            </Card>
 
-            {/* Map */}
             {selectedActivity ? (
-              <motion.div
-                key={selectedActivity.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="rounded-xl border border-border/40 overflow-hidden bg-background"
-              >
-                <div className="px-4 py-3 border-b border-border/40">
-                  <p className="font-semibold text-sm">{selectedActivity.title}</p>
-                  <p className="text-xs text-muted-foreground">{selectedActivity.location}</p>
-                </div>
-                <iframe
-                  key={selectedActivity.location}
-                  title={t("planning.mapLabel")}
-                  src={toMapEmbedUrl(selectedActivity.location)}
-                  className="w-full h-52"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
-                <div className="px-4 py-2.5">
-                  <a
-                    href={toGoogleMapsUrl(selectedActivity.location)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 text-sm text-[#5B7D95] hover:underline"
-                  >
-                    {t("planning.openOnMaps")}
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                </div>
+              <motion.div key={selectedActivity.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+                <Card className="bg-card border-white/[0.07] overflow-hidden">
+                  <div className="px-4 py-3 border-b border-white/[0.06]">
+                    <p className="font-semibold text-sm text-foreground">{selectedActivity.title}</p>
+                    <p className="text-xs text-slate-500">{selectedActivity.location}</p>
+                  </div>
+                  <iframe
+                    key={selectedActivity.location}
+                    title={t("planning.mapLabel")}
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(normalizeLocation(selectedActivity.location))}&z=14&output=embed`}
+                    className="w-full h-48"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                  <div className="px-4 py-2.5">
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(normalizeLocation(selectedActivity.location))}`}
+                      target="_blank" rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs text-[#5B7D95] hover:text-[#7BAEC8] transition-colors"
+                    >
+                      {t("planning.openOnMaps")} <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </Card>
               </motion.div>
             ) : (
-              <div className="rounded-xl border border-dashed border-border/40 py-8 text-center text-sm text-muted-foreground">
-                <CalendarDays className="h-6 w-6 mx-auto mb-2 opacity-40" />
-                {t("planning.selectDate")}
+              <div className="rounded-xl border border-dashed border-white/[0.08] py-10 text-center">
+                <CalendarDays className="h-6 w-6 mx-auto mb-2 text-slate-700" />
+                <p className="text-sm text-slate-600">{t("planning.selectDate")}</p>
               </div>
             )}
           </div>

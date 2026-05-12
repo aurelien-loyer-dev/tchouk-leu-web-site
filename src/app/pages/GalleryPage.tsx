@@ -5,16 +5,13 @@ import { loadGalleryPhotos, type GalleryPhoto } from "../data/gallery";
 import { Dialog, DialogContent, DialogTitle } from "../components/ui/dialog";
 import { Button } from "../components/ui/button";
 import { Skeleton } from "../components/ui/skeleton";
+import { Separator } from "../components/ui/separator";
 import { Download } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 function toDownloadFileName(image: GalleryPhoto) {
-  const normalizedBaseName = (image.alt || "photo")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-
-  return `${normalizedBaseName || "photo"}.jpg`;
+  const base = (image.alt || "photo").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  return `${base || "photo"}.jpg`;
 }
 
 export function GalleryPage() {
@@ -33,85 +30,72 @@ export function GalleryPage() {
   ];
 
   useEffect(() => {
-    const initializeGallery = async () => {
-      try {
-        const photos = await loadGalleryPhotos();
-        setGalleryImages(photos);
-        setErrorMessage("");
-      } catch (error) {
+    loadGalleryPhotos()
+      .then((photos) => { setGalleryImages(photos); setErrorMessage(""); })
+      .catch((error) => {
         setGalleryImages([]);
-
-        if (error instanceof Error && error.message) {
-          setErrorMessage(error.message);
-        } else {
-          setErrorMessage("Impossible de charger la galerie pour le moment.");
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void initializeGallery();
+        setErrorMessage(error instanceof Error ? error.message : "Impossible de charger la galerie.");
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
-  const filteredImages = selectedCategory === "all" 
-    ? galleryImages 
-    : galleryImages.filter(img => img.category === selectedCategory);
+  const filteredImages = selectedCategory === "all"
+    ? galleryImages
+    : galleryImages.filter((img) => img.category === selectedCategory);
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="pt-24 pb-14 px-6 bg-gradient-to-b from-[#EAF2F6] to-background dark:from-[#1E2D36] dark:to-background">
-        <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">{t("gallery.title")}</h1>
-            <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
-              {t("gallery.subtitle")}
-            </p>
+    <div className="min-h-screen bg-background">
+      {/* Hero */}
+      <section className="pt-28 pb-14 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0d1a26] to-background" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-40 bg-[#5B7D95]/10 blur-3xl rounded-full" />
+        <div className="max-w-5xl mx-auto relative">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#5B7D95] mb-3">Photos</p>
+            <h1 className="text-4xl md:text-5xl font-bold mb-3 tracking-tight text-foreground">
+              {t("gallery.title")}
+            </h1>
+            <p className="text-slate-400 max-w-2xl leading-relaxed">{t("gallery.subtitle")}</p>
           </motion.div>
         </div>
       </section>
 
+      <Separator className="bg-white/[0.06]" />
+
       {/* Filters */}
-      <section className="py-4 px-6 bg-background sticky top-16 z-40 border-b border-border/60">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex gap-2 flex-wrap">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                  selectedCategory === category.id
-                    ? "bg-[#5B7D95] text-white"
-                    : "bg-muted/60 hover:bg-muted text-foreground"
-                }`}
-              >
-                {category.label}
-              </button>
-            ))}
-          </div>
+      <section className="py-4 px-6 bg-background sticky top-14 z-40 border-b border-white/[0.06]">
+        <div className="max-w-5xl mx-auto flex gap-2 flex-wrap">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                selectedCategory === cat.id
+                  ? "bg-[#5B7D95] text-white shadow-lg shadow-[#5B7D95]/20"
+                  : "bg-white/5 hover:bg-white/10 text-slate-400 hover:text-slate-200 border border-white/[0.06]"
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
         </div>
       </section>
 
-      {/* Gallery Grid */}
-      <section className="py-12 px-6 bg-background">
+      {/* Grid */}
+      <section className="py-12 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {isLoading
-              ? Array.from({ length: 9 }).map((_, index) => (
-                  <Skeleton key={index} className="aspect-square rounded-xl" />
+              ? Array.from({ length: 9 }).map((_, i) => (
+                  <Skeleton key={i} className="aspect-square rounded-xl bg-white/5" />
                 ))
               : filteredImages.map((image, index) => (
                   <motion.div
                     key={image.id}
-                    initial={{ opacity: 0, scale: 0.8 }}
+                    initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, delay: index * 0.05 }}
-                    className="relative overflow-hidden rounded-xl group cursor-pointer aspect-square"
+                    transition={{ duration: 0.4, delay: Math.min(index * 0.04, 0.4) }}
+                    className="relative overflow-hidden rounded-xl group cursor-pointer aspect-square border border-white/[0.05]"
                     onClick={() => setSelectedImage(image)}
                   >
                     <ImageWithFallback
@@ -119,31 +103,30 @@ export function GalleryPage() {
                       alt={image.alt}
                       loading="lazy"
                       decoding="async"
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#070b12]/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </motion.div>
                 ))}
           </div>
 
           {!isLoading && filteredImages.length === 0 && (
-            <div className="text-center py-20">
-              {errorMessage ? (
-                <p className="text-xl text-red-600">{errorMessage}</p>
-              ) : (
-                <p className="text-xl text-muted-foreground">{t("gallery.empty")}</p>
-              )}
+            <div className="text-center py-24">
+              {errorMessage
+                ? <p className="text-red-400">{errorMessage}</p>
+                : <p className="text-slate-500">{t("gallery.empty")}</p>
+              }
             </div>
           )}
         </div>
       </section>
 
-      <Dialog open={Boolean(selectedImage)} onOpenChange={(isOpen) => (!isOpen ? setSelectedImage(null) : null)}>
-        <DialogContent className="max-w-5xl p-3 sm:p-4">
+      <Dialog open={Boolean(selectedImage)} onOpenChange={(open) => { if (!open) setSelectedImage(null); }}>
+        <DialogContent className="max-w-5xl p-3 bg-[#0d1520] border-white/[0.07]">
           <DialogTitle className="sr-only">{t("gallery.photoPreview")}</DialogTitle>
-          {selectedImage ? (
+          {selectedImage && (
             <div className="space-y-3">
-              <div className="max-h-[75vh] overflow-hidden rounded-md bg-black/5 flex items-center justify-center">
+              <div className="max-h-[75vh] overflow-hidden rounded-lg bg-black/30 flex items-center justify-center">
                 <ImageWithFallback
                   src={selectedImage.src}
                   alt={selectedImage.alt}
@@ -153,13 +136,13 @@ export function GalleryPage() {
               <div className="flex justify-end">
                 <Button asChild className="bg-[#5B7D95] text-white hover:bg-[#4E6C83]">
                   <a href={selectedImage.src} download={toDownloadFileName(selectedImage)}>
-                    <Download className="h-4 w-4" />
+                    <Download className="h-4 w-4 mr-2" />
                     {t("gallery.download")}
                   </a>
                 </Button>
               </div>
             </div>
-          ) : null}
+          )}
         </DialogContent>
       </Dialog>
     </div>
