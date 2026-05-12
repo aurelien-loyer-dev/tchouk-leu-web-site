@@ -1,7 +1,7 @@
 import React, { Suspense, useMemo, useRef, useState, createContext, useContext } from "react"
 import * as THREE from "three"
 import { Canvas, useFrame } from "@react-three/fiber"
-import { OrbitControls, Html, Plane } from "@react-three/drei"
+import { OrbitControls, Html } from "@react-three/drei"
 import { Download, X } from "lucide-react"
 import type { GalleryPhoto } from "../../data/gallery"
 
@@ -39,14 +39,14 @@ function Starfield() {
     return [geometry, material]
   }, [])
 
-  useFrame(() => {
+  useFrame(({ clock }) => {
     if (ref.current) {
-      ref.current.rotation.y += 0.00008
-      ref.current.rotation.x += 0.00004
+      ref.current.rotation.y = clock.getElapsedTime() * 0.00008
+      ref.current.rotation.x = clock.getElapsedTime() * 0.00004
     }
   })
 
-  return <points ref={ref} geometry={geo} material={mat} />
+  return <points ref={ref} geometry={geo} material={mat} position={[0, 0, 0]} />
 }
 
 /* ── Wireframe spheres ── */
@@ -57,7 +57,7 @@ function WireSpheres() {
       {[12, 16, 20].map((r, i) => (
         <mesh key={i}>
           <sphereGeometry args={[r, 32, 32]} />
-          <meshBasicMaterial color="#5B7D95" transparent opacity={0.04 - i * 0.01} wireframe />
+          <meshBasicMaterial color="#5B7D95" transparent opacity={Math.max(0.01, 0.04 - i * 0.01)} wireframe />
         </mesh>
       ))}
     </>
@@ -68,28 +68,35 @@ function WireSpheres() {
 
 function FloatingCard({ photo, position }: { photo: GalleryPhoto; position: [number, number, number] }) {
   const groupRef = useRef<THREE.Group>(null)
+  const meshRef = useRef<THREE.Mesh>(null)
   const [hovered, setHovered] = useState(false)
   const { setSelected } = useGallery()
 
   useFrame(({ camera }) => {
-    groupRef.current?.lookAt(camera.position)
+    if (groupRef.current) {
+      groupRef.current.lookAt(camera.position)
+    }
   })
 
   return (
     <group ref={groupRef} position={position}>
-      <Plane
-        args={[4.5, 6]}
+      <mesh
+        ref={meshRef}
         onClick={(e) => { e.stopPropagation(); setSelected(photo) }}
         onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = "pointer" }}
         onPointerOut={(e) => { e.stopPropagation(); setHovered(false); document.body.style.cursor = "auto" }}
       >
-        <meshBasicMaterial transparent opacity={0} />
-      </Plane>
-
-      <Html
-        transform
+        <planeGeometry args={[4.5, 6]} />
+        scale={1}
         distanceFactor={10}
         position={[0, 0, 0.01]}
+        style={{
+          transition: "transform 0.3s ease",
+          transform: hovered ? "scale(1.15)" : "scale(1)",
+          pointerEvents: "none",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center}
         style={{
           transition: "transform 0.3s ease",
           transform: hovered ? "scale(1.15)" : "scale(1)",
@@ -131,11 +138,15 @@ function CardGalaxy() {
     const n = photos.length
     const golden = (1 + Math.sqrt(5)) / 2
     return photos.map((_, i) => {
-      const y = 1 - (i / (n - 1)) * 2
-      const r = Math.sqrt(1 - y * y)
+      const y = 1 - (i / Math.max(1, n - 1)) * 2
+      const r = Math.sqrt(Math.max(0, 1 - y * y))
       const theta = (2 * Math.PI * i) / golden
       const layer = 12 + (i % 3) * 4
-      return [Math.cos(theta) * r * layer, y * layer, Math.sin(theta) * r * layer]
+      return [
+        Math.cos(theta) * r * layer,
+        y * layer,
+        Math.sin(theta) * r * layer,
+      ] as [number, number, number]
     })
   }, [photos.length])
 
@@ -230,9 +241,10 @@ export function StellarGallery({ photos }: StellarGalleryProps) {
   if (photos.length === 0) return null
 
   return (
-    <GalleryCtx.Provider value={{ selected, setSelected, photos }}>
-      <div className="w-full h-screen relative overflow-hidden bg-[#070b12]">
-        <Canvas
+    <GalleryCtx.Provider value={{ selected, s, precision: "highp" }}
+          onCreated={({ gl }) => {
+            gl.setClearColor(new THREE.Color("#070b12"), 1)
+            gl.setPixelRatio(Math.min(window.devicePixelRatio, 2)
           camera={{ position: [0, 0, 18], fov: 60 }}
           gl={{ antialias: true, alpha: false }}
           onCreated={({ gl }) => {

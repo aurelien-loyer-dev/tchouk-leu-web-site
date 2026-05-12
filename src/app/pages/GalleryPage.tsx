@@ -1,10 +1,38 @@
+import React, { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { useEffect, useState } from "react";
 import { loadGalleryPhotos, type GalleryPhoto } from "../data/gallery";
 import { Skeleton } from "../components/ui/skeleton";
 import { Separator } from "../components/ui/separator";
 import { StellarGallery } from "../components/ui/stellar-gallery";
+import { StellarGalleryFallback } from "../components/ui/stellar-gallery-fallback";
 import { useTranslation } from "react-i18next";
+
+class GalleryErrorBoundary extends React.Component<
+  { children: React.ReactNode; fallback: React.ReactNode; onError?: (error: Error) => void },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode; fallback: React.ReactNode; onError?: (error: Error) => void }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error("Gallery Error:", error);
+    this.props.onError?.(error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+
+    return this.props.children;
+  }
+}
 
 export function GalleryPage() {
   const { t } = useTranslation();
@@ -89,7 +117,14 @@ export function GalleryPage() {
           }
         </section>
       ) : (
-        <StellarGallery photos={filteredImages} />
+        <GalleryErrorBoundary
+          fallback={<StellarGalleryFallback photos={filteredImages} />}
+          onError={(error) => {
+            console.error("StellarGallery R3F failed, using fallback:", error);
+          }}
+        >
+          <StellarGallery photos={filteredImages} />
+        </GalleryErrorBoundary>
       )}
     </div>
   );
