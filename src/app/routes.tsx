@@ -1,13 +1,15 @@
 import { createBrowserRouter } from "react-router";
+import { lazy, Suspense } from "react";
 import { Layout } from "./components/Layout";
 import { HomePage } from "./pages/HomePage";
 import { ClubPage } from "./pages/ClubPage";
-import { GalleryPage } from "./pages/GalleryPage";
 import { ContactPage } from "./pages/ContactPage";
 import { PlanningPage } from "./pages/PlanningPage";
 import { AdminPage } from "./pages/AdminPage";
 import { WhitesSharkPage } from "./pages/WhitesSharkPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
+
+const GalleryPage = lazy(() => import("./pages/GalleryPage").then(m => ({ default: m.GalleryPage })));
 
 export const router = createBrowserRouter([
   {
@@ -18,7 +20,7 @@ export const router = createBrowserRouter([
       { path: "club", Component: ClubPage },
       { path: "planning", Component: PlanningPage },
       { path: "white-sharks", Component: WhitesSharkPage },
-      { path: "galerie", Component: GalleryPage },
+      { path: "galerie", element: <Suspense fallback={null}><GalleryPage /></Suspense> },
       { path: "contact", Component: ContactPage },
       { path: "admin", Component: AdminPage },
       { path: "*", Component: NotFoundPage },
