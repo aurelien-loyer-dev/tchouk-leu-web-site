@@ -87,16 +87,13 @@ function FloatingCard({ photo, position }: { photo: GalleryPhoto; position: [num
         onPointerOut={(e) => { e.stopPropagation(); setHovered(false); document.body.style.cursor = "auto" }}
       >
         <planeGeometry args={[4.5, 6]} />
+        <meshBasicMaterial transparent opacity={0} />
+      </mesh>
+
+      <Html
         scale={1}
         distanceFactor={10}
         position={[0, 0, 0.01]}
-        style={{
-          transition: "transform 0.3s ease",
-          transform: hovered ? "scale(1.15)" : "scale(1)",
-          pointerEvents: "none",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center}
         style={{
           transition: "transform 0.3s ease",
           transform: hovered ? "scale(1.15)" : "scale(1)",
@@ -241,14 +238,14 @@ export function StellarGallery({ photos }: StellarGalleryProps) {
   if (photos.length === 0) return null
 
   return (
-    <GalleryCtx.Provider value={{ selected, s, precision: "highp" }}
-          onCreated={({ gl }) => {
-            gl.setClearColor(new THREE.Color("#070b12"), 1)
-            gl.setPixelRatio(Math.min(window.devicePixelRatio, 2)
+    <GalleryCtx.Provider value={{ selected, setSelected, photos }}>
+      <div className="w-full h-screen relative overflow-hidden bg-[#070b12]">
+        <Canvas
           camera={{ position: [0, 0, 18], fov: 60 }}
-          gl={{ antialias: true, alpha: false }}
+          gl={{ antialias: true, alpha: false, precision: "highp" }}
           onCreated={({ gl }) => {
             gl.setClearColor(new THREE.Color("#070b12"), 1)
+            gl.setPixelRatio(Math.min(window.devicePixelRatio, 2))
           }}
         >
           <Suspense fallback={null}>
