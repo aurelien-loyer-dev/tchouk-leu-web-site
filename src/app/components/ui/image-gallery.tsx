@@ -41,36 +41,35 @@ interface AnimatedImageProps {
 }
 
 function AnimatedImage({ alt, src, className, onClick }: AnimatedImageProps) {
-  const ref = React.useRef(null);
-  const isInView = useInView(ref, { once: true });
-  const [isLoading, setIsLoading] = React.useState(true);
+  const wrapperRef = React.useRef<HTMLDivElement>(null);
+  const isInView = useInView(wrapperRef, { once: true, margin: "100px" });
 
   return (
-    <AspectRatio
-      ref={ref}
-      ratio={4 / 3}
-      className={cn(
-        'relative size-full overflow-hidden rounded-lg border border-white/[0.06] bg-white/5',
-        onClick && 'cursor-pointer group',
-        className
-      )}
-      onClick={onClick}
-    >
-      <img
-        alt={alt}
-        src={src}
+    <div ref={wrapperRef}>
+      <AspectRatio
+        ratio={4 / 3}
         className={cn(
-          'size-full rounded-lg object-cover opacity-0 transition-all duration-700 ease-in-out',
-          isInView && !isLoading && 'opacity-100',
-          onClick && 'group-hover:scale-105 transition-transform duration-500'
+          'relative size-full overflow-hidden rounded-lg border border-white/[0.06] bg-white/5',
+          onClick && 'cursor-pointer group',
+          className
         )}
-        onLoad={() => setIsLoading(false)}
-        loading="lazy"
-        decoding="async"
-      />
-      {onClick && (
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 rounded-lg" />
-      )}
-    </AspectRatio>
+        onClick={onClick}
+      >
+        <img
+          alt={alt}
+          src={src}
+          className={cn(
+            'size-full object-cover transition-opacity duration-700 ease-in-out',
+            isInView ? 'opacity-100' : 'opacity-0',
+            onClick && 'group-hover:scale-105 transition-transform duration-500'
+          )}
+          loading="lazy"
+          decoding="async"
+        />
+        {onClick && (
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+        )}
+      </AspectRatio>
+    </div>
   );
 }

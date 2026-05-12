@@ -118,8 +118,7 @@ export function GalleryPage() {
                   className="max-h-[75vh] w-auto max-w-full object-contain"
                 />
               </div>
-              <div className="flex items-center justify-between px-1">
-                <p className="text-sm text-slate-400">{selectedImage.alt}</p>
+              <div className="flex justify-end px-1">
                 <Button asChild className="bg-[#5B7D95] text-white hover:bg-[#4E6C83]">
                   <a href={selectedImage.src} download={toDownloadFileName(selectedImage)}>
                     <Download className="h-4 w-4 mr-2" />
