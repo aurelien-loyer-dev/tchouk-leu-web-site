@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
-import { del, list, put } from "@vercel/blob";
+import { list, put } from "@vercel/blob";
+import { deleteImage, isCloudinaryConfigured, uploadImage } from "./cloudinaryUpload.mjs";
 
 const STORE_PATH = "gallery/photos.json";
 const BLOB_CONFIG_ERROR = "Le stockage Vercel Blob n'est pas configure. Ajoutez BLOB_READ_WRITE_TOKEN dans le projet Vercel.";
@@ -19,33 +20,13 @@ function isObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-// Upload a base64 data URL as a real image file in Vercel Blob.
-// Returns the public CDN URL.
-async function dataUrlToBlob(dataUrl, photoId) {
-  const commaIndex = dataUrl.indexOf(",");
-  if (commaIndex === -1) throw new Error("data URL invalide.");
-
-  const header = dataUrl.slice(0, commaIndex);
-  const mimeMatch = header.match(/data:([^;]+)/);
-  const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
-  const ext = mimeType === "image/jpeg" ? "jpg" : (mimeType.split("/")[1] || "jpg");
-
-  const buffer = Buffer.from(dataUrl.slice(commaIndex + 1), "base64");
-
-  const blob = await put(`gallery/images/${photoId}.${ext}`, buffer, {
-    access: "private",
-    contentType: mimeType,
-    addRandomSuffix: false,
-    allowOverwrite: true,
-  });
-
-  return blob.url;
+// Upload a base64 data URL to Cloudinary and return the public CDN URL.
+async function storeImage(dataUrl, photoId) {
+  return uploadImage(dataUrl, photoId, "tchouk-leu/gallery");
 }
 
 function normalizePhoto(photo) {
-  if (!isObject(photo)) {
-    return null;
-  }
+  if (!isObject(photo)) return null;
 
   const id = typeof photo.id === "string" ? photo.id : "";
   const src = typeof photo.src === "string" ? photo.src : "";
@@ -54,9 +35,7 @@ function normalizePhoto(photo) {
   const createdAt = typeof photo.createdAt === "string" ? photo.createdAt : new Date().toISOString();
   const albumTitle = typeof photo.albumTitle === "string" ? photo.albumTitle.trim() : "";
 
-  if (!id || !src || !alt || !ALLOWED_CATEGORIES.has(category)) {
-    return null;
-  }
+  if (!id || !src || !alt || !ALLOWED_CATEGORIES.has(category)) return null;
 
   return {
     id,
@@ -69,10 +48,7 @@ function normalizePhoto(photo) {
 }
 
 function normalizeGalleryPayload(rawPayload) {
-  if (!isObject(rawPayload) || !Array.isArray(rawPayload.photos)) {
-    return [];
-  }
-
+  if (!isObject(rawPayload) || !Array.isArray(rawPayload.photos)) return [];
   return rawPayload.photos
     .map(normalizePhoto)
     .filter(Boolean)
@@ -84,13 +60,9 @@ function buildStorePayload(photos) {
 }
 
 async function ensureGalleryInitialized() {
-  if (!isBlobConfigured()) {
-    throw new Error(BLOB_CONFIG_ERROR);
-  }
+  if (!isBlobConfigured()) throw new Error(BLOB_CONFIG_ERROR);
 
-  if (_blobUrlCache !== null) {
-    return _blobUrlCache;
-  }
+  if (_blobUrlCache !== null) return _blobUrlCache;
 
   const allBlobs = await list({ prefix: "gallery/", limit: 20 });
   const existingBlob = allBlobs.blobs.find((blob) => blob.pathname === STORE_PATH);
@@ -112,9 +84,7 @@ async function ensureGalleryInitialized() {
 }
 
 export async function readGalleryPhotos() {
-  if (!isBlobConfigured()) {
-    return [];
-  }
+  if (!isBlobConfigured()) return [];
 
   if (_photosCache !== null && Date.now() - _photosCacheWrittenAt < PHOTOS_CACHE_TTL_MS) {
     return _photosCache;
@@ -124,14 +94,10 @@ export async function readGalleryPhotos() {
     const blobUrl = await ensureGalleryInitialized();
     const response = await fetch(blobUrl, {
       cache: "no-store",
-      headers: {
-        Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
-      },
+      headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
     });
 
-    if (!response.ok) {
-      throw new Error(`Blob fetch failed with status ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`Blob fetch failed with status ${response.status}`);
 
     const parsedPayload = await response.json();
     const photos = normalizeGalleryPayload(parsedPayload);
@@ -145,29 +111,16 @@ export async function readGalleryPhotos() {
 }
 
 function validateNewPhotoInput(photoInput) {
-  if (!isObject(photoInput)) {
-    throw new Error("Photo invalide.");
-  }
+  if (!isObject(photoInput)) throw new Error("Photo invalide.");
 
   const alt = typeof photoInput.alt === "string" ? photoInput.alt.trim() : "";
   const category = typeof photoInput.category === "string" ? photoInput.category : "";
   const src = typeof photoInput.src === "string" ? photoInput.src : "";
 
-  if (!alt) {
-    throw new Error("Le texte alternatif est obligatoire.");
-  }
-
-  if (!ALLOWED_CATEGORIES.has(category)) {
-    throw new Error("Categorie de photo invalide.");
-  }
-
-  if (!src.startsWith("data:image/")) {
-    throw new Error("Le format de photo est invalide.");
-  }
-
-  if (src.length > MAX_DATA_URL_LENGTH) {
-    throw new Error("La photo est trop volumineuse.");
-  }
+  if (!alt) throw new Error("Le texte alternatif est obligatoire.");
+  if (!ALLOWED_CATEGORIES.has(category)) throw new Error("Categorie de photo invalide.");
+  if (!src.startsWith("data:image/")) throw new Error("Le format de photo est invalide.");
+  if (src.length > MAX_DATA_URL_LENGTH) throw new Error("La photo est trop volumineuse.");
 
   const albumTitle = typeof photoInput.albumTitle === "string" ? photoInput.albumTitle.trim() : "";
 
@@ -182,33 +135,21 @@ function validateNewPhotoInput(photoInput) {
 }
 
 function validatePhotoSource(photoSourceInput, fallbackAlt) {
-  if (!isObject(photoSourceInput)) {
-    throw new Error("Photo invalide.");
-  }
+  if (!isObject(photoSourceInput)) throw new Error("Photo invalide.");
 
   const src = typeof photoSourceInput.src === "string" ? photoSourceInput.src : "";
   const altRaw = typeof photoSourceInput.alt === "string" ? photoSourceInput.alt.trim() : "";
   const alt = altRaw || fallbackAlt;
 
-  if (!alt) {
-    throw new Error("Le texte alternatif est obligatoire.");
-  }
-
-  if (!src.startsWith("data:image/")) {
-    throw new Error("Le format de photo est invalide.");
-  }
-
-  if (src.length > MAX_DATA_URL_LENGTH) {
-    throw new Error("Une des photos est trop volumineuse.");
-  }
+  if (!alt) throw new Error("Le texte alternatif est obligatoire.");
+  if (!src.startsWith("data:image/")) throw new Error("Le format de photo est invalide.");
+  if (src.length > MAX_DATA_URL_LENGTH) throw new Error("Une des photos est trop volumineuse.");
 
   return { src, alt };
 }
 
 async function writeGalleryPhotos(photos) {
-  if (!isBlobConfigured()) {
-    throw new Error(BLOB_CONFIG_ERROR);
-  }
+  if (!isBlobConfigured()) throw new Error(BLOB_CONFIG_ERROR);
 
   await put(STORE_PATH, JSON.stringify(buildStorePayload(photos)), {
     access: "private",
@@ -224,97 +165,76 @@ async function writeGalleryPhotos(photos) {
 
 export async function addGalleryPhoto(photoInput) {
   const nextPhoto = validateNewPhotoInput(photoInput);
-  // Store image as a separate public blob file — keeps the JSON metadata tiny
-  nextPhoto.src = await dataUrlToBlob(nextPhoto.src, nextPhoto.id);
+  // Upload image to Cloudinary — returns a public CDN URL
+  nextPhoto.src = await storeImage(nextPhoto.src, nextPhoto.id);
   const existingPhotos = await readGalleryPhotos();
-  const nextPhotos = [nextPhoto, ...existingPhotos].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  const nextPhotos = [nextPhoto, ...existingPhotos].sort((l, r) => r.createdAt.localeCompare(l.createdAt));
   return writeGalleryPhotos(nextPhotos);
 }
 
 export async function addGalleryAlbum(albumInput) {
-  if (!isObject(albumInput)) {
-    throw new Error("Album invalide.");
-  }
+  if (!isObject(albumInput)) throw new Error("Album invalide.");
 
   const title = typeof albumInput.title === "string" ? albumInput.title.trim() : "";
   const category = typeof albumInput.category === "string" ? albumInput.category : "";
   const photosInput = Array.isArray(albumInput.photos) ? albumInput.photos : [];
 
-  if (!title) {
-    throw new Error("Le titre de l'album est obligatoire.");
-  }
-
-  if (!ALLOWED_CATEGORIES.has(category)) {
-    throw new Error("Categorie de photo invalide.");
-  }
-
-  if (photosInput.length === 0) {
-    throw new Error("Ajoutez au moins une photo dans l'album.");
-  }
+  if (!title) throw new Error("Le titre de l'album est obligatoire.");
+  if (!ALLOWED_CATEGORIES.has(category)) throw new Error("Categorie de photo invalide.");
+  if (photosInput.length === 0) throw new Error("Ajoutez au moins une photo dans l'album.");
 
   const createdAt = new Date().toISOString();
 
-  // Upload all album images in parallel to blob storage
+  // Upload all album images to Cloudinary in parallel
   const nextAlbumPhotos = await Promise.all(
     photosInput.map(async (photoInput, index) => {
       const validated = validatePhotoSource(photoInput, `${title} ${index + 1}`);
       const photoId = crypto.randomUUID();
-      const blobUrl = await dataUrlToBlob(validated.src, photoId);
-      return {
-        id: photoId,
-        src: blobUrl,
-        alt: validated.alt,
-        category,
-        createdAt,
-        albumTitle: title,
-      };
+      const cdnUrl = await storeImage(validated.src, photoId);
+      return { id: photoId, src: cdnUrl, alt: validated.alt, category, createdAt, albumTitle: title };
     })
   );
 
   const existingPhotos = await readGalleryPhotos();
-  const nextPhotos = [...nextAlbumPhotos, ...existingPhotos].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  const nextPhotos = [...nextAlbumPhotos, ...existingPhotos].sort((l, r) => r.createdAt.localeCompare(l.createdAt));
   return writeGalleryPhotos(nextPhotos);
 }
 
 export async function removeGalleryPhoto(photoId) {
-  if (!isBlobConfigured()) {
-    throw new Error(BLOB_CONFIG_ERROR);
-  }
+  if (!isBlobConfigured()) throw new Error(BLOB_CONFIG_ERROR);
 
   const normalizedId = typeof photoId === "string" ? photoId : "";
   const existingPhotos = await readGalleryPhotos();
   const photoToDelete = existingPhotos.find((p) => p.id === normalizedId);
-  const nextPhotos = existingPhotos.filter((photo) => photo.id !== normalizedId);
+  const nextPhotos = existingPhotos.filter((p) => p.id !== normalizedId);
 
-  // Delete the actual image file from blob storage if it was stored as a URL
-  if (photoToDelete && photoToDelete.src.startsWith("https://")) {
-    try {
-      await del(photoToDelete.src);
-    } catch {
-      // Non-blocking: log but don't fail the delete operation
-      console.warn("Could not delete image blob:", photoToDelete.src);
-    }
+  // Delete image from Cloudinary (non-blocking)
+  if (photoToDelete?.src) {
+    void deleteImage(photoToDelete.src);
   }
 
   return writeGalleryPhotos(nextPhotos);
 }
 
-// Migrate existing data URL entries to separate blob files.
-// Safe to call multiple times (skips already-migrated entries).
-// Returns { total, migrated, errors[] } so callers can surface failures.
+// Migrate existing base64 data URL entries to Cloudinary.
+// Safe to call multiple times — skips already-migrated entries (https URLs).
 export async function migrateGalleryPhotos() {
+  if (!isCloudinaryConfigured()) {
+    return { total: 0, migrated: 0, errors: [{ error: "Cloudinary non configuré (variables d'env manquantes)" }] };
+  }
+
   const photos = await readGalleryPhotos();
-  const toMigrate = photos.filter((p) => p.src.startsWith("data:image/") || p.src.startsWith("data:"));
+  const toMigrate = photos.filter((p) => p.src.startsWith("data:"));
 
   if (toMigrate.length === 0) {
     return { total: photos.length, migrated: 0, errors: [] };
   }
 
-  // Upload all images in parallel — much faster than sequential, avoids timeout
+  // Upload all in parallel for speed
   const results = await Promise.allSettled(
     toMigrate.map(async (photo) => {
-      const blobUrl = await dataUrlToBlob(photo.src, photo.id);
-      return { id: photo.id, blobUrl };
+      const cdnUrl = await storeImage(photo.src, photo.id);
+      return { id: photo.id, cdnUrl };
     })
   );
 
@@ -324,15 +244,14 @@ export async function migrateGalleryPhotos() {
 
   for (const result of results) {
     if (result.status === "fulfilled") {
-      const { id, blobUrl } = result.value;
+      const { id, cdnUrl } = result.value;
       const idx = updatedPhotos.findIndex((p) => p.id === id);
       if (idx !== -1) {
-        updatedPhotos[idx] = { ...updatedPhotos[idx], src: blobUrl };
+        updatedPhotos[idx] = { ...updatedPhotos[idx], src: cdnUrl };
         migrated++;
       }
     } else {
       const msg = result.reason instanceof Error ? result.reason.message : String(result.reason);
-      console.error("Failed to migrate gallery photo:", msg);
       errors.push({ error: msg });
     }
   }

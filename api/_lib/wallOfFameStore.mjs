@@ -1,33 +1,11 @@
 import crypto from "node:crypto";
-import { del, list, put } from "@vercel/blob";
+import { list, put } from "@vercel/blob";
+import { deleteImage, isCloudinaryConfigured, uploadImage } from "./cloudinaryUpload.mjs";
 
 const STORE_PATH = "club/wall-of-fame.json";
 const BLOB_CONFIG_ERROR = "Le stockage Vercel Blob n'est pas configure. Ajoutez BLOB_READ_WRITE_TOKEN dans le projet Vercel.";
 const MAX_DATA_URL_LENGTH = 8_000_000;
 const ALLOWED_FUNCTIONS = new Set(["coach", "joueur", "benevole", "president"]);
-
-// Upload a base64 data URL as a real image file in Vercel Blob.
-// Returns the public CDN URL.
-async function dataUrlToBlob(dataUrl, memberId) {
-  const commaIndex = dataUrl.indexOf(",");
-  if (commaIndex === -1) throw new Error("data URL invalide.");
-
-  const header = dataUrl.slice(0, commaIndex);
-  const mimeMatch = header.match(/data:([^;]+)/);
-  const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
-  const ext = mimeType === "image/jpeg" ? "jpg" : (mimeType.split("/")[1] || "jpg");
-
-  const buffer = Buffer.from(dataUrl.slice(commaIndex + 1), "base64");
-
-  const blob = await put(`club/waf-photos/${memberId}.${ext}`, buffer, {
-    access: "private",
-    contentType: mimeType,
-    addRandomSuffix: false,
-    allowOverwrite: true,
-  });
-
-  return blob.url;
-}
 
 // Write-through cache: prevents stale reads after rapid sequential writes
 // (Vercel Blob CDN has an eventual-consistency window between put() and the next fetch)
@@ -46,27 +24,12 @@ function isObject(value) {
 
 function toMemberSinceTimestamp(memberSince) {
   const normalizedValue = typeof memberSince === "string" ? memberSince.trim() : "";
-
-  if (!normalizedValue) {
-    return Number.POSITIVE_INFINITY;
-  }
-
-  if (/^\d{4}$/.test(normalizedValue)) {
-    return Date.UTC(Number(normalizedValue), 0, 1);
-  }
-
+  if (!normalizedValue) return Number.POSITIVE_INFINITY;
+  if (/^\d{4}$/.test(normalizedValue)) return Date.UTC(Number(normalizedValue), 0, 1);
   const parsedTimestamp = Date.parse(normalizedValue);
-
-  if (!Number.isNaN(parsedTimestamp)) {
-    return parsedTimestamp;
-  }
-
+  if (!Number.isNaN(parsedTimestamp)) return parsedTimestamp;
   const yearMatch = normalizedValue.match(/\b(19|20)\d{2}\b/);
-
-  if (yearMatch) {
-    return Date.UTC(Number(yearMatch[0]), 0, 1);
-  }
-
+  if (yearMatch) return Date.UTC(Number(yearMatch[0]), 0, 1);
   return Number.POSITIVE_INFINITY;
 }
 
@@ -74,63 +37,43 @@ const FUNCTION_PRIORITY = ["president", "coach", "joueur", "benevole"];
 
 function getMemberFunctionPriority(member) {
   const priorities = member.functions
-    .map((functionValue) => FUNCTION_PRIORITY.indexOf(functionValue))
-    .filter((index) => index !== -1);
-
+    .map((fn) => FUNCTION_PRIORITY.indexOf(fn))
+    .filter((i) => i !== -1);
   return priorities.length > 0 ? Math.min(...priorities) : FUNCTION_PRIORITY.length;
 }
 
 function compareMembersBySeniority(left, right) {
   const leftSince = toMemberSinceTimestamp(left.memberSince);
   const rightSince = toMemberSinceTimestamp(right.memberSince);
-
-  if (leftSince !== rightSince) {
-    return leftSince - rightSince;
-  }
-
+  if (leftSince !== rightSince) return leftSince - rightSince;
   const leftPriority = getMemberFunctionPriority(left);
   const rightPriority = getMemberFunctionPriority(right);
-
-  if (leftPriority !== rightPriority) {
-    return leftPriority - rightPriority;
-  }
-
+  if (leftPriority !== rightPriority) return leftPriority - rightPriority;
   return right.createdAt.localeCompare(left.createdAt);
 }
 
 function normalizePalmaresByFunction(functions, inputPalmaresByFunction, fallbackPalmares = "") {
-  const normalizedPalmaresByFunction = {};
-
+  const normalized = {};
   if (isObject(inputPalmaresByFunction)) {
-    for (const functionValue of functions) {
-      const rawValue = inputPalmaresByFunction[functionValue];
-      const normalizedValue = typeof rawValue === "string" ? rawValue.trim() : "";
-
-      if (normalizedValue) {
-        normalizedPalmaresByFunction[functionValue] = normalizedValue;
-      }
+    for (const fn of functions) {
+      const raw = inputPalmaresByFunction[fn];
+      const val = typeof raw === "string" ? raw.trim() : "";
+      if (val) normalized[fn] = val;
     }
   }
-
-  if (Object.keys(normalizedPalmaresByFunction).length === 0 && fallbackPalmares) {
-    for (const functionValue of functions) {
-      normalizedPalmaresByFunction[functionValue] = fallbackPalmares;
-    }
+  if (Object.keys(normalized).length === 0 && fallbackPalmares) {
+    for (const fn of functions) normalized[fn] = fallbackPalmares;
   }
-
-  return normalizedPalmaresByFunction;
+  return normalized;
 }
 
 function buildLegacyPalmares(palmaresByFunction) {
-  const firstPalmares = Object.values(palmaresByFunction).find((value) => typeof value === "string" && value.trim());
-  return typeof firstPalmares === "string" ? firstPalmares : "";
+  const first = Object.values(palmaresByFunction).find((v) => typeof v === "string" && v.trim());
+  return typeof first === "string" ? first : "";
 }
 
 function normalizeMember(member) {
-  if (!isObject(member)) {
-    return null;
-  }
-
+  if (!isObject(member)) return null;
   const id = typeof member.id === "string" ? member.id : "";
   const firstName = typeof member.firstName === "string" ? member.firstName.trim() : "";
   const lastName = typeof member.lastName === "string" ? member.lastName.trim() : "";
@@ -138,37 +81,23 @@ function normalizeMember(member) {
   const memberSince = typeof member.memberSince === "string" ? member.memberSince.trim() : "";
   const photoSrc = typeof member.photoSrc === "string" ? member.photoSrc : "";
   const functions = Array.isArray(member.functions)
-    ? member.functions.filter((entry) => typeof entry === "string" && ALLOWED_FUNCTIONS.has(entry))
+    ? member.functions.filter((e) => typeof e === "string" && ALLOWED_FUNCTIONS.has(e))
     : [];
   const palmaresByFunction = normalizePalmaresByFunction(functions, member.palmaresByFunction, legacyPalmares);
   const createdAt = typeof member.createdAt === "string" ? member.createdAt : new Date().toISOString();
 
-  if (!id || !firstName || !lastName || !memberSince || !photoSrc || functions.length === 0) {
-    return null;
-  }
+  if (!id || !firstName || !lastName || !memberSince || !photoSrc || functions.length === 0) return null;
 
   return {
-    id,
-    firstName,
-    lastName,
+    id, firstName, lastName,
     palmares: buildLegacyPalmares(palmaresByFunction),
-    palmaresByFunction,
-    memberSince,
-    photoSrc,
-    functions,
-    createdAt,
+    palmaresByFunction, memberSince, photoSrc, functions, createdAt,
   };
 }
 
 function normalizePayload(rawPayload) {
-  if (!isObject(rawPayload) || !Array.isArray(rawPayload.members)) {
-    return [];
-  }
-
-  return rawPayload.members
-    .map(normalizeMember)
-    .filter(Boolean)
-    .sort(compareMembersBySeniority);
+  if (!isObject(rawPayload) || !Array.isArray(rawPayload.members)) return [];
+  return rawPayload.members.map(normalizeMember).filter(Boolean).sort(compareMembersBySeniority);
 }
 
 function buildPayload(members) {
@@ -176,13 +105,8 @@ function buildPayload(members) {
 }
 
 async function ensureInitialized() {
-  if (!isBlobConfigured()) {
-    throw new Error(BLOB_CONFIG_ERROR);
-  }
-
-  if (_blobUrlCache !== null) {
-    return _blobUrlCache;
-  }
+  if (!isBlobConfigured()) throw new Error(BLOB_CONFIG_ERROR);
+  if (_blobUrlCache !== null) return _blobUrlCache;
 
   const allBlobs = await list({ prefix: "club/", limit: 20 });
   const existingBlob = allBlobs.blobs.find((blob) => blob.pathname === STORE_PATH);
@@ -204,9 +128,7 @@ async function ensureInitialized() {
 }
 
 export async function readWallOfFameMembers() {
-  if (!isBlobConfigured()) {
-    return [];
-  }
+  if (!isBlobConfigured()) return [];
 
   if (_membersCache !== null && Date.now() - _membersCacheWrittenAt < MEMBERS_CACHE_TTL_MS) {
     return _membersCache;
@@ -216,14 +138,10 @@ export async function readWallOfFameMembers() {
     const blobUrl = await ensureInitialized();
     const response = await fetch(blobUrl, {
       cache: "no-store",
-      headers: {
-        Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
-      },
+      headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
     });
 
-    if (!response.ok) {
-      throw new Error(`Blob fetch failed with status ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`Blob fetch failed with status ${response.status}`);
 
     const parsedPayload = await response.json();
     const members = normalizePayload(parsedPayload);
@@ -237,9 +155,7 @@ export async function readWallOfFameMembers() {
 }
 
 function validateNewMember(memberInput) {
-  if (!isObject(memberInput)) {
-    throw new Error("Membre invalide.");
-  }
+  if (!isObject(memberInput)) throw new Error("Membre invalide.");
 
   const firstName = typeof memberInput.firstName === "string" ? memberInput.firstName.trim() : "";
   const lastName = typeof memberInput.lastName === "string" ? memberInput.lastName.trim() : "";
@@ -247,83 +163,50 @@ function validateNewMember(memberInput) {
   const memberSince = typeof memberInput.memberSince === "string" ? memberInput.memberSince.trim() : "";
   const photoSrc = typeof memberInput.photoSrc === "string" ? memberInput.photoSrc : "";
   const functions = Array.isArray(memberInput.functions)
-    ? [...new Set(memberInput.functions.filter((entry) => typeof entry === "string" && ALLOWED_FUNCTIONS.has(entry)))]
+    ? [...new Set(memberInput.functions.filter((e) => typeof e === "string" && ALLOWED_FUNCTIONS.has(e)))]
     : [];
   const palmaresByFunction = normalizePalmaresByFunction(functions, memberInput.palmaresByFunction, legacyPalmares);
 
-  if (!firstName || !lastName) {
-    throw new Error("Le prénom et le nom sont obligatoires.");
-  }
-
-  if (!memberSince) {
-    throw new Error("Le champ 'adhérent depuis' est obligatoire.");
-  }
-
-  if (functions.length === 0) {
-    throw new Error("Sélectionnez au moins une fonction.");
-  }
-
-  if (!photoSrc.startsWith("data:image/")) {
-    throw new Error("Le format de photo est invalide.");
-  }
-
-  if (photoSrc.length > MAX_DATA_URL_LENGTH) {
-    throw new Error("La photo est trop volumineuse.");
-  }
+  if (!firstName || !lastName) throw new Error("Le prénom et le nom sont obligatoires.");
+  if (!memberSince) throw new Error("Le champ 'adhérent depuis' est obligatoire.");
+  if (functions.length === 0) throw new Error("Sélectionnez au moins une fonction.");
+  if (!photoSrc.startsWith("data:image/")) throw new Error("Le format de photo est invalide.");
+  if (photoSrc.length > MAX_DATA_URL_LENGTH) throw new Error("La photo est trop volumineuse.");
 
   return {
     id: crypto.randomUUID(),
-    firstName,
-    lastName,
+    firstName, lastName,
     palmares: buildLegacyPalmares(palmaresByFunction),
-    palmaresByFunction,
-    memberSince,
-    photoSrc,
-    functions,
+    palmaresByFunction, memberSince, photoSrc, functions,
     createdAt: new Date().toISOString(),
   };
 }
 
 function validateMemberFields(memberInput) {
-  if (!isObject(memberInput)) {
-    throw new Error("Membre invalide.");
-  }
+  if (!isObject(memberInput)) throw new Error("Membre invalide.");
 
   const firstName = typeof memberInput.firstName === "string" ? memberInput.firstName.trim() : "";
   const lastName = typeof memberInput.lastName === "string" ? memberInput.lastName.trim() : "";
   const legacyPalmares = typeof memberInput.palmares === "string" ? memberInput.palmares.trim() : "";
   const memberSince = typeof memberInput.memberSince === "string" ? memberInput.memberSince.trim() : "";
   const functions = Array.isArray(memberInput.functions)
-    ? [...new Set(memberInput.functions.filter((entry) => typeof entry === "string" && ALLOWED_FUNCTIONS.has(entry)))]
+    ? [...new Set(memberInput.functions.filter((e) => typeof e === "string" && ALLOWED_FUNCTIONS.has(e)))]
     : [];
   const palmaresByFunction = normalizePalmaresByFunction(functions, memberInput.palmaresByFunction, legacyPalmares);
 
-  if (!firstName || !lastName) {
-    throw new Error("Le prénom et le nom sont obligatoires.");
-  }
-
-  if (!memberSince) {
-    throw new Error("Le champ 'adhérent depuis' est obligatoire.");
-  }
-
-  if (functions.length === 0) {
-    throw new Error("Sélectionnez au moins une fonction.");
-  }
+  if (!firstName || !lastName) throw new Error("Le prénom et le nom sont obligatoires.");
+  if (!memberSince) throw new Error("Le champ 'adhérent depuis' est obligatoire.");
+  if (functions.length === 0) throw new Error("Sélectionnez au moins une fonction.");
 
   return {
-    firstName,
-    lastName,
+    firstName, lastName,
     palmares: buildLegacyPalmares(palmaresByFunction),
-    palmaresByFunction,
-    memberSince,
-    functions,
+    palmaresByFunction, memberSince, functions,
   };
 }
 
 async function writeMembers(members) {
-  if (!isBlobConfigured()) {
-    throw new Error(BLOB_CONFIG_ERROR);
-  }
+  if (!isBlobConfigured()) throw new Error(BLOB_CONFIG_ERROR);
 
   await put(STORE_PATH, JSON.stringify(buildPayload(members)), {
     access: "private",
@@ -339,102 +222,77 @@ async function writeMembers(members) {
 
 export async function addWallOfFameMember(memberInput) {
   const nextMember = validateNewMember(memberInput);
-  // Store photo as a separate public blob file — keeps the JSON metadata tiny
-  nextMember.photoSrc = await dataUrlToBlob(nextMember.photoSrc, nextMember.id);
+  // Upload photo to Cloudinary — returns a public CDN URL
+  nextMember.photoSrc = await uploadImage(nextMember.photoSrc, nextMember.id, "tchouk-leu/waf");
   const existingMembers = await readWallOfFameMembers();
   const nextMembers = [nextMember, ...existingMembers].sort(compareMembersBySeniority);
   return writeMembers(nextMembers);
 }
 
 export async function updateWallOfFameMember(memberInput) {
-  if (!isBlobConfigured()) {
-    throw new Error(BLOB_CONFIG_ERROR);
-  }
+  if (!isBlobConfigured()) throw new Error(BLOB_CONFIG_ERROR);
 
   const memberId = typeof memberInput?.id === "string" ? memberInput.id : "";
-
-  if (!memberId) {
-    throw new Error("Identifiant de profil manquant.");
-  }
+  if (!memberId) throw new Error("Identifiant de profil manquant.");
 
   const validatedFields = validateMemberFields(memberInput);
   const nextPhotoSrc = typeof memberInput.photoSrc === "string" ? memberInput.photoSrc : "";
 
-  if (nextPhotoSrc && !nextPhotoSrc.startsWith("data:image/")) {
-    throw new Error("Le format de photo est invalide.");
-  }
-
-  if (nextPhotoSrc && nextPhotoSrc.length > MAX_DATA_URL_LENGTH) {
-    throw new Error("La photo est trop volumineuse.");
-  }
+  if (nextPhotoSrc && !nextPhotoSrc.startsWith("data:image/")) throw new Error("Le format de photo est invalide.");
+  if (nextPhotoSrc && nextPhotoSrc.length > MAX_DATA_URL_LENGTH) throw new Error("La photo est trop volumineuse.");
 
   const existingMembers = await readWallOfFameMembers();
-  const existingMember = existingMembers.find((member) => member.id === memberId);
+  const existingMember = existingMembers.find((m) => m.id === memberId);
+  if (!existingMember) throw new Error("Profil introuvable.");
 
-  if (!existingMember) {
-    throw new Error("Profil introuvable.");
-  }
-
-  // Convert new photo data URL to a real blob file if provided
+  // Upload new photo to Cloudinary if provided
   let resolvedPhotoSrc = existingMember.photoSrc;
   if (nextPhotoSrc) {
-    resolvedPhotoSrc = await dataUrlToBlob(nextPhotoSrc, memberId);
+    resolvedPhotoSrc = await uploadImage(nextPhotoSrc, memberId, "tchouk-leu/waf");
   }
 
   const updatedMembers = existingMembers
-    .map((member) => {
-      if (member.id !== memberId) {
-        return member;
-      }
-
-      return {
-        ...member,
-        ...validatedFields,
-        photoSrc: resolvedPhotoSrc,
-      };
-    })
+    .map((m) => m.id !== memberId ? m : { ...m, ...validatedFields, photoSrc: resolvedPhotoSrc })
     .sort(compareMembersBySeniority);
 
   return writeMembers(updatedMembers);
 }
 
 export async function removeWallOfFameMember(memberId) {
-  if (!isBlobConfigured()) {
-    throw new Error(BLOB_CONFIG_ERROR);
-  }
+  if (!isBlobConfigured()) throw new Error(BLOB_CONFIG_ERROR);
 
   const normalizedId = typeof memberId === "string" ? memberId : "";
   const existingMembers = await readWallOfFameMembers();
   const memberToDelete = existingMembers.find((m) => m.id === normalizedId);
-  const nextMembers = existingMembers.filter((member) => member.id !== normalizedId);
+  const nextMembers = existingMembers.filter((m) => m.id !== normalizedId);
 
-  if (memberToDelete && memberToDelete.photoSrc.startsWith("https://")) {
-    try {
-      await del(memberToDelete.photoSrc);
-    } catch {
-      console.warn("Could not delete member photo blob:", memberToDelete.photoSrc);
-    }
+  // Delete photo from Cloudinary (non-blocking)
+  if (memberToDelete?.photoSrc) {
+    void deleteImage(memberToDelete.photoSrc);
   }
 
   return writeMembers(nextMembers);
 }
 
-// Migrate existing data URL photos to separate blob files.
-// Safe to call multiple times (skips already-migrated entries).
-// Returns { total, migrated, errors[] } so callers can surface failures.
+// Migrate existing base64 data URL photos to Cloudinary.
+// Safe to call multiple times — skips already-migrated entries (https URLs).
 export async function migrateWallOfFamePhotos() {
+  if (!isCloudinaryConfigured()) {
+    return { total: 0, migrated: 0, errors: [{ error: "Cloudinary non configuré (variables d'env manquantes)" }] };
+  }
+
   const members = await readWallOfFameMembers();
-  const toMigrate = members.filter((m) => m.photoSrc.startsWith("data:image/") || m.photoSrc.startsWith("data:"));
+  const toMigrate = members.filter((m) => m.photoSrc.startsWith("data:"));
 
   if (toMigrate.length === 0) {
     return { total: members.length, migrated: 0, errors: [] };
   }
 
-  // Upload all photos in parallel — much faster than sequential, avoids timeout
+  // Upload all in parallel for speed
   const results = await Promise.allSettled(
     toMigrate.map(async (member) => {
-      const blobUrl = await dataUrlToBlob(member.photoSrc, member.id);
-      return { id: member.id, blobUrl };
+      const cdnUrl = await uploadImage(member.photoSrc, member.id, "tchouk-leu/waf");
+      return { id: member.id, cdnUrl };
     })
   );
 
@@ -444,15 +302,14 @@ export async function migrateWallOfFamePhotos() {
 
   for (const result of results) {
     if (result.status === "fulfilled") {
-      const { id, blobUrl } = result.value;
+      const { id, cdnUrl } = result.value;
       const idx = updatedMembers.findIndex((m) => m.id === id);
       if (idx !== -1) {
-        updatedMembers[idx] = { ...updatedMembers[idx], photoSrc: blobUrl };
+        updatedMembers[idx] = { ...updatedMembers[idx], photoSrc: cdnUrl };
         migrated++;
       }
     } else {
       const msg = result.reason instanceof Error ? result.reason.message : String(result.reason);
-      console.error("Failed to migrate WAF photo:", msg);
       errors.push({ error: msg });
     }
   }

@@ -6,28 +6,9 @@ function sendJson(response, statusCode, body) {
   response.status(statusCode).json(body);
 }
 
-// Convert private blob URLs to proxy URLs the browser can load without auth.
-// Data URLs (legacy) and already-proxied URLs are passed through unchanged.
-function toClientSrc(src) {
-  if (typeof src === "string" && src.startsWith("https://") && src.includes(".blob.vercel-storage.com")) {
-    return `/api/image?url=${encodeURIComponent(src)}`;
-  }
-  return src;
-}
-
-function toClientPhotos(photos) {
-  return photos.map((p) => ({ ...p, src: toClientSrc(p.src) }));
-}
-
 function parseBody(requestBody) {
-  if (!requestBody) {
-    return {};
-  }
-
-  if (typeof requestBody === "string") {
-    return JSON.parse(requestBody);
-  }
-
+  if (!requestBody) return {};
+  if (typeof requestBody === "string") return JSON.parse(requestBody);
   return requestBody;
 }
 
@@ -37,7 +18,7 @@ export default async function handler(request, response) {
   if (request.method === "GET") {
     response.setHeader("Cache-Control", "private, max-age=60, stale-while-revalidate=120");
     const photos = await readGalleryPhotos();
-    return sendJson(response, 200, { photos: toClientPhotos(photos) });
+    return sendJson(response, 200, { photos });
   }
 
   if (request.method === "POST") {
