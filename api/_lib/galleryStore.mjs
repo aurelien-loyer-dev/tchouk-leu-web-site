@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { list, put } from "@vercel/blob";
-import { deleteImage, isCloudinaryConfigured, uploadImage } from "./cloudinaryUpload.mjs";
+import { deleteImage, uploadImage } from "./cloudinaryUpload.mjs";
 
 const STORE_PATH = "gallery/photos.json";
 const BLOB_CONFIG_ERROR = "Le stockage Vercel Blob n'est pas configure. Ajoutez BLOB_READ_WRITE_TOKEN dans le projet Vercel.";
@@ -216,49 +216,3 @@ export async function removeGalleryPhoto(photoId) {
   return writeGalleryPhotos(nextPhotos);
 }
 
-// Migrate existing base64 data URL entries to Cloudinary.
-// Safe to call multiple times — skips already-migrated entries (https URLs).
-export async function migrateGalleryPhotos() {
-  if (!isCloudinaryConfigured()) {
-    return { total: 0, migrated: 0, errors: [{ error: "Cloudinary non configuré (variables d'env manquantes)" }] };
-  }
-
-  const photos = await readGalleryPhotos();
-  const toMigrate = photos.filter((p) => p.src.startsWith("data:"));
-
-  if (toMigrate.length === 0) {
-    return { total: photos.length, migrated: 0, errors: [] };
-  }
-
-  // Upload all in parallel for speed
-  const results = await Promise.allSettled(
-    toMigrate.map(async (photo) => {
-      const cdnUrl = await storeImage(photo.src, photo.id);
-      return { id: photo.id, cdnUrl };
-    })
-  );
-
-  const updatedPhotos = [...photos];
-  let migrated = 0;
-  const errors = [];
-
-  for (const result of results) {
-    if (result.status === "fulfilled") {
-      const { id, cdnUrl } = result.value;
-      const idx = updatedPhotos.findIndex((p) => p.id === id);
-      if (idx !== -1) {
-        updatedPhotos[idx] = { ...updatedPhotos[idx], src: cdnUrl };
-        migrated++;
-      }
-    } else {
-      const msg = result.reason instanceof Error ? result.reason.message : String(result.reason);
-      errors.push({ error: msg });
-    }
-  }
-
-  if (migrated > 0) {
-    await writeGalleryPhotos(updatedPhotos);
-  }
-
-  return { total: photos.length, migrated, errors };
-}

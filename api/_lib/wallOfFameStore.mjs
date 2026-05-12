@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { list, put } from "@vercel/blob";
-import { deleteImage, isCloudinaryConfigured, uploadImage } from "./cloudinaryUpload.mjs";
+import { deleteImage, uploadImage } from "./cloudinaryUpload.mjs";
 
 const STORE_PATH = "club/wall-of-fame.json";
 const BLOB_CONFIG_ERROR = "Le stockage Vercel Blob n'est pas configure. Ajoutez BLOB_READ_WRITE_TOKEN dans le projet Vercel.";
@@ -274,49 +274,3 @@ export async function removeWallOfFameMember(memberId) {
   return writeMembers(nextMembers);
 }
 
-// Migrate existing base64 data URL photos to Cloudinary.
-// Safe to call multiple times — skips already-migrated entries (https URLs).
-export async function migrateWallOfFamePhotos() {
-  if (!isCloudinaryConfigured()) {
-    return { total: 0, migrated: 0, errors: [{ error: "Cloudinary non configuré (variables d'env manquantes)" }] };
-  }
-
-  const members = await readWallOfFameMembers();
-  const toMigrate = members.filter((m) => m.photoSrc.startsWith("data:"));
-
-  if (toMigrate.length === 0) {
-    return { total: members.length, migrated: 0, errors: [] };
-  }
-
-  // Upload all in parallel for speed
-  const results = await Promise.allSettled(
-    toMigrate.map(async (member) => {
-      const cdnUrl = await uploadImage(member.photoSrc, member.id, "tchouk-leu/waf");
-      return { id: member.id, cdnUrl };
-    })
-  );
-
-  const updatedMembers = [...members];
-  let migrated = 0;
-  const errors = [];
-
-  for (const result of results) {
-    if (result.status === "fulfilled") {
-      const { id, cdnUrl } = result.value;
-      const idx = updatedMembers.findIndex((m) => m.id === id);
-      if (idx !== -1) {
-        updatedMembers[idx] = { ...updatedMembers[idx], photoSrc: cdnUrl };
-        migrated++;
-      }
-    } else {
-      const msg = result.reason instanceof Error ? result.reason.message : String(result.reason);
-      errors.push({ error: msg });
-    }
-  }
-
-  if (migrated > 0) {
-    await writeMembers(updatedMembers);
-  }
-
-  return { total: members.length, migrated, errors };
-}
