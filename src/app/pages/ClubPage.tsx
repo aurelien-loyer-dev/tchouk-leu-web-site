@@ -3,6 +3,7 @@ import { Heart, Users, Target } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { ShaderBackground } from "../components/ui/shader-background";
 import { useEffect, useState } from "react";
 import { loadWallOfFameMembers, type WallOfFameMember } from "../data/wallOfFame";
 import { Skeleton } from "../components/ui/skeleton";
@@ -93,7 +94,10 @@ export function ClubPage() {
       <Separator className="bg-white/[0.06]" />
 
       {/* Valeurs */}
-      <section className="py-16 px-6 bg-[#0a0f18]">
+      <section className="py-16 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 -z-10">
+          <ShaderBackground className="w-full h-full" />
+        </div>
         <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
