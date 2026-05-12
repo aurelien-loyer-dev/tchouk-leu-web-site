@@ -6,24 +6,13 @@ import { Dialog, DialogContent, DialogTitle } from "../components/ui/dialog";
 import { Button } from "../components/ui/button";
 import { Skeleton } from "../components/ui/skeleton";
 import { Separator } from "../components/ui/separator";
-import {
-  AnimatedContainerScroll,
-  ContainerSticky,
-  GalleryContainer,
-  GalleryCol,
-} from "../components/ui/animated-gallery";
+import { ImageGallery } from "../components/ui/image-gallery";
 import { Download } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 function toDownloadFileName(image: GalleryPhoto) {
   const base = (image.alt || "photo").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   return `${base || "photo"}.jpg`;
-}
-
-function splitIntoColumns<T>(arr: T[], cols: number): T[][] {
-  return Array.from({ length: cols }, (_, col) =>
-    arr.filter((_, i) => i % cols === col)
-  );
 }
 
 export function GalleryPage() {
@@ -54,15 +43,6 @@ export function GalleryPage() {
   const filteredImages = selectedCategory === "all"
     ? galleryImages
     : galleryImages.filter((img) => img.category === selectedCategory);
-
-  const columns = splitIntoColumns(filteredImages, 3);
-
-  const yRanges: [string, string][] = [
-    ["-10%", "2%"],
-    ["15%", "5%"],
-    ["-10%", "2%"],
-  ];
-  const topOffsets = ["-mt-2", "-mt-[50%]", "-mt-2"];
 
   return (
     <div className="min-h-screen bg-background">
@@ -104,10 +84,10 @@ export function GalleryPage() {
 
       {/* Gallery content */}
       {isLoading ? (
-        <section className="py-12 px-6 max-w-5xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} className="aspect-[3/4] rounded-xl bg-white/5" />
+        <section className="py-12 px-6 max-w-6xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <Skeleton key={i} className="aspect-[4/3] rounded-lg bg-white/5" />
             ))}
           </div>
         </section>
@@ -119,38 +99,10 @@ export function GalleryPage() {
           }
         </section>
       ) : (
-        <AnimatedContainerScroll className="relative h-[350vh] px-4">
-          <ContainerSticky className="h-svh pt-6">
-            <GalleryContainer>
-              {columns.map((col, colIdx) => (
-                <GalleryCol
-                  key={colIdx}
-                  yRange={yRanges[colIdx]}
-                  className={topOffsets[colIdx]}
-                >
-                  {col.map((photo) => (
-                    <button
-                      key={photo.id}
-                      onClick={() => setSelectedImage(photo)}
-                      className="block w-full group focus:outline-none"
-                    >
-                      <div className="relative overflow-hidden rounded-lg border border-white/[0.06] bg-[#0d1520]">
-                        <ImageWithFallback
-                          src={photo.src}
-                          alt={photo.alt}
-                          loading="lazy"
-                          decoding="async"
-                          className="block h-auto max-h-full w-full object-cover shadow transition-transform duration-500 group-hover:scale-105"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
-                      </div>
-                    </button>
-                  ))}
-                </GalleryCol>
-              ))}
-            </GalleryContainer>
-          </ContainerSticky>
-        </AnimatedContainerScroll>
+        <ImageGallery
+          photos={filteredImages}
+          onPhotoClick={setSelectedImage}
+        />
       )}
 
       {/* Lightbox */}
