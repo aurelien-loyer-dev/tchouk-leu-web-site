@@ -127,6 +127,7 @@ const selectClass =
   "dark:bg-input/30 border-input focus-visible:border-ring focus-visible:ring-ring/50 h-10 w-full rounded-md border bg-input-background px-3 outline-none focus-visible:ring-[3px]";
 
 export function AdminPage() {
+  const [cloudinaryOk, setCloudinaryOk] = useState<boolean | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -181,6 +182,14 @@ export function AdminPage() {
         const authenticated = await checkAdminSession();
         setIsAuthenticated(authenticated);
         if (!authenticated) return;
+        // Check Cloudinary config in background — non-blocking
+        void fetch("/api/check-config", { credentials: "include" })
+          .then((r) => r.json())
+          .then((d: { cloudinary?: { cloudName: boolean; apiKey: boolean; apiSecret: boolean } }) => {
+            const c = d.cloudinary;
+            setCloudinaryOk(Boolean(c?.cloudName && c?.apiKey && c?.apiSecret));
+          })
+          .catch(() => setCloudinaryOk(false));
         const [loadedActivities, loadedPhotos, loadedWoF, loadedWS] = await Promise.all([
           loadActivities(),
           loadGalleryPhotos(),
@@ -666,7 +675,19 @@ export function AdminPage() {
       <div className="sticky top-16 z-20 bg-background border-b border-border/40 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between py-3">
-            <h1 className="text-lg font-bold tracking-tight">Panel admin</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-lg font-bold tracking-tight">Panel admin</h1>
+              {cloudinaryOk === false && (
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">
+                  Cloudinary non configuré
+                </span>
+              )}
+              {cloudinaryOk === true && (
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                  Cloudinary ✓
+                </span>
+              )}
+            </div>
             <Button type="button" size="sm" variant="outline" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
               Déconnexion

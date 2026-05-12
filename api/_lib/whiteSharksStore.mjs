@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { list, put } from "@vercel/blob";
+import { head, put } from "@vercel/blob";
 
 const STORE_PATH = "club/white-sharks.json";
 const BLOB_CONFIG_ERROR = "Le stockage Vercel Blob n'est pas configure. Ajoutez BLOB_READ_WRITE_TOKEN dans le projet Vercel.";
@@ -171,30 +171,22 @@ function normalizePayload(rawPayload) {
 }
 
 async function ensureInitialized() {
-  if (!isBlobConfigured()) {
-    throw new Error(BLOB_CONFIG_ERROR);
+  if (!isBlobConfigured()) throw new Error(BLOB_CONFIG_ERROR);
+  if (_blobUrlCache !== null) return _blobUrlCache;
+
+  try {
+    const blob = await head(STORE_PATH);
+    _blobUrlCache = blob.url;
+  } catch {
+    const created = await put(STORE_PATH, JSON.stringify(buildPayload({ palmares: [], players: [] })), {
+      access: "private",
+      contentType: "application/json",
+      addRandomSuffix: false,
+      allowOverwrite: true,
+    });
+    _blobUrlCache = created.url;
   }
 
-  if (_blobUrlCache !== null) {
-    return _blobUrlCache;
-  }
-
-  const allBlobs = await list({ prefix: "club/", limit: 30 });
-  const existingBlob = allBlobs.blobs.find((blob) => blob.pathname === STORE_PATH);
-
-  if (existingBlob) {
-    _blobUrlCache = existingBlob.url;
-    return _blobUrlCache;
-  }
-
-  const createdBlob = await put(STORE_PATH, JSON.stringify(buildPayload({ palmares: [], players: [] })), {
-    access: "private",
-    contentType: "application/json",
-    addRandomSuffix: false,
-    allowOverwrite: true,
-  });
-
-  _blobUrlCache = createdBlob.url;
   return _blobUrlCache;
 }
 

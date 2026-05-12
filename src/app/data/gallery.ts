@@ -56,7 +56,7 @@ async function parseJsonResponse<T>(response: Response, apiName: string) {
   return (await response.json()) as T;
 }
 
-async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit, timeoutMs = 15000) {
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit, timeoutMs = 30000) {
   const abortController = new AbortController();
   const timeoutId = window.setTimeout(() => abortController.abort(), timeoutMs);
 

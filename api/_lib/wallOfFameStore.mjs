@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { list, put } from "@vercel/blob";
+import { head, put } from "@vercel/blob";
 import { deleteImage, uploadImage } from "./cloudinaryUpload.mjs";
 
 const STORE_PATH = "club/wall-of-fame.json";
@@ -108,22 +108,19 @@ async function ensureInitialized() {
   if (!isBlobConfigured()) throw new Error(BLOB_CONFIG_ERROR);
   if (_blobUrlCache !== null) return _blobUrlCache;
 
-  const allBlobs = await list({ prefix: "club/", limit: 20 });
-  const existingBlob = allBlobs.blobs.find((blob) => blob.pathname === STORE_PATH);
-
-  if (existingBlob) {
-    _blobUrlCache = existingBlob.url;
-    return _blobUrlCache;
+  try {
+    const blob = await head(STORE_PATH);
+    _blobUrlCache = blob.url;
+  } catch {
+    const created = await put(STORE_PATH, JSON.stringify(buildPayload([])), {
+      access: "private",
+      contentType: "application/json",
+      addRandomSuffix: false,
+      allowOverwrite: true,
+    });
+    _blobUrlCache = created.url;
   }
 
-  const createdBlob = await put(STORE_PATH, JSON.stringify(buildPayload([])), {
-    access: "private",
-    contentType: "application/json",
-    addRandomSuffix: false,
-    allowOverwrite: true,
-  });
-
-  _blobUrlCache = createdBlob.url;
   return _blobUrlCache;
 }
 

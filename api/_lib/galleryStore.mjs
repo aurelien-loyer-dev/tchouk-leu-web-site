@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { list, put } from "@vercel/blob";
+import { head, put } from "@vercel/blob";
 import { deleteImage, uploadImage } from "./cloudinaryUpload.mjs";
 
 const STORE_PATH = "gallery/photos.json";
@@ -61,25 +61,23 @@ function buildStorePayload(photos) {
 
 async function ensureGalleryInitialized() {
   if (!isBlobConfigured()) throw new Error(BLOB_CONFIG_ERROR);
-
   if (_blobUrlCache !== null) return _blobUrlCache;
 
-  const allBlobs = await list({ prefix: "gallery/", limit: 20 });
-  const existingBlob = allBlobs.blobs.find((blob) => blob.pathname === STORE_PATH);
-
-  if (existingBlob) {
-    _blobUrlCache = existingBlob.url;
-    return _blobUrlCache;
+  try {
+    // head() derives the store URL from the token directly — no list() scan needed
+    const blob = await head(STORE_PATH);
+    _blobUrlCache = blob.url;
+  } catch {
+    // File doesn't exist yet — create it
+    const created = await put(STORE_PATH, JSON.stringify(buildStorePayload([])), {
+      access: "private",
+      contentType: "application/json",
+      addRandomSuffix: false,
+      allowOverwrite: true,
+    });
+    _blobUrlCache = created.url;
   }
 
-  const createdBlob = await put(STORE_PATH, JSON.stringify(buildStorePayload([])), {
-    access: "private",
-    contentType: "application/json",
-    addRandomSuffix: false,
-    allowOverwrite: true,
-  });
-
-  _blobUrlCache = createdBlob.url;
   return _blobUrlCache;
 }
 
