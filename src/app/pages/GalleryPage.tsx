@@ -1,19 +1,10 @@
 import { motion } from "motion/react";
-import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { useEffect, useState } from "react";
 import { loadGalleryPhotos, type GalleryPhoto } from "../data/gallery";
-import { Dialog, DialogContent, DialogTitle } from "../components/ui/dialog";
-import { Button } from "../components/ui/button";
 import { Skeleton } from "../components/ui/skeleton";
 import { Separator } from "../components/ui/separator";
-import { ImageGallery } from "../components/ui/image-gallery";
-import { Download } from "lucide-react";
+import { StellarGallery } from "../components/ui/stellar-gallery";
 import { useTranslation } from "react-i18next";
-
-function toDownloadFileName(image: GalleryPhoto) {
-  const base = (image.alt || "photo").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-  return `${base || "photo"}.jpg`;
-}
 
 export function GalleryPage() {
   const { t } = useTranslation();
@@ -21,7 +12,6 @@ export function GalleryPage() {
   const [galleryImages, setGalleryImages] = useState<GalleryPhoto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
-  const [selectedImage, setSelectedImage] = useState<GalleryPhoto | null>(null);
 
   const categories = [
     { id: "all", label: t("gallery.all") },
@@ -99,34 +89,8 @@ export function GalleryPage() {
           }
         </section>
       ) : (
-        <ImageGallery photos={filteredImages} onPhotoClick={setSelectedImage} />
+        <StellarGallery photos={filteredImages} />
       )}
-
-      {/* Lightbox */}
-      <Dialog open={Boolean(selectedImage)} onOpenChange={(open) => { if (!open) setSelectedImage(null); }}>
-        <DialogContent className="max-w-5xl p-3 bg-[#0d1520] border-white/[0.07]">
-          <DialogTitle className="sr-only">{t("gallery.photoPreview")}</DialogTitle>
-          {selectedImage && (
-            <div className="space-y-3">
-              <div className="max-h-[75vh] overflow-hidden rounded-lg bg-black/30 flex items-center justify-center">
-                <ImageWithFallback
-                  src={selectedImage.src}
-                  alt={selectedImage.alt}
-                  className="max-h-[75vh] w-auto max-w-full object-contain"
-                />
-              </div>
-              <div className="flex justify-end px-1">
-                <Button asChild className="bg-[#5B7D95] text-white hover:bg-[#4E6C83]">
-                  <a href={selectedImage.src} download={toDownloadFileName(selectedImage)}>
-                    <Download className="h-4 w-4 mr-2" />
-                    {t("gallery.download")}
-                  </a>
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -1,7 +1,7 @@
-import React, { Suspense, useEffect, useMemo, useRef, useState, createContext, useContext } from "react"
+import React, { Suspense, useMemo, useRef, useState, createContext, useContext } from "react"
 import * as THREE from "three"
 import { Canvas, useFrame } from "@react-three/fiber"
-import { OrbitControls, Environment, Html, Plane, Sphere } from "@react-three/drei"
+import { OrbitControls, Html, Plane } from "@react-three/drei"
 import { Download, X } from "lucide-react"
 import type { GalleryPhoto } from "../../data/gallery"
 
@@ -20,62 +20,48 @@ function useGallery() {
   return ctx
 }
 
-/* ── Starfield ── */
+/* ── Starfield (inside R3F canvas, no second WebGL context) ── */
 
-function StarfieldBackground() {
-  const mountRef = useRef<HTMLDivElement>(null)
+function Starfield() {
+  const ref = useRef<THREE.Points>(null)
 
-  useEffect(() => {
-    if (!mountRef.current) return
-    const scene = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000)
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
-    renderer.setSize(window.innerWidth, window.innerHeight)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    renderer.setClearColor(0x070b12, 1)
-    mountRef.current.appendChild(renderer.domElement)
-
-    const geo = new THREE.BufferGeometry()
-    const count = 8000
-    const pos = new Float32Array(count * 3)
+  const [geo, mat] = useMemo(() => {
+    const count = 6000
+    const positions = new Float32Array(count * 3)
     for (let i = 0; i < count; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 2000
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 2000
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 2000
+      positions[i * 3]     = (Math.random() - 0.5) * 400
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 400
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 400
     }
-    geo.setAttribute("position", new THREE.BufferAttribute(pos, 3))
-    const mat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.6, sizeAttenuation: true })
-    const stars = new THREE.Points(geo, mat)
-    scene.add(stars)
-    camera.position.z = 10
-
-    let raf = 0
-    const animate = () => {
-      raf = requestAnimationFrame(animate)
-      stars.rotation.y += 0.00008
-      stars.rotation.x += 0.00004
-      renderer.render(scene, camera)
-    }
-    animate()
-
-    const onResize = () => {
-      camera.aspect = window.innerWidth / window.innerHeight
-      camera.updateProjectionMatrix()
-      renderer.setSize(window.innerWidth, window.innerHeight)
-    }
-    window.addEventListener("resize", onResize)
-
-    return () => {
-      window.removeEventListener("resize", onResize)
-      cancelAnimationFrame(raf)
-      mountRef.current?.removeChild(renderer.domElement)
-      renderer.dispose()
-      geo.dispose()
-      mat.dispose()
-    }
+    const geometry = new THREE.BufferGeometry()
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3))
+    const material = new THREE.PointsMaterial({ color: 0xffffff, size: 0.4, sizeAttenuation: true })
+    return [geometry, material]
   }, [])
 
-  return <div ref={mountRef} className="absolute inset-0 z-0" />
+  useFrame(() => {
+    if (ref.current) {
+      ref.current.rotation.y += 0.00008
+      ref.current.rotation.x += 0.00004
+    }
+  })
+
+  return <points ref={ref} geometry={geo} material={mat} />
+}
+
+/* ── Wireframe spheres ── */
+
+function WireSpheres() {
+  return (
+    <>
+      {[12, 16, 20].map((r, i) => (
+        <mesh key={i}>
+          <sphereGeometry args={[r, 32, 32]} />
+          <meshBasicMaterial color="#5B7D95" transparent opacity={0.04 - i * 0.01} wireframe />
+        </mesh>
+      ))}
+    </>
+  )
 }
 
 /* ── Floating card ── */
@@ -111,8 +97,11 @@ function FloatingCard({ photo, position }: { photo: GalleryPhoto; position: [num
         }}
       >
         <div
-          className="w-36 h-48 rounded-xl overflow-hidden select-none"
           style={{
+            width: 144,
+            height: 192,
+            borderRadius: 12,
+            overflow: "hidden",
             background: "#0d1520",
             boxShadow: hovered
               ? "0 20px 50px rgba(91,125,149,0.55), 0 0 25px rgba(91,125,149,0.3)"
@@ -123,7 +112,7 @@ function FloatingCard({ photo, position }: { photo: GalleryPhoto; position: [num
           <img
             src={photo.src}
             alt={photo.alt}
-            className="w-full h-full object-cover"
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             loading="lazy"
             draggable={false}
           />
@@ -152,15 +141,8 @@ function CardGalaxy() {
 
   return (
     <>
-      <Sphere args={[12, 32, 32]}>
-        <meshStandardMaterial color="#5B7D95" transparent opacity={0.04} wireframe />
-      </Sphere>
-      <Sphere args={[16, 32, 32]}>
-        <meshStandardMaterial color="#5B7D95" transparent opacity={0.025} wireframe />
-      </Sphere>
-      <Sphere args={[20, 32, 32]}>
-        <meshStandardMaterial color="#5B7D95" transparent opacity={0.015} wireframe />
-      </Sphere>
+      <Starfield />
+      <WireSpheres />
       {photos.map((photo, i) => (
         <FloatingCard key={photo.id} photo={photo} position={positions[i]} />
       ))}
@@ -249,19 +231,17 @@ export function StellarGallery({ photos }: StellarGalleryProps) {
 
   return (
     <GalleryCtx.Provider value={{ selected, setSelected, photos }}>
-      <div className="w-full h-screen relative overflow-hidden">
-        <StarfieldBackground />
-
+      <div className="w-full h-screen relative overflow-hidden bg-[#070b12]">
         <Canvas
           camera={{ position: [0, 0, 18], fov: 60 }}
-          className="absolute inset-0 z-10"
-          onCreated={({ gl }) => { gl.domElement.style.pointerEvents = "auto" }}
+          gl={{ antialias: true, alpha: false }}
+          onCreated={({ gl }) => {
+            gl.setClearColor(new THREE.Color("#070b12"), 1)
+          }}
         >
           <Suspense fallback={null}>
-            <Environment preset="night" />
-            <ambientLight intensity={0.4} />
-            <pointLight position={[10, 10, 10]} intensity={0.6} />
-            <pointLight position={[-10, -10, -10]} intensity={0.3} />
+            <ambientLight intensity={0.6} />
+            <directionalLight position={[10, 10, 10]} intensity={0.8} />
             <CardGalaxy />
             <OrbitControls
               enablePan
