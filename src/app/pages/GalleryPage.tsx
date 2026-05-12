@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogTitle } from "../components/ui/dialog";
 import { Button } from "../components/ui/button";
 import { Skeleton } from "../components/ui/skeleton";
 import { Separator } from "../components/ui/separator";
+import { ScrollTiltedGrid } from "../components/ui/scroll-tilted-grid";
 import { Download } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -42,6 +43,10 @@ export function GalleryPage() {
   const filteredImages = selectedCategory === "all"
     ? galleryImages
     : galleryImages.filter((img) => img.category === selectedCategory);
+
+  const handleImageClick = (index: number) => {
+    setSelectedImage(filteredImages[index] ?? null);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -81,46 +86,38 @@ export function GalleryPage() {
         </div>
       </section>
 
-      {/* Grid */}
-      <section className="py-12 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {isLoading
-              ? Array.from({ length: 9 }).map((_, i) => (
-                  <Skeleton key={i} className="aspect-square rounded-xl bg-white/5" />
-                ))
-              : filteredImages.map((image, index) => (
-                  <motion.div
-                    key={image.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4, delay: Math.min(index * 0.04, 0.4) }}
-                    className="relative overflow-hidden rounded-xl group cursor-pointer aspect-square border border-white/[0.05]"
-                    onClick={() => setSelectedImage(image)}
-                  >
-                    <ImageWithFallback
-                      src={image.src}
-                      alt={image.alt}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#070b12]/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  </motion.div>
-                ))}
+      {/* Gallery content */}
+      {isLoading ? (
+        <section className="py-12 px-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="aspect-[3/4] rounded-xl bg-white/5" />
+            ))}
           </div>
+        </section>
+      ) : filteredImages.length === 0 ? (
+        <section className="py-24 px-6 text-center">
+          {errorMessage
+            ? <p className="text-red-400">{errorMessage}</p>
+            : <p className="text-slate-500">{t("gallery.empty")}</p>
+          }
+        </section>
+      ) : (
+        <ScrollTiltedGrid
+          images={filteredImages.map((img) => img.src)}
+          cols={4}
+          gap={6}
+          maxWidth="none"
+          aspectRatio="3/4"
+          maxTilt={65}
+          maxBlur={6}
+          rounded="0.75rem"
+          className="px-6 max-w-6xl mx-auto"
+          onImageClick={handleImageClick}
+        />
+      )}
 
-          {!isLoading && filteredImages.length === 0 && (
-            <div className="text-center py-24">
-              {errorMessage
-                ? <p className="text-red-400">{errorMessage}</p>
-                : <p className="text-slate-500">{t("gallery.empty")}</p>
-              }
-            </div>
-          )}
-        </div>
-      </section>
-
+      {/* Lightbox */}
       <Dialog open={Boolean(selectedImage)} onOpenChange={(open) => { if (!open) setSelectedImage(null); }}>
         <DialogContent className="max-w-5xl p-3 bg-[#0d1520] border-white/[0.07]">
           <DialogTitle className="sr-only">{t("gallery.photoPreview")}</DialogTitle>
@@ -133,7 +130,8 @@ export function GalleryPage() {
                   className="max-h-[75vh] w-auto max-w-full object-contain"
                 />
               </div>
-              <div className="flex justify-end">
+              <div className="flex items-center justify-between px-1">
+                <p className="text-sm text-slate-400">{selectedImage.alt}</p>
                 <Button asChild className="bg-[#5B7D95] text-white hover:bg-[#4E6C83]">
                   <a href={selectedImage.src} download={toDownloadFileName(selectedImage)}>
                     <Download className="h-4 w-4 mr-2" />
