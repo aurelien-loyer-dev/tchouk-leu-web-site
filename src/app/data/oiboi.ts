@@ -46,7 +46,6 @@ export const OIBOI_EDITIONS: OiboiEdition[] = [
       { rank: 7, team: "Bras Panon", origin: "La Réunion" },
     ],
     logos: [
-      { file: "/images/interreg.png", alt: "INTERREG", highlight: true },
       { file: "/images/saintpaul.png", alt: "Ville de Saint-Paul" },
       { file: "/images/tco.png", alt: "TCO" },
       { file: "/images/reunion.svg.png", alt: "Région Réunion" },
