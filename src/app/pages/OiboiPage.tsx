@@ -140,8 +140,7 @@ export function OiboiPage() {
               OIBOI
             </h1>
             <p className="text-slate-400 text-lg max-w-2xl">
-              Open International de Beach de l'Océan Indien — le tournoi inter-îles organisé par
-              Tchouk'Leu, rassemblant clubs de La Réunion et de Madagascar.
+              Open International de Beach de l'Océan Indien.
             </p>
           </motion.div>
         </div>
