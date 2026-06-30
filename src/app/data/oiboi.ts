@@ -12,16 +12,46 @@ export interface OiboiEdition {
   venues: string[];
   participants: {
     adultes: number;
-    u12u15: number;
+    u12u15?: number;
   };
   origins: string[];
   description: string[];
   rankingAdultes: OiboiRanking[];
   logos: Array<{ file: string; alt: string; highlight?: boolean }>;
-  legalNotice: string;
 }
 
 export const OIBOI_EDITIONS: OiboiEdition[] = [
+  {
+    id: "oiboi-2024",
+    title: "OIBOI 1ère édition",
+    edition: 1,
+    dates: "Samedi 9 novembre 2024",
+    venues: ["Boucan Canot"],
+    participants: {
+      adultes: 7,
+    },
+    origins: ["La Réunion"],
+    description: [
+      "Le 9 novembre 2024 marquait une date historique pour le tchoukball réunionnais : la toute première édition de l'Open International de Beach de l'Océan Indien (OIBOI) voyait le jour sur le sable de Boucan Canot. Un projet porté avec enthousiasme par Tchouk'Leu, avec la volonté de créer un rendez-vous sportif inédit dans le bassin de l'océan Indien.",
+      "Sept équipes de l'île se sont affrontées dans une ambiance festive et compétitive, incarnant parfaitement les valeurs de fair-play et de convivialité qui font la singularité du tchoukball. Cette première édition a posé les bases d'un tournoi qui a vocation à grandir et à rayonner bien au-delà de La Réunion.",
+      "Lancée avec le soutien du programme INTERREG, cette initiative pionnière a démontré que La Réunion était prête à accueillir un événement inter-îles de qualité. Une belle première page d'une histoire qui ne fait que commencer.",
+    ],
+    rankingAdultes: [
+      { rank: 1, team: "SBTB 1" },
+      { rank: 2, team: "Tchouk'Leu 1" },
+      { rank: 3, team: "Tampon" },
+      { rank: 4, team: "SBTB 2" },
+      { rank: 5, team: "Tchouk'Leu 2" },
+      { rank: 6, team: "SBTB 3" },
+      { rank: 7, team: "Bras Panon" },
+    ],
+    logos: [
+      { file: "/images/interreg.png", alt: "INTERREG", highlight: true },
+      { file: "/images/saintpaul.png", alt: "Ville de Saint-Paul" },
+      { file: "/images/tco.png", alt: "TCO" },
+      { file: "/images/reunion.svg.png", alt: "Région Réunion" },
+    ],
+  },
   {
     id: "oiboi-2025",
     title: "OIBOI 2ème édition",
@@ -54,7 +84,5 @@ export const OIBOI_EDITIONS: OiboiEdition[] = [
       { file: "/images/tco.png", alt: "TCO" },
       { file: "/images/reunion.svg.png", alt: "Région Réunion" },
     ],
-    legalNotice:
-      "Ce projet est financé par l'Union européenne dans le cadre du programme INTERREG VI océan Indien dont l'Autorité de gestion est la Région Réunion.",
   },
 ];

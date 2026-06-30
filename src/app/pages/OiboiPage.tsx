@@ -30,7 +30,8 @@ function EditionCard({ edition }: { edition: OiboiEdition }) {
           </span>
           <span className="flex items-center gap-2">
             <Users className="h-4 w-4 text-[#5B7D95] flex-shrink-0" />
-            {edition.participants.adultes} équipes adultes · {edition.participants.u12u15} équipes U12/U15
+            {edition.participants.adultes} équipes adultes
+            {edition.participants.u12u15 ? ` · ${edition.participants.u12u15} équipes U12/U15` : ""}
           </span>
         </div>
         <div className="flex flex-wrap gap-2 mt-4">
@@ -116,9 +117,6 @@ function EditionCard({ edition }: { edition: OiboiEdition }) {
               </div>
             ))}
           </div>
-          <p className="mt-6 text-xs text-slate-500 leading-relaxed max-w-2xl">
-            {edition.legalNotice}
-          </p>
         </section>
       </div>
     </motion.article>
@@ -138,16 +136,6 @@ export function OiboiPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="flex items-center gap-3 mb-4">
-              <img
-                src="/images/OIBOI.png"
-                alt="OIBOI"
-                className="h-12 w-auto object-contain"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
-              />
-            </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-3 tracking-tight text-foreground">
               OIBOI
             </h1>
