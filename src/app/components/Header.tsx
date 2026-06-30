@@ -40,6 +40,7 @@ function LanguageSwitcher({ isWhiteSharks }: { isWhiteSharks: boolean }) {
 const NAV_LINKS = [
   { to: "/", key: "nav.home", exact: true },
   { to: "/club", key: "nav.club", exact: false },
+  { to: "/oiboi", key: "nav.oiboi", exact: false },
   { to: "/planning", key: "nav.planning", exact: false },
   { to: "/white-sharks", key: "nav.whiteSharks", exact: false, shortLabel: "WS" },
   { to: "/galerie", key: "nav.gallery", exact: false },

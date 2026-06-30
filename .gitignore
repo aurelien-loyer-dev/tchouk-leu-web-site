@@ -10,3 +10,4 @@ npm-debug.log*
 # Optional npm cache/log folders
 .npm/
 .claude
+.DS_Store

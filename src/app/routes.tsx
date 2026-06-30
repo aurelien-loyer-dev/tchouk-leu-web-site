@@ -7,6 +7,7 @@ import { ContactPage } from "./pages/ContactPage";
 import { PlanningPage } from "./pages/PlanningPage";
 import { AdminPage } from "./pages/AdminPage";
 import { WhitesSharkPage } from "./pages/WhitesSharkPage";
+import { OiboiPage } from "./pages/OiboiPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 
 const GalleryPage = lazy(() => import("./pages/GalleryPage").then(m => ({ default: m.GalleryPage })));
@@ -20,6 +21,7 @@ export const router = createBrowserRouter([
       { path: "club", Component: ClubPage },
       { path: "planning", Component: PlanningPage },
       { path: "white-sharks", Component: WhitesSharkPage },
+      { path: "oiboi", Component: OiboiPage },
       { path: "galerie", element: <Suspense fallback={null}><GalleryPage /></Suspense> },
       { path: "contact", Component: ContactPage },
       { path: "admin", Component: AdminPage },
