@@ -32,7 +32,7 @@ export const OIBOI_EDITIONS: OiboiEdition[] = [
     },
     origins: ["La Réunion"],
     description: [
-      "Le 9 novembre 2024 marquait une date historique pour le tchoukball réunionnais : la toute première édition de l'Open International de Beach de l'Océan Indien (OIBOI) voyait le jour sur le sable de Boucan Canot. Un projet porté avec enthousiasme par Tchouk'Leu, avec la volonté de créer un rendez-vous sportif inédit dans le bassin de l'océan Indien.",
+      "Le 9 novembre 2024 marque une date historique pour le tchoukball réunionnais : la toute première édition de l'Open International de Beach de l'Océan Indien (OIBOI) voit le jour sur le sable de Boucan Canot. Un projet porté avec enthousiasme par la Ligue de la Réunion, avec la volonté de créer un rendez-vous sportif inédit dans le bassin de l'océan Indien.",
       "Sept équipes de l'île se sont affrontées dans une ambiance festive et compétitive, incarnant parfaitement les valeurs de fair-play et de convivialité qui font la singularité du tchoukball. Cette première édition a posé les bases d'un tournoi qui a vocation à grandir et à rayonner bien au-delà de La Réunion.",
       "Cette initiative pionnière a démontré que La Réunion était prête à accueillir un événement inter-îles de qualité. Une belle première page d'une histoire qui ne fait que commencer.",
     ],
