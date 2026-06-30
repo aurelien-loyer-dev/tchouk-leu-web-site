@@ -48,7 +48,6 @@ export const OIBOI_EDITIONS: OiboiEdition[] = [
     logos: [
       { file: "/images/interreg.png", alt: "INTERREG", highlight: true },
       { file: "/images/saintpaul.png", alt: "Ville de Saint-Paul" },
-      { file: "/images/saintleu.png", alt: "Ville de Saint-Leu" },
       { file: "/images/tco.png", alt: "TCO" },
       { file: "/images/reunion.svg.png", alt: "Région Réunion" },
     ],
