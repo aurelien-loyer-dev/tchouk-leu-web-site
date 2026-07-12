@@ -11,7 +11,6 @@ export function SpiritSection() {
     t("spirit.fairPlay"),
     t("spirit.teamSpirit"),
     t("spirit.respect"),
-    t("spirit.energy"),
   ];
 
   return (
