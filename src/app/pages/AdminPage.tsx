@@ -20,15 +20,6 @@ import {
 } from "../data/activities";
 import { deleteGalleryPhoto, loadGalleryPhotos, uploadGalleryAlbum, type GalleryCategory, type GalleryPhoto } from "../data/gallery";
 import {
-  createWallOfFameMember,
-  deleteWallOfFameMember,
-  loadWallOfFameMembers,
-  updateWallOfFameMember,
-  type WallOfFameFunction,
-  type WallOfFameMember,
-  type WallOfFamePalmaresByFunction,
-} from "../data/wallOfFame";
-import {
   createWhiteSharksPalmares,
   createWhiteSharksPlayer,
   deleteWhiteSharksPalmares,
@@ -54,53 +45,6 @@ const whiteSharksMemberTypeLabelByValue: Record<WhiteSharksMemberType, string> =
   coach: "Coach",
   benevole: "Staff",
 };
-
-const wallFunctionOptions: Array<{ value: WallOfFameFunction; label: string }> = [
-  { value: "coach", label: "Coach" },
-  { value: "joueur", label: "Joueur" },
-  { value: "benevole", label: "Staff" },
-  { value: "president", label: "Président" },
-];
-
-const wallFunctionLabelByValue: Record<WallOfFameFunction, string> = {
-  coach: "Coach",
-  joueur: "Joueur",
-  benevole: "Staff",
-  president: "Président",
-};
-
-function sanitizeWallPalmaresByFunction(
-  functions: WallOfFameFunction[],
-  palmaresByFunction: Partial<Record<WallOfFameFunction, string>>,
-): WallOfFamePalmaresByFunction {
-  return functions.reduce<WallOfFamePalmaresByFunction>((acc, fn) => {
-    const value = palmaresByFunction[fn]?.trim() ?? "";
-    if (value) acc[fn] = value;
-    return acc;
-  }, {});
-}
-
-function getWallPalmaresByFunctionFromMember(member: WallOfFameMember): WallOfFamePalmaresByFunction {
-  const normalized = sanitizeWallPalmaresByFunction(member.functions, member.palmaresByFunction ?? {});
-  if (Object.keys(normalized).length > 0) return normalized;
-  if (member.palmares?.trim()) {
-    return member.functions.reduce<WallOfFamePalmaresByFunction>((acc, fn) => {
-      acc[fn] = member.palmares?.trim() ?? "";
-      return acc;
-    }, {});
-  }
-  return {};
-}
-
-function getWallPalmaresSummary(member: WallOfFameMember) {
-  const palmaresByFunction = getWallPalmaresByFunctionFromMember(member);
-  return member.functions
-    .map((fn) => {
-      const p = palmaresByFunction[fn]?.trim() ?? "";
-      return p ? `${wallFunctionLabelByValue[fn]}: ${p}` : null;
-    })
-    .filter((v): v is string => Boolean(v));
-}
 
 const dateFormatter = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
@@ -143,16 +87,6 @@ export function AdminPage() {
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [galleryFeedbackMessage, setGalleryFeedbackMessage] = useState("");
   const [isGallerySaving, setIsGallerySaving] = useState(false);
-  const [wallOfFameMembers, setWallOfFameMembers] = useState<WallOfFameMember[]>([]);
-  const [wallFirstName, setWallFirstName] = useState("");
-  const [wallLastName, setWallLastName] = useState("");
-  const [wallPalmaresByFunction, setWallPalmaresByFunction] = useState<Partial<Record<WallOfFameFunction, string>>>({});
-  const [wallMemberSince, setWallMemberSince] = useState("");
-  const [wallFunctions, setWallFunctions] = useState<WallOfFameFunction[]>([]);
-  const [wallPhotoFile, setWallPhotoFile] = useState<File | null>(null);
-  const [editingWallMemberId, setEditingWallMemberId] = useState<string | null>(null);
-  const [wallFeedbackMessage, setWallFeedbackMessage] = useState("");
-  const [isWallSaving, setIsWallSaving] = useState(false);
   const [whiteSharksPalmares, setWhiteSharksPalmares] = useState<WhiteSharksPalmaresEntry[]>([]);
   const [whiteSharksPlayers, setWhiteSharksPlayers] = useState<WhiteSharksPlayer[]>([]);
   const [whiteSharksPalmaresTitle, setWhiteSharksPalmaresTitle] = useState("");
@@ -190,15 +124,13 @@ export function AdminPage() {
             setCloudinaryOk(Boolean(c?.cloudName && c?.apiKey && c?.apiSecret));
           })
           .catch(() => setCloudinaryOk(false));
-        const [loadedActivities, loadedPhotos, loadedWoF, loadedWS] = await Promise.all([
+        const [loadedActivities, loadedPhotos, loadedWS] = await Promise.all([
           loadActivities(),
           loadGalleryPhotos(),
-          loadWallOfFameMembers(),
           loadWhiteSharksData(),
         ]);
         setActivities(loadedActivities);
         setGalleryPhotos(loadedPhotos);
-        setWallOfFameMembers(loadedWoF);
         setWhiteSharksPalmares(loadedWS.palmares);
         setWhiteSharksPlayers(loadedWS.players);
         setSelectedId(loadedActivities[0]?.id ?? null);
@@ -279,15 +211,13 @@ export function AdminPage() {
     try {
       const loggedIn = await loginAsAdmin(username, password);
       if (!loggedIn) { setLoginError("Identifiants invalides."); return; }
-      const [loadedActivities, loadedPhotos, loadedWoF] = await Promise.all([
+      const [loadedActivities, loadedPhotos] = await Promise.all([
         loadActivities(),
         loadGalleryPhotos(),
-        loadWallOfFameMembers(),
       ]);
       setIsAuthenticated(true);
       setActivities(loadedActivities);
       setGalleryPhotos(loadedPhotos);
-      setWallOfFameMembers(loadedWoF);
       setSelectedId(loadedActivities[0]?.id ?? null);
       setDraft(loadedActivities[0] ?? createEmptyActivity());
       setUsername("");
@@ -386,81 +316,6 @@ export function AdminPage() {
       setGalleryFeedbackMessage(error instanceof Error ? error.message : "Impossible de supprimer.");
     } finally {
       setIsGallerySaving(false);
-    }
-  };
-
-  const resetWallForm = () => {
-    setWallFirstName(""); setWallLastName(""); setWallPalmaresByFunction({});
-    setWallMemberSince(""); setWallFunctions([]); setWallPhotoFile(null);
-    setEditingWallMemberId(null);
-  };
-
-  const handleEditWallOfFameMember = (member: WallOfFameMember) => {
-    setEditingWallMemberId(member.id);
-    setWallFirstName(member.firstName);
-    setWallLastName(member.lastName);
-    setWallPalmaresByFunction(getWallPalmaresByFunctionFromMember(member));
-    setWallMemberSince(member.memberSince);
-    setWallFunctions([...member.functions]);
-    setWallPhotoFile(null);
-    setWallFeedbackMessage("Mode modification. Ajoutez une photo uniquement si nécessaire.");
-  };
-
-  const toggleWallFunction = (fn: WallOfFameFunction) => {
-    const removing = wallFunctions.includes(fn);
-    setWallFunctions((prev) => removing ? prev.filter((f) => f !== fn) : [...prev, fn]);
-    if (removing) {
-      setWallPalmaresByFunction((p) => { const n = { ...p }; delete n[fn]; return n; });
-    }
-  };
-
-  const handleSubmitWallOfFameMember = async () => {
-    if (!wallFirstName.trim() || !wallLastName.trim()) { setWallFeedbackMessage("Prénom et nom obligatoires."); return; }
-    if (!wallMemberSince.trim()) { setWallFeedbackMessage("Champ « adhérent depuis » obligatoire."); return; }
-    if (!wallFunctions.length) { setWallFeedbackMessage("Sélectionnez au moins une fonction."); return; }
-    if (!editingWallMemberId && !wallPhotoFile) { setWallFeedbackMessage("Ajoutez une photo."); return; }
-    try {
-      setIsWallSaving(true);
-      setWallFeedbackMessage("");
-      const photoSrc = wallPhotoFile ? await fileToDataUrl(wallPhotoFile) : "";
-      const palmares = sanitizeWallPalmaresByFunction(wallFunctions, wallPalmaresByFunction);
-      const next = editingWallMemberId
-        ? await updateWallOfFameMember({
-            id: editingWallMemberId,
-            firstName: wallFirstName.trim(),
-            lastName: wallLastName.trim(),
-            palmaresByFunction: palmares,
-            memberSince: wallMemberSince.trim(),
-            functions: wallFunctions,
-            ...(photoSrc ? { photoSrc } : {}),
-          })
-        : await createWallOfFameMember({
-            firstName: wallFirstName.trim(),
-            lastName: wallLastName.trim(),
-            palmaresByFunction: palmares,
-            memberSince: wallMemberSince.trim(),
-            functions: wallFunctions,
-            photoSrc,
-          });
-      setWallOfFameMembers(next);
-      resetWallForm();
-      setWallFeedbackMessage(editingWallMemberId ? "Profil modifié." : "Profil ajouté au Wall of Fame.");
-    } catch (error) {
-      setWallFeedbackMessage(error instanceof Error ? error.message : "Impossible d'enregistrer.");
-    } finally {
-      setIsWallSaving(false);
-    }
-  };
-
-  const handleDeleteWallOfFameMember = async (memberId: string) => {
-    try {
-      setIsWallSaving(true);
-      setWallOfFameMembers(await deleteWallOfFameMember(memberId));
-      setWallFeedbackMessage("Profil supprimé.");
-    } catch (error) {
-      setWallFeedbackMessage(error instanceof Error ? error.message : "Impossible de supprimer.");
-    } finally {
-      setIsWallSaving(false);
     }
   };
 
@@ -1014,99 +869,6 @@ export function AdminPage() {
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">Aucune photo pour le moment.</p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
-        {/* ── Wall of Fame ── */}
-        <section>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Wall of Fame</h2>
-          <Card className="border">
-            <CardContent className="pt-6">
-              <div className="grid lg:grid-cols-[280px_1fr] gap-6">
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label htmlFor="wall-first-name" className="block text-sm font-medium mb-1.5">Prénom</label>
-                      <Input id="wall-first-name" value={wallFirstName} onChange={(e) => setWallFirstName(e.target.value)} placeholder="Lucas" />
-                    </div>
-                    <div>
-                      <label htmlFor="wall-last-name" className="block text-sm font-medium mb-1.5">Nom</label>
-                      <Input id="wall-last-name" value={wallLastName} onChange={(e) => setWallLastName(e.target.value)} placeholder="Hoareau" />
-                    </div>
-                  </div>
-                  <div>
-                    <label htmlFor="wall-since" className="block text-sm font-medium mb-1.5">Adhérent depuis</label>
-                    <Input id="wall-since" value={wallMemberSince} onChange={(e) => setWallMemberSince(e.target.value)} placeholder="2019" />
-                  </div>
-                  <div>
-                    <label htmlFor="wall-photo" className="block text-sm font-medium mb-1.5">Photo</label>
-                    <Input id="wall-photo" type="file" accept="image/*" onChange={(e) => setWallPhotoFile(e.target.files?.[0] ?? null)} />
-                    {editingWallMemberId ? <p className="mt-1 text-xs text-muted-foreground">Laissez vide pour conserver la photo actuelle.</p> : null}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium mb-1.5">Fonctions</p>
-                    <div className="grid grid-cols-2 gap-2 rounded-md border border-border/50 p-3">
-                      {wallFunctionOptions.map((opt) => (
-                        <label key={opt.value} className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <input type="checkbox" checked={wallFunctions.includes(opt.value)} onChange={() => toggleWallFunction(opt.value)} />
-                          {opt.label}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  {wallFunctions.length > 0 ? (
-                    <div className="space-y-3">
-                      <p className="text-sm font-medium">Palmarès par fonction (optionnel)</p>
-                      {wallFunctions.map((fn) => (
-                        <div key={fn}>
-                          <label htmlFor={`wall-p-${fn}`} className="block text-xs text-muted-foreground mb-1">{wallFunctionLabelByValue[fn]}</label>
-                          <Textarea
-                            id={`wall-p-${fn}`}
-                            value={wallPalmaresByFunction[fn] ?? ""}
-                            onChange={(e) => setWallPalmaresByFunction((p) => ({ ...p, [fn]: e.target.value }))}
-                            placeholder="Laissez vide pour masquer"
-                            className="min-h-16"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-                  <div className="flex gap-2">
-                    <Button type="button" className="flex-1 bg-[#5B7D95] text-white hover:bg-[#4E6C83]" onClick={() => void handleSubmitWallOfFameMember()} disabled={isWallSaving}>
-                      {isWallSaving ? "Enregistrement..." : editingWallMemberId ? "Modifier" : "Ajouter"}
-                    </Button>
-                    {editingWallMemberId ? <Button type="button" variant="outline" onClick={resetWallForm} disabled={isWallSaving}>Annuler</Button> : null}
-                  </div>
-                  {wallFeedbackMessage ? <p className="text-sm text-muted-foreground">{wallFeedbackMessage}</p> : null}
-                </div>
-
-                <div>
-                  {wallOfFameMembers.length > 0 ? (
-                    <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                      {wallOfFameMembers.map((member) => (
-                        <div key={member.id} className="rounded-lg border border-border/50 overflow-hidden bg-background">
-                          <ImageWithFallback src={member.photoSrc} alt={`${member.firstName} ${member.lastName}`} className="h-32 w-full object-cover" />
-                          <div className="p-2.5 space-y-1.5">
-                            <p className="text-xs font-semibold">{member.firstName} {member.lastName}</p>
-                            <p className="text-xs text-muted-foreground">Depuis {member.memberSince}</p>
-                            <p className="text-xs text-muted-foreground">{member.functions.join(" · ")}</p>
-                            {getWallPalmaresSummary(member).length > 0 ? (
-                              <p className="text-xs text-muted-foreground line-clamp-2">{getWallPalmaresSummary(member).join(" | ")}</p>
-                            ) : null}
-                            <div className="grid grid-cols-2 gap-1.5">
-                              <Button type="button" size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleEditWallOfFameMember(member)} disabled={isWallSaving}>Modifier</Button>
-                              <Button type="button" size="sm" variant="destructive" className="h-7 text-xs" onClick={() => void handleDeleteWallOfFameMember(member.id)} disabled={isWallSaving}>Supprimer</Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">Aucun profil pour le moment.</p>
                   )}
                 </div>
               </div>

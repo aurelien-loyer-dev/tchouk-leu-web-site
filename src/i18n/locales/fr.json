@@ -64,13 +64,7 @@
     "teamSpirit": "Esprit d'équipe",
     "teamSpiritDesc": "La cohésion et l'entraide sont nos forces principales",
     "performance": "Performance",
-    "performanceDesc": "Progresser ensemble tout en gardant le plaisir du jeu",
-    "wofTitle": "Nos fidèles",
-    "wofSubtitle": "Ceux qui ont contribué à faire vivre le club",
-    "wofFunctions": "Rôle",
-    "wofPalmares": "Palmarès",
-    "wofMemberSince": "Adhérent depuis",
-    "wofEmpty": "Aucun profil pour le moment."
+    "performanceDesc": "Progresser ensemble tout en gardant le plaisir du jeu"
   },
   "planning": {
     "title": "Planning",

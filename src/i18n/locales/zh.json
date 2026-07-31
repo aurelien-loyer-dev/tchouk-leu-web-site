@@ -69,13 +69,7 @@
     "teamSpirit": "团队精神",
     "teamSpiritDesc": "团结与互助是我们最大的力量",
     "performance": "竞技水平",
-    "performanceDesc": "共同进步，同时保持对游戏的热爱",
-    "wofTitle": "我们的忠实成员",
-    "wofSubtitle": "那些帮助俱乐部成长的人",
-    "wofFunctions": "角色",
-    "wofPalmares": "荣誉",
-    "wofMemberSince": "入会时间",
-    "wofEmpty": "暂无成员信息。"
+    "performanceDesc": "共同进步，同时保持对游戏的热爱"
   },
   "planning": {
     "title": "赛程",
