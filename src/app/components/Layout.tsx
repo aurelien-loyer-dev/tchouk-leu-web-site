@@ -6,26 +6,21 @@ import { ThemeProvider } from "./ThemeProvider";
 
 export function Layout() {
   const location = useLocation();
-  const isWhitesSharkPage = location.pathname.startsWith("/white-sharks");
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [location.pathname]);
 
   useEffect(() => {
-    document.title = isWhitesSharkPage ? "Tchouk'Leu X White Sharks" : "Tchouk'Leu";
-
-    const faviconHref = isWhitesSharkPage ? "/images/WhiteSharksLogo.png" : "/images/logo.png";
+    document.title = "Tchouk'Leu";
     let faviconElement = document.querySelector("link[rel='icon']") as HTMLLinkElement | null;
-
     if (!faviconElement) {
       faviconElement = document.createElement("link");
       faviconElement.rel = "icon";
       document.head.appendChild(faviconElement);
     }
-
-    faviconElement.href = faviconHref;
-  }, [isWhitesSharkPage]);
+    faviconElement.href = "/images/logo.png";
+  }, []);
 
   return (
     <ThemeProvider>

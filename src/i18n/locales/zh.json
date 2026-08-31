@@ -4,7 +4,6 @@
     "club": "Tchouk'Leu",
     "oiboi": "OIBOI",
     "planning": "赛程",
-    "whiteSharks": "White Sharks",
     "gallery": "相册",
     "contact": "联系我们",
     "openMenu": "打开菜单",
@@ -159,35 +158,5 @@
     "venueDesc": "在来访前查看最新时间表，了解俱乐部的训练、营地和活动。",
     "seePlanning": "查看赛程",
     "phone_label": "电话"
-  },
-  "whiteSharks": {
-    "description": "White Sharks 是由留尼旺岛最优秀的青少年组成的选拔队，汇聚了岛上多个俱乐部的人才，代表本地参加重大体育赛事。",
-    "palmares": "荣誉记录",
-    "palmaresEmpty": "White Sharks 的荣誉记录将尽快添加。",
-    "roster": "阵容",
-    "rosterEmpty": "White Sharks 的阵容将尽快添加。",
-    "coaches": "教练",
-    "volunteers": "志愿者",
-    "players": "球员",
-    "captain": "队长",
-    "originClub": "来源俱乐部：",
-    "bornIn": "出生年份",
-    "palmaresLegacy": {
-      "championOpenIndianOceanBeach": "印度洋国际沙滩公开赛冠军",
-      "whiteSharks2ThirdPlace": "White Sharks 2 获得第 3 名！"
-    },
-    "positions": {
-      "attaquant": "前锋",
-      "defenseur": "后卫",
-      "pivot": "中锋",
-      "ailier": "边锋",
-      "ailierDroit": "右边锋",
-      "ailierGauche": "左边锋",
-      "centreCadre": "中框",
-      "milieu": "中场",
-      "ailierCentreCadre": "边锋 / 中框",
-      "arriere": "后场",
-      "libero": "自由人"
-    }
   }
 }

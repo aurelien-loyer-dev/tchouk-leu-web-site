@@ -11,7 +11,7 @@ const LANGUAGES = [
   { code: "zh", label: "中" },
 ] as const;
 
-function LanguageSwitcher({ isWhiteSharks }: { isWhiteSharks: boolean }) {
+function LanguageSwitcher() {
   const { i18n: i18nInstance } = useTranslation();
   const currentLang = (i18nInstance.language ?? "fr").split("-")[0];
 
@@ -24,9 +24,7 @@ function LanguageSwitcher({ isWhiteSharks }: { isWhiteSharks: boolean }) {
           onClick={() => void i18nInstance.changeLanguage(lang.code)}
           className={`px-2 py-1 text-xs font-semibold rounded transition-colors ${
             currentLang === lang.code
-              ? isWhiteSharks
-                ? "text-violet-400 bg-violet-500/15"
-                : "text-[#7BAEC8] bg-[#5B7D95]/20"
+              ? "text-[#7BAEC8] bg-[#5B7D95]/20"
               : "text-slate-500 hover:text-slate-300"
           }`}
         >
@@ -42,7 +40,6 @@ const NAV_LINKS = [
   { to: "/club", key: "nav.club", exact: false },
   { to: "/oiboi", key: "nav.oiboi", exact: false },
   { to: "/planning", key: "nav.planning", exact: false },
-  { to: "/white-sharks", key: "nav.whiteSharks", exact: false, shortLabel: "WS" },
   { to: "/galerie", key: "nav.gallery", exact: false },
   { to: "/contact", key: "nav.contact", exact: false },
 ] as const;
@@ -54,7 +51,6 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const isHomePage = location.pathname === "/";
-  const isWhiteSharks = location.pathname.startsWith("/white-sharks");
 
   const isActive = (to: string, exact: boolean) =>
     exact ? location.pathname === to : location.pathname.startsWith(to);
@@ -74,14 +70,8 @@ export function Header() {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
-  const activePill = isWhiteSharks
-    ? "bg-violet-500/20 text-violet-300 border border-violet-500/30"
-    : "bg-[#5B7D95]/20 text-[#7BAEC8] border border-[#5B7D95]/30";
-
-  const hoverClass = isWhiteSharks
-    ? "hover:text-violet-300 hover:bg-violet-500/10"
-    : "hover:text-[#7BAEC8] hover:bg-[#5B7D95]/10";
-
+  const activePill = "bg-[#5B7D95]/20 text-[#7BAEC8] border border-[#5B7D95]/30";
+  const hoverClass = "hover:text-[#7BAEC8] hover:bg-[#5B7D95]/10";
   const sizeClass = isChinese ? "text-sm px-3 py-1.5" : "text-sm px-4 py-1.5";
 
   const navLinkClass = (to: string, exact: boolean) =>
@@ -92,9 +82,7 @@ export function Header() {
   const mobileLinkClass = (to: string, exact: boolean) =>
     `px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
       isActive(to, exact)
-        ? isWhiteSharks
-          ? "bg-violet-500/20 text-violet-300"
-          : "bg-[#5B7D95]/20 text-[#7BAEC8]"
+        ? "bg-[#5B7D95]/20 text-[#7BAEC8]"
         : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
     }`;
 
@@ -108,28 +96,18 @@ export function Header() {
         <div className="max-w-7xl mx-auto px-5 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
             <img src="/images/logo.png" alt="Tchouk'Leu" className="h-8 w-auto object-contain" />
-            {isWhiteSharks && (
-              <>
-                <span className="text-slate-700 text-xs">×</span>
-                <img
-                  src="/images/WhiteSharksLogo.png"
-                  alt="White Sharks"
-                  className="h-8 w-auto object-contain rounded"
-                />
-              </>
-            )}
           </Link>
 
           <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-1">
-            {NAV_LINKS.map(({ to, key, exact, ...rest }) => (
+            {NAV_LINKS.map(({ to, key, exact }) => (
               <Link key={to} to={to} className={navLinkClass(to, exact)}>
-                {"shortLabel" in rest ? rest.shortLabel : t(key)}
+                {t(key)}
               </Link>
             ))}
           </nav>
 
           <div className="flex items-center gap-3">
-            <LanguageSwitcher isWhiteSharks={isWhiteSharks} />
+            <LanguageSwitcher />
             <div className="md:hidden">
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
@@ -155,7 +133,7 @@ export function Header() {
                     ))}
                   </nav>
                   <div className="px-4 mt-6 pt-4 border-t border-white/[0.07]">
-                    <LanguageSwitcher isWhiteSharks={isWhiteSharks} />
+                    <LanguageSwitcher />
                   </div>
                 </SheetContent>
               </Sheet>

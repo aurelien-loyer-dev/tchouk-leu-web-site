@@ -4,7 +4,6 @@
     "club": "Tchouk'Leu",
     "oiboi": "OIBOI",
     "planning": "Schedule",
-    "whiteSharks": "White Sharks",
     "gallery": "Gallery",
     "contact": "Contact",
     "openMenu": "Open menu",
@@ -158,35 +157,5 @@
     "venueDesc": "Check the up-to-date timetable before coming, to see the club's training, camps and events.",
     "seePlanning": "View the schedule",
     "phone_label": "Phone"
-  },
-  "whiteSharks": {
-    "description": "The White Sharks are a selection team bringing together the best young players from Réunion Island, gathering talent from several clubs across the island to represent the territory at major sporting events.",
-    "palmares": "Achievements",
-    "palmaresEmpty": "The White Sharks' record will be added soon.",
-    "roster": "Squad",
-    "rosterEmpty": "The White Sharks squad will be added soon.",
-    "coaches": "Coaches",
-    "volunteers": "Volunteers",
-    "players": "Players",
-    "captain": "Captain",
-    "originClub": "Home club:",
-    "bornIn": "Born in",
-    "palmaresLegacy": {
-      "championOpenIndianOceanBeach": "Champion of the Indian Ocean International Beach Open",
-      "whiteSharks2ThirdPlace": "White Sharks 2 finished 3rd!"
-    },
-    "positions": {
-      "attaquant": "Forward",
-      "defenseur": "Defender",
-      "pivot": "Pivot",
-      "ailier": "Wing",
-      "ailierDroit": "Right wing",
-      "ailierGauche": "Left wing",
-      "centreCadre": "Center frame",
-      "milieu": "Midfield",
-      "ailierCentreCadre": "Wing / Center frame",
-      "arriere": "Backfield",
-      "libero": "Libero"
-    }
   }
 }

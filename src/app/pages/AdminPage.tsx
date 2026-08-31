@@ -19,32 +19,6 @@ import {
   type ActivityCategory,
 } from "../data/activities";
 import { deleteGalleryPhoto, loadGalleryPhotos, uploadGalleryAlbum, type GalleryCategory, type GalleryPhoto } from "../data/gallery";
-import {
-  createWhiteSharksPalmares,
-  createWhiteSharksPlayer,
-  deleteWhiteSharksPalmares,
-  deleteWhiteSharksPlayer,
-  loadWhiteSharksData,
-  updateWhiteSharksPalmares,
-  updateWhiteSharksPlayer,
-  type WhiteSharksMemberType,
-  type WhiteSharksPalmaresEntry,
-  type WhiteSharksPlayer,
-} from "../data/whiteSharks";
-
-const whiteSharksMemberTypeOptions: Array<{ value: WhiteSharksMemberType; label: string }> = [
-  { value: "joueur", label: "Joueur" },
-  { value: "capitaine", label: "Capitaine" },
-  { value: "coach", label: "Coach" },
-  { value: "benevole", label: "Staff" },
-];
-
-const whiteSharksMemberTypeLabelByValue: Record<WhiteSharksMemberType, string> = {
-  joueur: "Joueur",
-  capitaine: "Capitaine",
-  coach: "Coach",
-  benevole: "Staff",
-};
 
 const dateFormatter = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
@@ -87,28 +61,8 @@ export function AdminPage() {
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [galleryFeedbackMessage, setGalleryFeedbackMessage] = useState("");
   const [isGallerySaving, setIsGallerySaving] = useState(false);
-  const [whiteSharksPalmares, setWhiteSharksPalmares] = useState<WhiteSharksPalmaresEntry[]>([]);
-  const [whiteSharksPlayers, setWhiteSharksPlayers] = useState<WhiteSharksPlayer[]>([]);
-  const [whiteSharksPalmaresTitle, setWhiteSharksPalmaresTitle] = useState("");
-  const [whiteSharksPalmaresTitleEn, setWhiteSharksPalmaresTitleEn] = useState("");
-  const [whiteSharksPalmaresTitleZh, setWhiteSharksPalmaresTitleZh] = useState("");
-  const [whiteSharksPalmaresYear, setWhiteSharksPalmaresYear] = useState("");
-  const [whiteSharksPalmaresDescription, setWhiteSharksPalmaresDescription] = useState("");
-  const [whiteSharksPalmaresDescriptionEn, setWhiteSharksPalmaresDescriptionEn] = useState("");
-  const [whiteSharksPalmaresDescriptionZh, setWhiteSharksPalmaresDescriptionZh] = useState("");
-  const [editingWhiteSharksPalmaresId, setEditingWhiteSharksPalmaresId] = useState<string | null>(null);
-  const [whiteSharksPlayerFirstName, setWhiteSharksPlayerFirstName] = useState("");
-  const [whiteSharksPlayerLastName, setWhiteSharksPlayerLastName] = useState("");
-  const [whiteSharksPlayerClub, setWhiteSharksPlayerClub] = useState("");
-  const [whiteSharksPlayerPositions, setWhiteSharksPlayerPositions] = useState<string[]>([]);
-  const [whiteSharksPlayerBirthYear, setWhiteSharksPlayerBirthYear] = useState("");
-  const [whiteSharksPlayerMemberType, setWhiteSharksPlayerMemberType] = useState<WhiteSharksMemberType>("joueur");
-  const [editingWhiteSharksPlayerId, setEditingWhiteSharksPlayerId] = useState<string | null>(null);
-  const [whiteSharksFeedbackMessage, setWhiteSharksFeedbackMessage] = useState("");
-  const [isWhiteSharksSaving, setIsWhiteSharksSaving] = useState(false);
   const [expandedTemplates, setExpandedTemplates] = useState<Set<string>>(new Set());
   const [showPastActivities, setShowPastActivities] = useState(false);
-  const [activeSection, setActiveSection] = useState<"tchouk-leu" | "white-sharks">("tchouk-leu");
 
   useEffect(() => {
     const init = async () => {
@@ -116,7 +70,6 @@ export function AdminPage() {
         const authenticated = await checkAdminSession();
         setIsAuthenticated(authenticated);
         if (!authenticated) return;
-        // Check Cloudinary config in background — non-blocking
         void fetch("/api/check-config", { credentials: "include" })
           .then((r) => r.json())
           .then((d: { cloudinary?: { cloudName: boolean; apiKey: boolean; apiSecret: boolean } }) => {
@@ -124,15 +77,12 @@ export function AdminPage() {
             setCloudinaryOk(Boolean(c?.cloudName && c?.apiKey && c?.apiSecret));
           })
           .catch(() => setCloudinaryOk(false));
-        const [loadedActivities, loadedPhotos, loadedWS] = await Promise.all([
+        const [loadedActivities, loadedPhotos] = await Promise.all([
           loadActivities(),
           loadGalleryPhotos(),
-          loadWhiteSharksData(),
         ]);
         setActivities(loadedActivities);
         setGalleryPhotos(loadedPhotos);
-        setWhiteSharksPalmares(loadedWS.palmares);
-        setWhiteSharksPlayers(loadedWS.players);
         setSelectedId(loadedActivities[0]?.id ?? null);
         setDraft(loadedActivities[0] ?? createEmptyActivity());
       } catch {
@@ -319,151 +269,6 @@ export function AdminPage() {
     }
   };
 
-  const resetWhiteSharksPalmaresForm = () => {
-    setWhiteSharksPalmaresTitle(""); setWhiteSharksPalmaresTitleEn(""); setWhiteSharksPalmaresTitleZh("");
-    setWhiteSharksPalmaresYear(""); setWhiteSharksPalmaresDescription("");
-    setWhiteSharksPalmaresDescriptionEn(""); setWhiteSharksPalmaresDescriptionZh("");
-    setEditingWhiteSharksPalmaresId(null);
-  };
-
-  const resetWhiteSharksPlayerForm = () => {
-    setWhiteSharksPlayerFirstName(""); setWhiteSharksPlayerLastName(""); setWhiteSharksPlayerClub("");
-    setWhiteSharksPlayerPositions([]); setWhiteSharksPlayerBirthYear("");
-    setWhiteSharksPlayerMemberType("joueur"); setEditingWhiteSharksPlayerId(null);
-  };
-
-  const handleEditWhiteSharksPalmares = (entry: WhiteSharksPalmaresEntry) => {
-    setEditingWhiteSharksPalmaresId(entry.id);
-    setWhiteSharksPalmaresTitle(entry.title);
-    setWhiteSharksPalmaresTitleEn(entry.titleTranslations?.en ?? "");
-    setWhiteSharksPalmaresTitleZh(entry.titleTranslations?.zh ?? "");
-    setWhiteSharksPalmaresYear(entry.year);
-    setWhiteSharksPalmaresDescription(entry.description);
-    setWhiteSharksPalmaresDescriptionEn(entry.descriptionTranslations?.en ?? "");
-    setWhiteSharksPalmaresDescriptionZh(entry.descriptionTranslations?.zh ?? "");
-    setWhiteSharksFeedbackMessage("Mode modification palmarès.");
-  };
-
-  const handleEditWhiteSharksPlayer = (player: WhiteSharksPlayer) => {
-    setEditingWhiteSharksPlayerId(player.id);
-    setWhiteSharksPlayerFirstName(player.firstName);
-    setWhiteSharksPlayerLastName(player.lastName);
-    setWhiteSharksPlayerClub(player.club);
-    setWhiteSharksPlayerPositions(player.positions?.length ? player.positions : player.position ? [player.position] : []);
-    setWhiteSharksPlayerBirthYear(player.birthYear !== undefined ? String(player.birthYear) : "");
-    setWhiteSharksPlayerMemberType(player.memberType);
-    setWhiteSharksFeedbackMessage("Mode modification joueur.");
-  };
-
-  const handleSubmitWhiteSharksPalmares = async () => {
-    if (!whiteSharksPalmaresTitle.trim()) { setWhiteSharksFeedbackMessage("Titre obligatoire."); return; }
-    if (!whiteSharksPalmaresYear.trim()) { setWhiteSharksFeedbackMessage("Année obligatoire."); return; }
-    try {
-      setIsWhiteSharksSaving(true);
-      setWhiteSharksFeedbackMessage("");
-      const titleTr = {
-        ...(whiteSharksPalmaresTitleEn.trim() ? { en: whiteSharksPalmaresTitleEn.trim() } : {}),
-        ...(whiteSharksPalmaresTitleZh.trim() ? { zh: whiteSharksPalmaresTitleZh.trim() } : {}),
-      };
-      const descTr = {
-        ...(whiteSharksPalmaresDescriptionEn.trim() ? { en: whiteSharksPalmaresDescriptionEn.trim() } : {}),
-        ...(whiteSharksPalmaresDescriptionZh.trim() ? { zh: whiteSharksPalmaresDescriptionZh.trim() } : {}),
-      };
-      const next = editingWhiteSharksPalmaresId
-        ? await updateWhiteSharksPalmares({
-            id: editingWhiteSharksPalmaresId,
-            title: whiteSharksPalmaresTitle.trim(),
-            ...(Object.keys(titleTr).length ? { titleTranslations: titleTr } : {}),
-            year: whiteSharksPalmaresYear.trim(),
-            description: whiteSharksPalmaresDescription.trim(),
-            ...(Object.keys(descTr).length ? { descriptionTranslations: descTr } : {}),
-          })
-        : await createWhiteSharksPalmares({
-            title: whiteSharksPalmaresTitle.trim(),
-            ...(Object.keys(titleTr).length ? { titleTranslations: titleTr } : {}),
-            year: whiteSharksPalmaresYear.trim(),
-            description: whiteSharksPalmaresDescription.trim(),
-            ...(Object.keys(descTr).length ? { descriptionTranslations: descTr } : {}),
-          });
-      setWhiteSharksPalmares(next.palmares ?? []);
-      setWhiteSharksPlayers(next.players ?? []);
-      resetWhiteSharksPalmaresForm();
-      setWhiteSharksFeedbackMessage(editingWhiteSharksPalmaresId ? "Palmarès modifié." : "Palmarès ajouté.");
-    } catch (error) {
-      setWhiteSharksFeedbackMessage(error instanceof Error ? error.message : "Impossible d'enregistrer.");
-    } finally {
-      setIsWhiteSharksSaving(false);
-    }
-  };
-
-  const handleDeleteWhiteSharksPalmares = async (entryId: string) => {
-    try {
-      setIsWhiteSharksSaving(true);
-      const next = await deleteWhiteSharksPalmares(entryId);
-      setWhiteSharksPalmares(next.palmares ?? []);
-      setWhiteSharksPlayers(next.players ?? []);
-      setWhiteSharksFeedbackMessage("Palmarès supprimé.");
-    } catch (error) {
-      setWhiteSharksFeedbackMessage(error instanceof Error ? error.message : "Impossible de supprimer.");
-    } finally {
-      setIsWhiteSharksSaving(false);
-    }
-  };
-
-  const handleSubmitWhiteSharksPlayer = async () => {
-    if (!whiteSharksPlayerFirstName.trim() || !whiteSharksPlayerLastName.trim()) {
-      setWhiteSharksFeedbackMessage("Prénom et nom obligatoires.");
-      return;
-    }
-    if (!whiteSharksPlayerClub.trim()) { setWhiteSharksFeedbackMessage("Club obligatoire."); return; }
-    try {
-      setIsWhiteSharksSaving(true);
-      setWhiteSharksFeedbackMessage("");
-      const birthYear = whiteSharksPlayerBirthYear.trim() ? Number(whiteSharksPlayerBirthYear.trim()) : undefined;
-      const birthYearPayload = birthYear && Number.isInteger(birthYear) ? { birthYear } : {};
-      const next = editingWhiteSharksPlayerId
-        ? await updateWhiteSharksPlayer({
-            id: editingWhiteSharksPlayerId,
-            firstName: whiteSharksPlayerFirstName.trim(),
-            lastName: whiteSharksPlayerLastName.trim(),
-            club: whiteSharksPlayerClub.trim(),
-            positions: whiteSharksPlayerPositions,
-            memberType: whiteSharksPlayerMemberType,
-            ...birthYearPayload,
-          })
-        : await createWhiteSharksPlayer({
-            firstName: whiteSharksPlayerFirstName.trim(),
-            lastName: whiteSharksPlayerLastName.trim(),
-            club: whiteSharksPlayerClub.trim(),
-            positions: whiteSharksPlayerPositions,
-            memberType: whiteSharksPlayerMemberType,
-            ...birthYearPayload,
-          });
-      setWhiteSharksPalmares(next.palmares ?? []);
-      setWhiteSharksPlayers(next.players ?? []);
-      resetWhiteSharksPlayerForm();
-      setWhiteSharksFeedbackMessage(editingWhiteSharksPlayerId ? "Joueur modifié." : "Joueur ajouté.");
-    } catch (error) {
-      setWhiteSharksFeedbackMessage(error instanceof Error ? error.message : "Impossible d'enregistrer.");
-    } finally {
-      setIsWhiteSharksSaving(false);
-    }
-  };
-
-  const handleDeleteWhiteSharksPlayer = async (playerId: string) => {
-    try {
-      setIsWhiteSharksSaving(true);
-      const next = await deleteWhiteSharksPlayer(playerId);
-      setWhiteSharksPalmares(next.palmares ?? []);
-      setWhiteSharksPlayers(next.players ?? []);
-      setWhiteSharksFeedbackMessage("Joueur supprimé.");
-    } catch (error) {
-      setWhiteSharksFeedbackMessage(error instanceof Error ? error.message : "Impossible de supprimer.");
-    } finally {
-      setIsWhiteSharksSaving(false);
-    }
-  };
-
   // ─── Loading ───────────────────────────────────────────────
   if (isLoading) {
     return (
@@ -493,30 +298,14 @@ export function AdminPage() {
           <form className="space-y-4" onSubmit={handleLogin}>
             <div>
               <label className="block text-sm font-medium mb-1.5" htmlFor="admin-username">Identifiant</label>
-              <Input
-                id="admin-username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Identifiant"
-                autoComplete="username"
-              />
+              <Input id="admin-username" type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Identifiant" autoComplete="username" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1.5" htmlFor="admin-password">Mot de passe</label>
-              <Input
-                id="admin-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mot de passe"
-                autoComplete="current-password"
-              />
+              <Input id="admin-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mot de passe" autoComplete="current-password" />
             </div>
             {loginError ? <p className="text-sm text-red-600">{loginError}</p> : null}
-            <Button type="submit" className="w-full bg-[#5B7D95] text-white hover:bg-[#4E6C83]">
-              Connexion
-            </Button>
+            <Button type="submit" className="w-full bg-[#5B7D95] text-white hover:bg-[#4E6C83]">Connexion</Button>
           </form>
         </motion.div>
       </div>
@@ -528,56 +317,29 @@ export function AdminPage() {
     <div className="min-h-screen bg-muted/10">
       {/* Header */}
       <div className="sticky top-16 z-20 bg-background border-b border-border/40 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between py-3">
-            <div className="flex items-center gap-3">
-              <h1 className="text-lg font-bold tracking-tight">Panel admin</h1>
-              {cloudinaryOk === false && (
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">
-                  Cloudinary non configuré
-                </span>
-              )}
-              {cloudinaryOk === true && (
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                  Cloudinary ✓
-                </span>
-              )}
-            </div>
-            <Button type="button" size="sm" variant="outline" onClick={handleLogout}>
-              <LogOut className="h-4 w-4" />
-              Déconnexion
-            </Button>
+        <div className="max-w-7xl mx-auto flex items-center justify-between py-3">
+          <div className="flex items-center gap-3">
+            <h1 className="text-lg font-bold tracking-tight">Panel admin</h1>
+            {cloudinaryOk === false && (
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">
+                Cloudinary non configuré
+              </span>
+            )}
+            {cloudinaryOk === true && (
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                Cloudinary ✓
+              </span>
+            )}
           </div>
-          <div className="flex -mb-px">
-            <button
-              type="button"
-              onClick={() => setActiveSection("tchouk-leu")}
-              className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-                activeSection === "tchouk-leu"
-                  ? "border-[#5B7D95] text-[#5B7D95]"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Tchouk&apos;Leu
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveSection("white-sharks")}
-              className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-                activeSection === "white-sharks"
-                  ? "border-violet-600 text-violet-600"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              White Sharks
-            </button>
-          </div>
+          <Button type="button" size="sm" variant="outline" onClick={handleLogout}>
+            <LogOut className="h-4 w-4" />
+            Déconnexion
+          </Button>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
 
-        {activeSection === "tchouk-leu" && <>
         {/* ── Planning ── */}
         <section>
           <div className="flex items-center justify-between mb-4">
@@ -741,21 +503,11 @@ export function AdminPage() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="title" className="block text-sm font-medium mb-1.5">Titre</label>
-                    <Input
-                      id="title"
-                      value={draft.title}
-                      onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
-                      placeholder="Ex: Tournoi régional"
-                    />
+                    <Input id="title" value={draft.title} onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))} placeholder="Ex: Tournoi régional" />
                   </div>
                   <div>
                     <label htmlFor="category" className="block text-sm font-medium mb-1.5">Type</label>
-                    <select
-                      id="category"
-                      value={draft.category}
-                      onChange={(e) => setDraft((d) => ({ ...d, category: e.target.value as ActivityCategory }))}
-                      className={selectClass}
-                    >
+                    <select id="category" value={draft.category} onChange={(e) => setDraft((d) => ({ ...d, category: e.target.value as ActivityCategory }))} className={selectClass}>
                       <option value="entrainement">Entraînement</option>
                       <option value="tournoi">Tournoi</option>
                       <option value="evenement">Événement</option>
@@ -767,12 +519,7 @@ export function AdminPage() {
                   </div>
                   <div>
                     <label htmlFor="audience" className="block text-sm font-medium mb-1.5">Public</label>
-                    <Input
-                      id="audience"
-                      value={draft.audience}
-                      onChange={(e) => setDraft((d) => ({ ...d, audience: e.target.value }))}
-                      placeholder="Ex: M12 / Tout public"
-                    />
+                    <Input id="audience" value={draft.audience} onChange={(e) => setDraft((d) => ({ ...d, audience: e.target.value }))} placeholder="Ex: M12 / Tout public" />
                   </div>
                   <div>
                     <label htmlFor="startTime" className="block text-sm font-medium mb-1.5">Début</label>
@@ -786,23 +533,12 @@ export function AdminPage() {
 
                 <div>
                   <label htmlFor="location" className="block text-sm font-medium mb-1.5">Lieu</label>
-                  <Input
-                    id="location"
-                    value={draft.location}
-                    onChange={(e) => setDraft((d) => ({ ...d, location: e.target.value }))}
-                    placeholder="Ex: Gymnase de Stella"
-                  />
+                  <Input id="location" value={draft.location} onChange={(e) => setDraft((d) => ({ ...d, location: e.target.value }))} placeholder="Ex: Gymnase de Stella" />
                 </div>
 
                 <div>
                   <label htmlFor="description" className="block text-sm font-medium mb-1.5">Description</label>
-                  <Textarea
-                    id="description"
-                    value={draft.description}
-                    onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
-                    placeholder="Informations affichées dans le planning"
-                    className="min-h-24"
-                  />
+                  <Textarea id="description" value={draft.description} onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))} placeholder="Informations affichées dans le planning" className="min-h-24" />
                 </div>
 
                 <div className="flex gap-2">
@@ -876,156 +612,6 @@ export function AdminPage() {
           </Card>
         </section>
 
-        </>}
-
-        {activeSection === "white-sharks" && <>
-        {/* ── White Sharks ── */}
-        <section>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">White Sharks</h2>
-          <Card className="border border-violet-200/60 dark:border-violet-800/40">
-            <CardContent className="pt-6">
-              <div className="grid xl:grid-cols-2 gap-8">
-                {/* Palmarès */}
-                <div className="space-y-4 rounded-xl border border-border/50 p-4">
-                  <h3 className="text-sm font-semibold">Palmarès</h3>
-                  <div>
-                    <label htmlFor="ws-title" className="block text-sm font-medium mb-1.5">Titre (FR)</label>
-                    <Input id="ws-title" value={whiteSharksPalmaresTitle} onChange={(e) => setWhiteSharksPalmaresTitle(e.target.value)} placeholder="Ex: Championnat régional" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label htmlFor="ws-title-en" className="block text-sm font-medium mb-1.5">Titre EN</label>
-                      <Input id="ws-title-en" value={whiteSharksPalmaresTitleEn} onChange={(e) => setWhiteSharksPalmaresTitleEn(e.target.value)} placeholder="Regional championship" />
-                    </div>
-                    <div>
-                      <label htmlFor="ws-title-zh" className="block text-sm font-medium mb-1.5">Titre 中文</label>
-                      <Input id="ws-title-zh" value={whiteSharksPalmaresTitleZh} onChange={(e) => setWhiteSharksPalmaresTitleZh(e.target.value)} placeholder="地区锦标赛" />
-                    </div>
-                  </div>
-                  <div>
-                    <label htmlFor="ws-year" className="block text-sm font-medium mb-1.5">Année</label>
-                    <Input id="ws-year" value={whiteSharksPalmaresYear} onChange={(e) => setWhiteSharksPalmaresYear(e.target.value)} placeholder="2026" />
-                  </div>
-                  <div>
-                    <label htmlFor="ws-desc" className="block text-sm font-medium mb-1.5">Description (FR)</label>
-                    <Textarea id="ws-desc" value={whiteSharksPalmaresDescription} onChange={(e) => setWhiteSharksPalmaresDescription(e.target.value)} className="min-h-16" placeholder="Finale remportée face à..." />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label htmlFor="ws-desc-en" className="block text-sm font-medium mb-1.5">Description EN</label>
-                      <Textarea id="ws-desc-en" value={whiteSharksPalmaresDescriptionEn} onChange={(e) => setWhiteSharksPalmaresDescriptionEn(e.target.value)} className="min-h-16" />
-                    </div>
-                    <div>
-                      <label htmlFor="ws-desc-zh" className="block text-sm font-medium mb-1.5">Description 中文</label>
-                      <Textarea id="ws-desc-zh" value={whiteSharksPalmaresDescriptionZh} onChange={(e) => setWhiteSharksPalmaresDescriptionZh(e.target.value)} className="min-h-16" />
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button type="button" className="flex-1 bg-violet-600 text-white hover:bg-violet-700" onClick={() => void handleSubmitWhiteSharksPalmares()} disabled={isWhiteSharksSaving}>
-                      {isWhiteSharksSaving ? "Enregistrement..." : editingWhiteSharksPalmaresId ? "Modifier" : "Ajouter"}
-                    </Button>
-                    {editingWhiteSharksPalmaresId ? <Button type="button" variant="outline" onClick={resetWhiteSharksPalmaresForm} disabled={isWhiteSharksSaving}>Annuler</Button> : null}
-                  </div>
-                  {whiteSharksPalmares.length > 0 ? (
-                    <div className="space-y-2 pt-1">
-                      {whiteSharksPalmares.map((entry) => (
-                        <div key={entry.id} className="rounded-md border border-border/50 bg-muted/20 px-3 py-2">
-                          <p className="text-sm font-medium">{entry.title} ({entry.year})</p>
-                          {entry.description ? <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{entry.description}</p> : null}
-                          <div className="grid grid-cols-2 gap-2 mt-2">
-                            <Button type="button" size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleEditWhiteSharksPalmares(entry)} disabled={isWhiteSharksSaving}>Modifier</Button>
-                            <Button type="button" size="sm" variant="destructive" className="h-7 text-xs" onClick={() => void handleDeleteWhiteSharksPalmares(entry.id)} disabled={isWhiteSharksSaving}>Supprimer</Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">Aucun palmarès pour le moment.</p>
-                  )}
-                </div>
-
-                {/* Adhérents */}
-                <div className="space-y-4 rounded-xl border border-border/50 p-4">
-                  <h3 className="text-sm font-semibold">Adhérent</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label htmlFor="ws-p-fn" className="block text-sm font-medium mb-1.5">Prénom</label>
-                      <Input id="ws-p-fn" value={whiteSharksPlayerFirstName} onChange={(e) => setWhiteSharksPlayerFirstName(e.target.value)} placeholder="Noah" />
-                    </div>
-                    <div>
-                      <label htmlFor="ws-p-ln" className="block text-sm font-medium mb-1.5">Nom</label>
-                      <Input id="ws-p-ln" value={whiteSharksPlayerLastName} onChange={(e) => setWhiteSharksPlayerLastName(e.target.value)} placeholder="Payet" />
-                    </div>
-                  </div>
-                  <div>
-                    <label htmlFor="ws-p-club" className="block text-sm font-medium mb-1.5">Club d'origine</label>
-                    <Input id="ws-p-club" value={whiteSharksPlayerClub} onChange={(e) => setWhiteSharksPlayerClub(e.target.value)} placeholder="Tchouk'Leu" />
-                  </div>
-                  <div>
-                    <label htmlFor="ws-p-type" className="block text-sm font-medium mb-1.5">Type de membre</label>
-                    <select id="ws-p-type" value={whiteSharksPlayerMemberType} onChange={(e) => setWhiteSharksPlayerMemberType(e.target.value as WhiteSharksMemberType)} className={selectClass}>
-                      {whiteSharksMemberTypeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium mb-1.5">Postes (optionnel)</p>
-                    <div className="grid grid-cols-2 gap-2 rounded-md border border-input bg-background p-3 text-sm">
-                      {[
-                        { value: "ailierDroit", label: "Ailier droit" },
-                        { value: "ailierGauche", label: "Ailier gauche" },
-                        { value: "centreCadre", label: "Centre cadre" },
-                        { value: "milieu", label: "Milieu" },
-                      ].map((opt) => (
-                        <label key={opt.value} className="flex items-center gap-2 text-sm">
-                          <input
-                            type="checkbox"
-                            checked={whiteSharksPlayerPositions.includes(opt.value)}
-                            onChange={(e) => setWhiteSharksPlayerPositions((prev) =>
-                              e.target.checked ? [...prev, opt.value] : prev.filter((v) => v !== opt.value),
-                            )}
-                          />
-                          {opt.label}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label htmlFor="ws-p-birth" className="block text-sm font-medium mb-1.5">Année de naissance (optionnel)</label>
-                    <Input id="ws-p-birth" type="number" min={1900} max={2100} value={whiteSharksPlayerBirthYear} onChange={(e) => setWhiteSharksPlayerBirthYear(e.target.value)} placeholder="1998" />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button type="button" className="flex-1 bg-violet-600 text-white hover:bg-violet-700" onClick={() => void handleSubmitWhiteSharksPlayer()} disabled={isWhiteSharksSaving}>
-                      {isWhiteSharksSaving ? "Enregistrement..." : editingWhiteSharksPlayerId ? "Modifier" : "Ajouter"}
-                    </Button>
-                    {editingWhiteSharksPlayerId ? <Button type="button" variant="outline" onClick={resetWhiteSharksPlayerForm} disabled={isWhiteSharksSaving}>Annuler</Button> : null}
-                  </div>
-                  {whiteSharksPlayers.length > 0 ? (
-                    <div className="space-y-2 pt-1">
-                      {whiteSharksPlayers.map((player) => (
-                        <div key={player.id} className="rounded-md border border-border/50 bg-muted/20 px-3 py-2">
-                          <p className="text-sm font-medium">{player.firstName} {player.lastName}</p>
-                          <p className="text-xs text-muted-foreground">{whiteSharksMemberTypeLabelByValue[player.memberType]} · {player.club}</p>
-                          {player.birthYear ? <p className="text-xs text-muted-foreground">{player.birthYear}</p> : null}
-                          <div className="grid grid-cols-2 gap-2 mt-2">
-                            <Button type="button" size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleEditWhiteSharksPlayer(player)} disabled={isWhiteSharksSaving}>Modifier</Button>
-                            <Button type="button" size="sm" variant="destructive" className="h-7 text-xs" onClick={() => void handleDeleteWhiteSharksPlayer(player.id)} disabled={isWhiteSharksSaving}>Supprimer</Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">Aucun joueur pour le moment.</p>
-                  )}
-                </div>
-              </div>
-
-              {whiteSharksFeedbackMessage ? (
-                <p className="mt-4 text-sm text-muted-foreground">{whiteSharksFeedbackMessage}</p>
-              ) : null}
-            </CardContent>
-          </Card>
-        </section>
-        </>}
       </div>
     </div>
   );

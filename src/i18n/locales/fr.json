@@ -4,7 +4,6 @@
     "club": "Tchouk'Leu",
     "oiboi": "OIBOI",
     "planning": "Planning",
-    "whiteSharks": "White Sharks",
     "gallery": "Galerie",
     "contact": "Contact",
     "openMenu": "Ouvrir le menu",
@@ -154,35 +153,5 @@
     "venueDesc": "Consultez les horaires à jour avant de passer, pour voir les entraînements, stages et événements du club.",
     "seePlanning": "Voir le planning",
     "phone_label": "Téléphone"
-  },
-  "whiteSharks": {
-    "description": "Équipe de sélection des meilleurs jeunes de la Réunion, les White Sharks rassemblent des talents provenant de plusieurs clubs de l'île pour représenter le territoire sur les échéances sportives majeures.",
-    "palmares": "Palmarès",
-    "palmaresEmpty": "Le palmarès des White Sharks sera ajouté prochainement.",
-    "roster": "Effectif",
-    "rosterEmpty": "La liste de l'effectif White Sharks sera ajoutée prochainement.",
-    "coaches": "Coachs",
-    "volunteers": "Staff",
-    "players": "Joueurs",
-    "captain": "Capitaine",
-    "originClub": "Club d'origine :",
-    "bornIn": "Né en",
-    "palmaresLegacy": {
-      "championOpenIndianOceanBeach": "Champion de l'Open International de Beach de l'Océan Indien",
-      "whiteSharks2ThirdPlace": "White Sharks 2 étant arriver 3ème !"
-    },
-    "positions": {
-      "attaquant": "Attaquant",
-      "defenseur": "Défenseur",
-      "pivot": "Pivot",
-      "ailier": "Ailier",
-      "ailierDroit": "Ailier droit",
-      "ailierGauche": "Ailier gauche",
-      "centreCadre": "Centre cadre",
-      "milieu": "Milieu",
-      "ailierCentreCadre": "Ailier / Centre cadre",
-      "arriere": "Arrière",
-      "libero": "Libéro"
-    }
   }
 }

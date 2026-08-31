@@ -1,15 +1,11 @@
 import { ExternalLink, Mail, MapPin, Phone } from "lucide-react";
-import { Link, useLocation } from "react-router";
+import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Separator } from "./ui/separator";
 
 export function Footer() {
   const { t } = useTranslation();
-  const location = useLocation();
-  const isWhiteSharks = location.pathname.startsWith("/white-sharks");
   const currentYear = new Date().getFullYear();
-
-  const accent = isWhiteSharks ? "text-violet-400" : "text-[#5B7D95]";
   const hoverLink = "text-slate-500 hover:text-slate-200 transition-colors text-sm";
 
   return (
@@ -19,23 +15,13 @@ export function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-3 mb-3">
-              <img
-                src={isWhiteSharks ? "/images/WhiteSharksLogo.png" : "/images/logo.png"}
-                alt={isWhiteSharks ? "White Sharks" : "Tchouk'Leu"}
-                className="h-12 w-auto object-contain"
-              />
+              <img src="/images/logo.png" alt="Tchouk'Leu" className="h-12 w-auto object-contain" />
               <div>
-                <p className="font-bold text-slate-100 leading-tight">
-                  {isWhiteSharks ? "White Sharks" : "Tchouk'Leu"}
-                </p>
-                <p className="text-xs text-slate-600">
-                  {isWhiteSharks ? "Sélection La Réunion" : t("footer.since")}
-                </p>
+                <p className="font-bold text-slate-100 leading-tight">Tchouk&apos;Leu</p>
+                <p className="text-xs text-slate-600">{t("footer.since")}</p>
               </div>
             </div>
-            <p className="text-xs text-slate-600 mt-4">
-              {isWhiteSharks ? t("footer.indianOcean") : "Saint-Leu, La Réunion"}
-            </p>
+            <p className="text-xs text-slate-600 mt-4">Saint-Leu, La Réunion</p>
           </div>
 
           {/* Navigation */}
@@ -47,8 +33,8 @@ export function Footer() {
               {[
                 { to: "/", label: t("nav.home") },
                 { to: "/club", label: t("nav.club") },
+                { to: "/oiboi", label: "OIBOI" },
                 { to: "/planning", label: t("nav.planning") },
-                { to: "/white-sharks", label: "White Sharks" },
                 { to: "/galerie", label: t("nav.gallery") },
                 { to: "/contact", label: t("nav.contact") },
               ].map(({ to, label }) => (
@@ -66,40 +52,32 @@ export function Footer() {
             </p>
             <ul className="space-y-3">
               <li className="flex items-center gap-3">
-                <ExternalLink className={`h-3.5 w-3.5 flex-shrink-0 ${accent}`} />
+                <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-[#5B7D95]" />
                 <a
-                  href={isWhiteSharks ? "https://www.instagram.com/wst_tchoukball/" : "https://www.instagram.com/tchouk_leu/"}
+                  href="https://www.instagram.com/tchouk_leu/"
                   target="_blank"
                   rel="noreferrer"
                   className={hoverLink}
                 >
-                  {isWhiteSharks ? "@wst_tchoukball" : "@tchouk_leu"}
+                  @tchouk_leu
                 </a>
               </li>
               <li className="flex items-start gap-3">
-                <Mail className={`h-3.5 w-3.5 flex-shrink-0 mt-0.5 ${accent}`} />
+                <Mail className="h-3.5 w-3.5 flex-shrink-0 mt-0.5 text-[#5B7D95]" />
                 <div className="space-y-1">
-                  {isWhiteSharks ? (
-                    <span className={hoverLink}>bgaillard.pro@gmail.com</span>
-                  ) : (
-                    <>
-                      <a href="mailto:bgaillard.pro@gmail.com" className={`block ${hoverLink}`}>bgaillard.pro@gmail.com</a>
-                      <a href="mailto:nicolasg97424@gmail.com" className={`block ${hoverLink}`}>nicolasg97424@gmail.com</a>
-                    </>
-                  )}
+                  <a href="mailto:bgaillard.pro@gmail.com" className={`block ${hoverLink}`}>bgaillard.pro@gmail.com</a>
+                  <a href="mailto:nicolasg97424@gmail.com" className={`block ${hoverLink}`}>nicolasg97424@gmail.com</a>
                 </div>
               </li>
               <li className="flex items-start gap-3">
-                <Phone className={`h-3.5 w-3.5 flex-shrink-0 mt-0.5 ${accent}`} />
+                <Phone className="h-3.5 w-3.5 flex-shrink-0 mt-0.5 text-[#5B7D95]" />
                 <div className="space-y-1">
                   <a href="tel:+33656714037" className={`block ${hoverLink}`}>+33 656 71 40 37</a>
-                  {!isWhiteSharks && (
-                    <a href="tel:+262692812102" className={`block ${hoverLink}`}>+262 692 812102</a>
-                  )}
+                  <a href="tel:+262692812102" className={`block ${hoverLink}`}>+262 692 812102</a>
                 </div>
               </li>
               <li className="flex items-center gap-3">
-                <MapPin className={`h-3.5 w-3.5 flex-shrink-0 ${accent}`} />
+                <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-[#5B7D95]" />
                 <span className={hoverLink}>Saint-Leu, Réunion</span>
               </li>
             </ul>

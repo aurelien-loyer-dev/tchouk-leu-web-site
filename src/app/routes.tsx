@@ -6,7 +6,6 @@ import { ClubPage } from "./pages/ClubPage";
 import { ContactPage } from "./pages/ContactPage";
 import { PlanningPage } from "./pages/PlanningPage";
 import { AdminPage } from "./pages/AdminPage";
-import { WhitesSharkPage } from "./pages/WhitesSharkPage";
 import { OiboiPage } from "./pages/OiboiPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 
@@ -20,7 +19,6 @@ export const router = createBrowserRouter([
       { index: true, Component: HomePage },
       { path: "club", Component: ClubPage },
       { path: "planning", Component: PlanningPage },
-      { path: "white-sharks", Component: WhitesSharkPage },
       { path: "oiboi", Component: OiboiPage },
       { path: "galerie", element: <Suspense fallback={null}><GalleryPage /></Suspense> },
       { path: "contact", Component: ContactPage },
